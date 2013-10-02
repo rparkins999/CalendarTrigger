@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calendar Mute</string>
+    <string name="prochains_evenements">Prochains évènements</string>
+    <string name="erreur_listing_agendas">Erreur de listing de vos agendas ; Google Calendar est-il installé ?</string>
+    <string name="agendas">Agendas</string>
+    <string name="actions">Actions</string>
+    <string name="chargement">Chargement&#8230;</string>
+    <string name="synchronise">Synchronisé</string>
+    <string name="non_synchronise">Non synchronisé</string>
+    <string name="rafraichir_calendriers">Rafraîchir les calendriers</string>
+    <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
+    <string name="lors_evenement_agenda">Lors d\'un évènement</string>
+    <string name="ne_rien_faire">Ne rien faire</string>
+    <string name="mettre_silencieux">Mettre en silencieux</string>
+    <string name="mettre_vibreur">Mettre en vibreur</string>
+    <string name="restaurer_etat_precedent">Restaurer le mode précédent</string>
+    <string name="une_fois_even_termine">Une fois l\'évènement terminé</string>
+    <string name="afficher_notification">Afficher une notification</string>
+	<string name="mode_sonnerie_change">Mode de sonnerie changé</string>
+	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement</string>
+	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement</string>
+</resources>

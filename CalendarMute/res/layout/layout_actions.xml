@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:padding="@dimen/default_padding"
+	    android:orientation="vertical" >
+	
+	    <TextView
+	        android:id="@+id/lblLorsEvenement"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:paddingTop="@dimen/default_padding"
+	        android:textAppearance="@android:style/TextAppearance.Medium"
+	        android:textColor="@android:color/holo_blue_dark"
+	        android:text="@string/lors_evenement_agenda" />
+	    
+	    <View
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+			android:layout_marginBottom="@dimen/default_padding"
+			android:background="@android:color/holo_blue_dark"/>
+	
+	    <RadioGroup
+	        android:id="@+id/radioGroupActionSonnerie"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" >
+	
+	        <RadioButton
+	            android:id="@+id/radioRienFaire"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:checked="true"
+	            android:text="@string/ne_rien_faire" />
+	
+	        <RadioButton
+	            android:id="@+id/radioSilencieux"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/mettre_silencieux" />
+	
+	        <RadioButton
+	            android:id="@+id/radioVibreur"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/mettre_vibreur" />
+	    </RadioGroup>
+	    
+	    <CheckBox
+	        android:id="@+id/chkAfficherNotif"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/afficher_notification" />
+	    
+	    <TextView
+	        android:id="@+id/lblEvenementTermine"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:paddingTop="@dimen/default_padding"
+	        android:textAppearance="@android:style/TextAppearance.Medium"
+	        android:textColor="@android:color/holo_blue_dark"
+	        android:text="@string/une_fois_even_termine" />
+	    
+	    <View
+			android:layout_width="match_parent"
+			android:layout_height="1dp"
+			android:layout_marginBottom="@dimen/default_padding"
+			android:background="@android:color/holo_blue_dark"/>
+	
+	    <CheckBox
+	        android:id="@+id/chkRestaurerEtat"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/restaurer_etat_precedent" />
+	
+	    
+	
+	</LinearLayout>
+</ScrollView>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Calendar Mute</string>
+    <string name="prochains_evenements">Next events</string>
+    <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
+    <string name="agendas">Agendas</string>
+    <string name="actions">Actions</string>
+    <string name="chargement">Loading&#8230;</string>
+    <string name="synchronise">Synchronized</string>
+    <string name="non_synchronise">Not synchronized</string>
+    <string name="rafraichir_calendriers">Refresh calendars</string>
+    <string name="rafraichir_calendriers_short">Refresh calendars</string>
+    <string name="lors_evenement_agenda">During an event</string>
+    <string name="ne_rien_faire">Do nothing</string>
+    <string name="mettre_silencieux">Switch to silent</string>
+    <string name="mettre_vibreur">Switch to vibrate</string>
+    <string name="restaurer_etat_precedent">Restore the previous mode</string>
+    <string name="une_fois_even_termine">When the event ends</string>
+    <string name="afficher_notification">Show a notification</string>
+	<string name="mode_sonnerie_change">Ringer mode changed</string>
+	<string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event</string>
+	<string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:paddingLeft="@dimen/default_padding"
+    android:paddingRight="@dimen/default_padding" >
+    
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+	    android:layout_alignParentLeft="true"
+	    android:orientation="vertical">
+	    <TextView
+	        android:id="@+id/lbl_nom_calendrier"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/chargement"
+	        android:textAppearance="@android:style/TextAppearance.Medium" />
+	    
+	    <TextView
+	        android:id="@+id/lbl_details_calendrier"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/chargement"
+	        android:textAppearance="@android:style/TextAppearance.Small" />
+    </LinearLayout>
+     
+     
+    <CheckBox
+        android:id="@+id/chk_calendrier"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:clickable="false"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</merge>
