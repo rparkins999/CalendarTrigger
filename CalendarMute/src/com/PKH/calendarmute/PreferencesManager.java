@@ -23,6 +23,12 @@ public class PreferencesManager {
 	
 	private static final String PREF_LAST_SET_RINGER_MODE = "lastSetRingerMode";
 	
+	private static final String PREF_ONLY_BUSY = "onlyBusy";
+	
+	private static final String PREF_DELAY = "delay";
+	
+	private static final String PREF_DELAY_ACTIVATED = "delayActivated";
+	
 	public static final int PREF_ACTION_SONNERIE_RIEN = 0;
 	public static final int PREF_ACTION_SONNERIE_SILENCIEUX = 1;
 	public static final int PREF_ACTION_SONNERIE_VIBREUR = 2;
@@ -35,6 +41,12 @@ public class PreferencesManager {
 	public static final boolean PREF_AFFICHER_NOTIF_DEFAULT = true;
 	
 	public static final int PREF_LAST_SET_RINGER_MODE_NO_MODE = -99;
+	
+	public static final boolean PREF_ONLY_BUSY_DEFAULT = false;
+	
+	public static final int PREF_DELAY_DEFAULT = 5;
+	
+	public static final boolean PREF_DELAY_ACTIVATED_DEFAULT = false;
 	
 	public static LinkedHashMap<Long, Boolean> getCheckedCalendars(Context context) {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); 
@@ -99,6 +111,19 @@ public class PreferencesManager {
 	public final static void setLastSetRingerMode(Context context, int ringerMode) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_LAST_SET_RINGER_MODE, ringerMode).commit();
 	}
+	
+	// TODO : ajouter delays (setters), toussa
+	public final static void setOnlyBusy(Context context, boolean onlyBusy) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_ONLY_BUSY, onlyBusy).commit();
+	}
+	
+	public final static void setDelay(Context context, int delay) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_DELAY, delay).commit();
+	}
+	
+	public final static void setDelayActived(Context context, boolean delayActivated) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_DELAY_ACTIVATED, delayActivated).commit();
+	}
 
 	public final static int getSavedMode(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_SAUVEGARDE_MODE, PREF_SAVED_MODE_NO_VALUE);
@@ -118,5 +143,17 @@ public class PreferencesManager {
 	
 	public static int getLastSetRingerMode(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_LAST_SET_RINGER_MODE, PREF_LAST_SET_RINGER_MODE_NO_MODE);
+	}
+	
+	public static boolean getOnlyBusy(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_ONLY_BUSY, PREF_ONLY_BUSY_DEFAULT);
+	}
+	
+	public static boolean getDelayActivated(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_DELAY_ACTIVATED, PREF_DELAY_ACTIVATED_DEFAULT);
+	}
+	
+	public static int getDelay(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_DELAY, PREF_DELAY_DEFAULT);
 	}
 }
