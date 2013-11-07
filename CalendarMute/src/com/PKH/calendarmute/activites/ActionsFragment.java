@@ -70,14 +70,26 @@ public class ActionsFragment extends Fragment {
 	private CompoundButton.OnCheckedChangeListener chkOnlyBusyCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			PreferencesManager.setOnlyBusy(getActivity(), isChecked);
+			
+			Activity a = getActivity();
+			
+			PreferencesManager.setOnlyBusy(a, isChecked);
+			
+			// Lancement du service pour update
+			MuteService.startIfNecessary(a);
 		}
 	};
 	
 	private CompoundButton.OnCheckedChangeListener chkDelayActivatedChangeListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			PreferencesManager.setDelayActived(getActivity(), isChecked);
+			
+			Activity a = getActivity();
+			
+			PreferencesManager.setDelayActived(a, isChecked);
+			
+			// Lancement du service pour update
+			MuteService.startIfNecessary(a);
 		}
 	};
 	
@@ -92,12 +104,16 @@ public class ActionsFragment extends Fragment {
 				int count) {
 			
 			try {
-				int delay = Integer.parseInt(s.toString());
+				Activity a = getActivity();
 				
-				PreferencesManager.setDelay(getActivity(), delay);
+				int delay = (s.length() == 0 ? 0 : Integer.parseInt(s.toString()));
+				
+				PreferencesManager.setDelay(a, delay);
+				
+				MuteService.startIfNecessary(a);
 			}
 			catch(NumberFormatException e) {
-				txtDelay.setText(PreferencesManager.PREF_DELAY_DEFAULT);
+				txtDelay.setText(String.valueOf(PreferencesManager.PREF_DELAY_DEFAULT));
 			}
 			
 		}
@@ -160,6 +176,6 @@ public class ActionsFragment extends Fragment {
 		
 		chkOnlyBusy.setChecked(PreferencesManager.getOnlyBusy(a));
 		
-		txtDelay.setText(PreferencesManager.getDelay(a));
+		txtDelay.setText(String.valueOf(PreferencesManager.getDelay(a)));
 	}
 }

@@ -101,7 +101,7 @@
 	            android:layout_weight="1"
 	            android:gravity="center_horizontal"
 	            android:inputType="number"
-	            android:maxLength="5"
+	            android:maxLength="3"
 	            android:minEms="3"
 	            android:textAppearance="?android:attr/textAppearance" />
 	        
