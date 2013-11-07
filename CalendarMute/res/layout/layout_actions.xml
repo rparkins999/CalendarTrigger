@@ -55,6 +55,12 @@
 	        android:layout_height="wrap_content"
 	        android:text="@string/afficher_notification" />
 	    
+	    <CheckBox
+	        android:id="@+id/chkSeulementOccupe"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/seulement_evenement_occupe" />
+	    
 	    <TextView
 	        android:id="@+id/lblEvenementTermine"
 	        android:layout_width="wrap_content"
@@ -75,8 +81,41 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/restaurer_etat_precedent" />
-	
+
+	    <LinearLayout
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:orientation="horizontal"
+	        android:gravity="center_vertical" >
+	        
+	        <CheckBox
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/avec_delai_x_minutes_pre" />
+
+	        <EditText
+	            android:id="@+id/txtDelay"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:gravity="center_horizontal"
+	            android:inputType="number"
+	            android:maxLength="5"
+	            android:minEms="3"
+	            android:textAppearance="?android:attr/textAppearance" />
+	        
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/avec_delai_x_minutes_suf"
+	            android:textAppearance="?android:attr/textAppearance" />
+	        
+	    </LinearLayout>
+
 	    
 	
 	</LinearLayout>
+
+	
+
 </ScrollView>

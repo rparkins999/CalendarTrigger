@@ -21,4 +21,7 @@
 	<string name="mode_sonnerie_change">Ringer mode changed</string>
 	<string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event</string>
 	<string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event</string>
+	<string name="seulement_evenement_occupe">Only for \"busy\" events</string>
+	<string name="avec_delai_x_minutes_pre">With a</string>
+	<string name="avec_delai_x_minutes_suf">minutes delay</string>
 </resources>
