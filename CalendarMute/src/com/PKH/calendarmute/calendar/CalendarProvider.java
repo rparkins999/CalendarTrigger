@@ -38,12 +38,14 @@ public class CalendarProvider {
 	public static final String[] INSTANCE_PROJECTION = new String[] {
 		Instances.TITLE,
 		Instances.BEGIN,
-		Instances.END
+		Instances.END,
+		Instances.AVAILABILITY
 	};
 	
 	public static final int INSTANCE_PROJECTION_TITLE_INDEX = 0;
 	public static final int INSTANCE_PROJECTION_BEGIN_INDEX = 1;
 	public static final int INSTANCE_PROJECTION_END_INDEX = 2;
+	public static final int INSTANCE_PROJECTION_AVAILABILITY = 3;
 	
 	/**
 	 * Récupération des derniers calendriers chargés par listCalendar
@@ -114,7 +116,7 @@ public class CalendarProvider {
 	 * @param currentTime Heure à laquelle effectuer la recherche
 	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
 	 */
-	public CalendarEvent getCurrentEvent(long currentTime) {
+	public CalendarEvent getCurrentEvent(long currentTime, long delay, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
 		// Fabrication de la chaîne de sélection des IDs de calendriers
@@ -125,12 +127,17 @@ public class CalendarProvider {
 		
 		// La sélection est large sur le début de l'évènement et stricte sur la fin
 		// Permet d'être considéré en-dehors de l'évènement en planifiant une alarme à l'heure de fin
-		String selection = "((" + calIdsSelect + ") AND "
+		String selection = "(" + calIdsSelect + ") AND "
 				+ Instances.BEGIN + " <= ? AND "
-				+ Instances.END + " > ? AND " + Instances.ALL_DAY + " = 0)";
+				+ Instances.END + " > ? AND " + Instances.ALL_DAY + " = 0";
+		
+		if(onlyBusy) {
+			selection += " AND " + Instances.AVAILABILITY + " = " + Instances.AVAILABILITY_BUSY;
+		}
 		
 		String strCurrentTime = String.valueOf(currentTime);
-		String[] selectionArgs =  new String[] { strCurrentTime, strCurrentTime };
+		String strCurrentTimeDelay = String.valueOf(currentTime - delay);
+		String[] selectionArgs =  new String[] { strCurrentTime, strCurrentTimeDelay };
 		
 		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.END); // On prend l'évènement qui se termine le plus vite
 		
@@ -150,7 +157,7 @@ public class CalendarProvider {
 	 * @param currentTime Heure à laquelle effectuer la recherche
 	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
 	 */
-	public CalendarEvent getNextEvent(long currentTime) {
+	public CalendarEvent getNextEvent(long currentTime, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
 		// Fabrication de la chaîne de sélection des IDs de calendriers
@@ -161,8 +168,12 @@ public class CalendarProvider {
 		
 		// La sélection est large sur le début de l'évènement
 		// Permet la compatibilité de logique avec getCurrentEvent
-		String selection = "(" + calIdsSelect + ") AND ("
-				+ Instances.BEGIN + " >= ? AND " + Instances.ALL_DAY + " = 0)";
+		String selection = "(" + calIdsSelect + ") AND "
+				+ Instances.BEGIN + " >= ? AND " + Instances.ALL_DAY + " = 0";
+		
+		if(onlyBusy) {
+			selection += " AND " + Instances.AVAILABILITY + " = " + Instances.AVAILABILITY_BUSY;
+		}
 		
 		String strCurrentTime = String.valueOf(currentTime);
 		String[] selectionArgs =  new String[] { strCurrentTime };
