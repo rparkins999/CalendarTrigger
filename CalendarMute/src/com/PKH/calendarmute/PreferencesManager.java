@@ -29,6 +29,10 @@ public class PreferencesManager {
 	
 	private static final String PREF_DELAY_ACTIVATED = "delayActivated";
 	
+	private static final String PREF_EARLY = "early";
+	
+	private static final String PREF_EARLY_ACTIVATED = "earlyActivated";
+	
 	public static final int PREF_ACTION_SONNERIE_RIEN = 0;
 	public static final int PREF_ACTION_SONNERIE_SILENCIEUX = 1;
 	public static final int PREF_ACTION_SONNERIE_VIBREUR = 2;
@@ -46,7 +50,11 @@ public class PreferencesManager {
 	
 	public static final int PREF_DELAY_DEFAULT = 5;
 	
+	public static final int PREF_EARLY_DEFAULT = 0;
+	
 	public static final boolean PREF_DELAY_ACTIVATED_DEFAULT = false;
+	
+	public static final boolean PREF_EARLY_ACTIVATED_DEFAULT = false;
 	
 	public static LinkedHashMap<Long, Boolean> getCheckedCalendars(Context context) {
 		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); 
@@ -112,7 +120,6 @@ public class PreferencesManager {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_LAST_SET_RINGER_MODE, ringerMode).commit();
 	}
 	
-	// TODO : ajouter delays (setters), toussa
 	public final static void setOnlyBusy(Context context, boolean onlyBusy) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_ONLY_BUSY, onlyBusy).commit();
 	}
@@ -123,6 +130,14 @@ public class PreferencesManager {
 	
 	public final static void setDelayActived(Context context, boolean delayActivated) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_DELAY_ACTIVATED, delayActivated).commit();
+	}
+	
+	public final static void setEarly(Context context, int early) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_EARLY, early).commit();
+	}
+	
+	public final static void setEarlyActived(Context context, boolean earlyActivated) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_EARLY_ACTIVATED, earlyActivated).commit();
 	}
 
 	public final static int getSavedMode(Context context) {
@@ -153,7 +168,15 @@ public class PreferencesManager {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_DELAY_ACTIVATED, PREF_DELAY_ACTIVATED_DEFAULT);
 	}
 	
+	public static boolean getEarlyActivated(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_EARLY_ACTIVATED, PREF_EARLY_ACTIVATED_DEFAULT);
+	}
+	
 	public static int getDelay(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_DELAY, PREF_DELAY_DEFAULT);
+	}
+	
+	public static int getEarly(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_EARLY, PREF_EARLY_DEFAULT);
 	}
 }

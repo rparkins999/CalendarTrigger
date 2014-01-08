@@ -114,9 +114,11 @@ public class CalendarProvider {
 	/**
 	 * Renvoie l'évènement en cours dans un des calendriers enregistrés en préférences
 	 * @param currentTime Heure à laquelle effectuer la recherche
+	 * @param delay Délai étendant l'intervalle des événements à partir de la fin
+	 * @param early Délai étendant l'intervalle des événements avant le début
 	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
 	 */
-	public CalendarEvent getCurrentEvent(long currentTime, long delay, boolean onlyBusy) {
+	public CalendarEvent getCurrentEvent(long currentTime, long delay, long early, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
 		// Fabrication de la chaîne de sélection des IDs de calendriers
@@ -135,9 +137,9 @@ public class CalendarProvider {
 			selection += " AND " + Instances.AVAILABILITY + " = " + Instances.AVAILABILITY_BUSY;
 		}
 		
-		String strCurrentTime = String.valueOf(currentTime);
+		String strCurrentTimeEarly = String.valueOf(currentTime + early);
 		String strCurrentTimeDelay = String.valueOf(currentTime - delay);
-		String[] selectionArgs =  new String[] { strCurrentTime, strCurrentTimeDelay };
+		String[] selectionArgs =  new String[] { strCurrentTimeEarly, strCurrentTimeDelay };
 		
 		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.END); // On prend l'évènement qui se termine le plus vite
 		
@@ -155,9 +157,10 @@ public class CalendarProvider {
 	/**
 	 * Renvoie le prochain évènement dans un des calendriers enregistrés en préférences
 	 * @param currentTime Heure à laquelle effectuer la recherche
+	 * @param early Délai à utiliser pour étendre les dates de début des événements avant le début réel
 	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
 	 */
-	public CalendarEvent getNextEvent(long currentTime, boolean onlyBusy) {
+	public CalendarEvent getNextEvent(long currentTime, long early, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
 		// Fabrication de la chaîne de sélection des IDs de calendriers
@@ -175,7 +178,8 @@ public class CalendarProvider {
 			selection += " AND " + Instances.AVAILABILITY + " = " + Instances.AVAILABILITY_BUSY;
 		}
 		
-		String strCurrentTime = String.valueOf(currentTime);
+		// On soustrait early à Instances.BEGIN -> revient à l'ajouter à currentTime dans la comparaison
+		String strCurrentTime = String.valueOf(currentTime + early);
 		String[] selectionArgs =  new String[] { strCurrentTime };
 		
 		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.BEGIN); // On trie par heure de début pour avoir le premier évèn'

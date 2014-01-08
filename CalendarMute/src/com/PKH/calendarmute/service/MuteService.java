@@ -128,7 +128,7 @@ public class MuteService extends Service {
 		notifManager.notify(NOTIF_ID, builder.build());
 	}
 	
-	private void setNextAlarm(CalendarEvent currentEvent, long timeNow, long delay, boolean onlyBusy, CalendarProvider provider) {
+	private void setNextAlarm(CalendarEvent currentEvent, long timeNow, long delay, long early, boolean onlyBusy, CalendarProvider provider) {
 		
 		PendingIntent pIntent = PendingIntent.getService(this, 0, new Intent(this, MuteService.class), PendingIntent.FLAG_ONE_SHOT);
 		AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
@@ -138,7 +138,7 @@ public class MuteService extends Service {
 			timeProchainAppel = currentEvent.getEndTime().getTimeInMillis() + delay;
 		}
 		else { // Pas d'évèn : appel au début du prochain évènement
-			CalendarEvent nextEvent = provider.getNextEvent(timeNow, onlyBusy);
+			CalendarEvent nextEvent = provider.getNextEvent(timeNow, early, onlyBusy);
 			
 			if(nextEvent != null)
 				timeProchainAppel = nextEvent.getStartTime().getTimeInMillis();
@@ -162,18 +162,20 @@ public class MuteService extends Service {
 		// Timestamp utilisé pour toutes les requêtes (consistance de l'instant)
 		long timeNow = System.currentTimeMillis();
 		boolean delayActivated = PreferencesManager.getDelayActivated(this);
+		boolean earlyActivated = PreferencesManager.getEarlyActivated(this);
 		long delay = delayActivated ? PreferencesManager.getDelay(this) * 60 * 1000 : 0;
+		long early = earlyActivated ? PreferencesManager.getEarly(this) * 60 * 1000 : 0;
 		
 		boolean onlyBusy = PreferencesManager.getOnlyBusy(this);
 		
 		// Récupération de l'éventuel évènement en cours
 		CalendarProvider provider = new CalendarProvider(this);
-		CalendarEvent currentEvent = provider.getCurrentEvent(timeNow, delay, onlyBusy);
+		CalendarEvent currentEvent = provider.getCurrentEvent(timeNow, delay, early, onlyBusy);
 		
 		updateStatutSonnerie(currentEvent);
 		
 		// Planification du prochain appel
-		setNextAlarm(currentEvent, timeNow, delay, onlyBusy, provider);
+		setNextAlarm(currentEvent, timeNow, delay, early, onlyBusy, provider);
 		
 		return START_NOT_STICKY; // Le service peut être détruit maintenant qu'il a fini son boulot
 	}

@@ -24,4 +24,6 @@
 	<string name="seulement_evenement_occupe">Only for \"busy\" events</string>
 	<string name="avec_delai_x_minutes_pre">With a</string>
 	<string name="avec_delai_x_minutes_suf">minutes delay</string>
+	<string name="avec_avance_x_minutes_pre">Start</string>
+	<string name="avec_avance_x_minutes_suf">minutes early</string>
 </resources>

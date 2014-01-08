@@ -23,8 +23,10 @@ public class ActionsFragment extends Fragment {
 	protected CheckBox chkRestaurer;
 	protected CheckBox chkNotif;
 	protected CheckBox chkDelayActivated;
+	protected CheckBox chkEarlyActivated;
 	protected CheckBox chkOnlyBusy;
 	protected EditText txtDelay;
+	protected EditText txtEarly;
 	
 	private RadioGroup.OnCheckedChangeListener radioGroupActionCheckedChangedListener = new RadioGroup.OnCheckedChangeListener() {
 		@Override
@@ -93,6 +95,19 @@ public class ActionsFragment extends Fragment {
 		}
 	};
 	
+	private CompoundButton.OnCheckedChangeListener chkEarlyActivatedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			
+			Activity a = getActivity();
+			
+			PreferencesManager.setEarlyActived(a, isChecked);
+			
+			// Lancement du service pour update
+			MuteService.startIfNecessary(a);
+		}
+	};
+	
 	private TextWatcher txtDelayChangeListener = new TextWatcher() {
 
 		@Override
@@ -115,12 +130,38 @@ public class ActionsFragment extends Fragment {
 			catch(NumberFormatException e) {
 				txtDelay.setText(String.valueOf(PreferencesManager.PREF_DELAY_DEFAULT));
 			}
-			
 		}
 
 		@Override
 		public void afterTextChanged(Editable s) { }
-		
+	};
+	
+	private TextWatcher txtEarlyChangeListener = new TextWatcher() {
+
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count,
+				int after) { }
+
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before,
+				int count) {
+			
+			try {
+				Activity a = getActivity();
+				
+				int early = (s.length() == 0 ? 0 : Integer.parseInt(s.toString()));
+				
+				PreferencesManager.setEarly(a, early);
+				
+				MuteService.startIfNecessary(a);
+			}
+			catch(NumberFormatException e) {
+				txtEarly.setText(String.valueOf(PreferencesManager.PREF_DELAY_DEFAULT));
+			}
+		}
+
+		@Override
+		public void afterTextChanged(Editable s) { }
 	};
 	
 	@Override
@@ -132,7 +173,9 @@ public class ActionsFragment extends Fragment {
 		chkNotif = (CheckBox) res.findViewById(R.id.chkAfficherNotif);
 		chkOnlyBusy = (CheckBox) res.findViewById(R.id.chkSeulementOccupe);
 		chkDelayActivated = (CheckBox) res.findViewById(R.id.chkDelayActivated);
+		chkEarlyActivated = (CheckBox) res.findViewById(R.id.chkAvanceActivated);
 		txtDelay = (EditText) res.findViewById(R.id.txtDelay);
+		txtEarly = (EditText) res.findViewById(R.id.txtAvance);
 		
 		restaurerValeurs();
 		
@@ -141,8 +184,10 @@ public class ActionsFragment extends Fragment {
 		chkRestaurer.setOnCheckedChangeListener(chkRestaurerCheckedChangeListener);
 		chkNotif.setOnCheckedChangeListener(chkAfficherNotifCheckedChangeListener);
 		chkDelayActivated.setOnCheckedChangeListener(chkDelayActivatedChangeListener);
+		chkEarlyActivated.setOnCheckedChangeListener(chkEarlyActivatedChangeListener);
 		chkOnlyBusy.setOnCheckedChangeListener(chkOnlyBusyCheckedChangeListener);
 		txtDelay.addTextChangedListener(txtDelayChangeListener);
+		txtEarly.addTextChangedListener(txtEarlyChangeListener);
 		
 		return res;
 	}
@@ -174,8 +219,12 @@ public class ActionsFragment extends Fragment {
 		
 		chkDelayActivated.setChecked(PreferencesManager.getDelayActivated(a));
 		
+		chkEarlyActivated.setChecked(PreferencesManager.getEarlyActivated(a));
+		
 		chkOnlyBusy.setChecked(PreferencesManager.getOnlyBusy(a));
 		
 		txtDelay.setText(String.valueOf(PreferencesManager.getDelay(a)));
+		
+		txtEarly.setText(String.valueOf(PreferencesManager.getDelay(a)));
 	}
 }

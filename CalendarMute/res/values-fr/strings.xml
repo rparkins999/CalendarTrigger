@@ -23,4 +23,6 @@
 	<string name="seulement_evenement_occupe">Seulement pour évènements \"occupé\"</string>
 	<string name="avec_delai_x_minutes_pre">Avec un délai de</string>
 	<string name="avec_delai_x_minutes_suf">minutes</string>
+	<string name="avec_avance_x_minutes_pre">Avec</string>
+	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
 </resources>
