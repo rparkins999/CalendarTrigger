@@ -49,62 +49,63 @@ public class MuteService extends Service {
 	}
 	
 	/**
-	 * Met à jour le statut de la sonnerie selon les paramètres et l'heure
-	 * @param isInEvent Il y a un évènement en cours
+	 * Update ringer status depending on settings and time
+	 * @param event Current event
 	 */
 	private void updateStatutSonnerie(CalendarEvent event) {
 		AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		
-		// Etat actuel de la sonnerie
+		// Current ringer state
 		int currentRingerMode = audio.getRingerMode();
 		int savedMode = PreferencesManager.getSavedMode(this);
-		int actionSonnerie = PreferencesManager.getActionSonnerie(this);
+		int ringerAction = PreferencesManager.getRingerAction(this);
 		
-		if(event == null) { // Pas d'évènement en cours
+		if(event == null) { // No current event
 			
-			if(PreferencesManager.getRestaurerEtat(this) // La restauration est demandée
-					&& savedMode != PreferencesManager.PREF_SAVED_MODE_NO_VALUE // Il y a un mode sauvegardé
-					&& ((actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX && currentRingerMode == AudioManager.RINGER_MODE_SILENT) // Le réglage en cours correspond à l'action
-						|| (actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_VIBREUR && currentRingerMode == AudioManager.RINGER_MODE_VIBRATE))) { 
-				// Restauration
+			if(PreferencesManager.getRestoreState(this) // Restore is on
+					&& savedMode != PreferencesManager.PREF_SAVED_MODE_NO_VALUE // There is a mode to restore
+					// Check if current setting matches the action (do not restore if user changed the setting herself)
+					&& ((ringerAction == PreferencesManager.PREF_ACTION_RINGER_SILENT && currentRingerMode == AudioManager.RINGER_MODE_SILENT)
+						|| (ringerAction == PreferencesManager.PREF_ACTION_RINGER_VIBRATE && currentRingerMode == AudioManager.RINGER_MODE_VIBRATE))) {
+				// Restore
 				audio.setRingerMode(savedMode);
 				
-				// Suppression de la notif au besoin
+				// Close notification if necessary
 				NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 				manager.cancel(NOTIF_ID);
 			}
-			// Suppression du réglage sauvegardé
+			// Delete saved mode
 			PreferencesManager.saveMode(this, PreferencesManager.PREF_SAVED_MODE_NO_VALUE);
 			PreferencesManager.setLastSetRingerMode(this, PreferencesManager.PREF_LAST_SET_RINGER_MODE_NO_MODE);
 		}
-		else { // Un évènement est en cours
-			if(((actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX && currentRingerMode != AudioManager.RINGER_MODE_SILENT) // Réglage actuel différent de l'action à effectuer
-					|| (actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_VIBREUR && currentRingerMode != AudioManager.RINGER_MODE_VIBRATE))
-					&& PreferencesManager.getLastSetRingerMode(this) == PreferencesManager.PREF_SAVED_MODE_NO_VALUE) { // Et aucune action effectuée (donc pas de valeur sauvegardée) -> l'utilisateur peut avoir changé son volume
-				// Sauvegarde de l'état et changement si pas d'était déjà enregistré
+		else { // We are inside an event
+			if(((ringerAction == PreferencesManager.PREF_ACTION_RINGER_SILENT && currentRingerMode != AudioManager.RINGER_MODE_SILENT) // Current ringer setting is different from action
+					|| (ringerAction == PreferencesManager.PREF_ACTION_RINGER_VIBRATE && currentRingerMode != AudioManager.RINGER_MODE_VIBRATE))
+					&& PreferencesManager.getLastSetRingerMode(this) == PreferencesManager.PREF_SAVED_MODE_NO_VALUE) { // And no action done (so no mode saved) -> the user may have changed the volume
+				// Save state and change it if there is not already a saved state
 				if(savedMode == PreferencesManager.PREF_SAVED_MODE_NO_VALUE)
 					PreferencesManager.saveMode(this, currentRingerMode);
 				
-				if(actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX) {
+				if(ringerAction == PreferencesManager.PREF_ACTION_RINGER_SILENT) {
 					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 					PreferencesManager.setLastSetRingerMode(this, AudioManager.RINGER_MODE_SILENT);
 				}
-				else if(actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_VIBREUR) {
+				else { // Must be vibrate
 					audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
 					PreferencesManager.setLastSetRingerMode(this, AudioManager.RINGER_MODE_VIBRATE);
 				}
 				
 				// Notification
-				if(PreferencesManager.getAfficherNotif(this))
-					showNotif(actionSonnerie, event.getNom());
+				if(PreferencesManager.getShowNotif(this))
+					showNotif(ringerAction, event.getNom());
 			}
-			// Pas d'action si le réglage actuel correspond déjà (pas de sauvegarde non plus)
+			// No action if the current setting is already OK (and do not save the current setting either)
 		}
 	}
 	
-	private void showNotif(int actionSonnerie, String nomEven) {
+	private void showNotif(int ringerAction, String nomEven) {
 		
-		int resText = actionSonnerie == PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX ? R.string.mode_sonnerie_change_silencieux_pour : R.string.mode_sonnerie_change_vibreur_pour;
+		int resText = ringerAction == PreferencesManager.PREF_ACTION_RINGER_SILENT ? R.string.mode_sonnerie_change_silencieux_pour : R.string.mode_sonnerie_change_vibreur_pour;
 		
 		Resources res = getResources();
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -115,7 +116,7 @@ public class MuteService extends Service {
 		Intent intent = new Intent(this, MainActivity.class);
 		intent.setAction(MainActivity.ACTION_SHOW_ACTIONS);
 		
-		// Stack pour l'activité
+		// Stack for the activity
 		TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
 		stackBuilder.addParentStack(MainActivity.class);
 		stackBuilder.addNextIntent(intent);
@@ -123,7 +124,7 @@ public class MuteService extends Service {
 		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 		builder.setContentIntent(resultPendingIntent);
 		
-		// Affichage de la notif
+		// Show notification
 		NotificationManager notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		notifManager.notify(NOTIF_ID, builder.build());
 	}
@@ -133,25 +134,25 @@ public class MuteService extends Service {
 		PendingIntent pIntent = PendingIntent.getService(this, 0, new Intent(this, MuteService.class), PendingIntent.FLAG_ONE_SHOT);
 		AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		
-		long timeProchainAppel;
-		if(currentEvent != null) { // Evènement en cours : prochain appel à la fin de l'évèn'
-			timeProchainAppel = currentEvent.getEndTime().getTimeInMillis() + delay;
+		long nextExecutionTime;
+		if(currentEvent != null) { // There is an event right now: call again at the end of the event
+			nextExecutionTime = currentEvent.getEndTime().getTimeInMillis() + delay;
 		}
-		else { // Pas d'évèn : appel au début du prochain évènement
+		else { // No event right now: call at the beginning of next event
 			CalendarEvent nextEvent = provider.getNextEvent(timeNow, early, onlyBusy);
 			
 			if(nextEvent != null)
-				timeProchainAppel = nextEvent.getStartTime().getTimeInMillis();
+				nextExecutionTime = nextEvent.getStartTime().getTimeInMillis();
 			else
-				timeProchainAppel = -1;
+				nextExecutionTime = -1;
 		}
 			
 		
-		if(timeProchainAppel != -1) {
-			// Suppression des alarmes précédents
+		if(nextExecutionTime != -1) {
+			// Remove previous alarms
 			alarmManager.cancel(pIntent);
-			// Ajout de la nouvelle alarme
-			alarmManager.set(AlarmManager.RTC, timeProchainAppel, pIntent);
+			// Add new alarm
+			alarmManager.set(AlarmManager.RTC, nextExecutionTime, pIntent);
 		}
 	}
 	
@@ -159,7 +160,7 @@ public class MuteService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		
-		// Timestamp utilisé pour toutes les requêtes (consistance de l'instant)
+		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
 		boolean delayActivated = PreferencesManager.getDelayActivated(this);
 		boolean earlyActivated = PreferencesManager.getEarlyActivated(this);
@@ -168,20 +169,20 @@ public class MuteService extends Service {
 		
 		boolean onlyBusy = PreferencesManager.getOnlyBusy(this);
 		
-		// Récupération de l'éventuel évènement en cours
+		// Get the current event, if any
 		CalendarProvider provider = new CalendarProvider(this);
 		CalendarEvent currentEvent = provider.getCurrentEvent(timeNow, delay, early, onlyBusy);
 		
 		updateStatutSonnerie(currentEvent);
 		
-		// Planification du prochain appel
+		// Setup next execution
 		setNextAlarm(currentEvent, timeNow, delay, early, onlyBusy, provider);
 		
-		return START_NOT_STICKY; // Le service peut être détruit maintenant qu'il a fini son boulot
+		return START_NOT_STICKY; // The service can be destroyed now that it has finished its work
 	}
 	
 	public static void startIfNecessary(Context c) {
-		if(PreferencesManager.getActionSonnerie(c) != PreferencesManager.PREF_ACTION_SONNERIE_RIEN)
+		if(PreferencesManager.getRingerAction(c) != PreferencesManager.PREF_ACTION_RINGER_NOTHING)
 			c.startService(new Intent(c, MuteService.class));
 	}
 }

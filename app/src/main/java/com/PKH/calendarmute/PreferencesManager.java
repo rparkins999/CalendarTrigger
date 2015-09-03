@@ -13,13 +13,13 @@ public class PreferencesManager {
 	private static final String PREF_AGENDAS = "prefAgendas";
 	private static final String PREF_AGENDAS_DELIMITER = ",";
 	
-	private static final String PREF_ACTION_SONNERIE = "actionSonnerie";
+	private static final String PREF_ACTION_RINGER = "actionSonnerie";
 	
-	private static final String PREF_RESTAURER_ETAT = "restaurerEtat";
+	private static final String PREF_RESTORE_STATE = "restaurerEtat";
 	
-	private static final String PREF_SAUVEGARDE_MODE = "lastMode";
+	private static final String PREF_SAVED_MODE = "lastMode";
 	
-	private static final String PREF_AFFICHER_NOTIF = "afficherNotif";
+	private static final String PREF_SHOW_NOTIF = "afficherNotif";
 	
 	private static final String PREF_LAST_SET_RINGER_MODE = "lastSetRingerMode";
 	
@@ -33,16 +33,16 @@ public class PreferencesManager {
 	
 	private static final String PREF_EARLY_ACTIVATED = "earlyActivated";
 	
-	public static final int PREF_ACTION_SONNERIE_RIEN = 0;
-	public static final int PREF_ACTION_SONNERIE_SILENCIEUX = 1;
-	public static final int PREF_ACTION_SONNERIE_VIBREUR = 2;
+	public static final int PREF_ACTION_RINGER_NOTHING = 0;
+	public static final int PREF_ACTION_RINGER_SILENT = 1;
+	public static final int PREF_ACTION_RINGER_VIBRATE = 2;
 	
 	public static final int PREF_SAVED_MODE_NO_VALUE = -99;
 	
-	private static final boolean PREF_RESTAURER_ETAT_DEFAULT = true;
-	private static final int PREF_ACTION_SONNERIE_DEFAULT = PREF_ACTION_SONNERIE_RIEN;
+	private static final boolean PREF_RESTORE_STATE_DEFAULT = true;
+	private static final int PREF_ACTION_RINGER_DEFAULT = PREF_ACTION_RINGER_NOTHING;
 	
-	public static final boolean PREF_AFFICHER_NOTIF_DEFAULT = true;
+	public static final boolean PREF_SHOW_NOTIF_DEFAULT = true;
 	
 	public static final int PREF_LAST_SET_RINGER_MODE_NO_MODE = -99;
 	
@@ -71,7 +71,7 @@ public class PreferencesManager {
 			}
 		}
 		catch(NumberFormatException e) {
-			prefs.edit().putString(PREF_AGENDAS, "").commit(); // Suppression de la préférence invalide pour ne pas bloquer l'appli
+			prefs.edit().putString(PREF_AGENDAS, "").commit(); // Suppress the last invalid preference to avoid crashing the app
 			throw e;
 		}
 		
@@ -79,11 +79,11 @@ public class PreferencesManager {
 	}
 	
 	/**
-	 * Sauvegarde des calendriers sélectionnés dans les préférences
+	 * Save selected calendars in preferences
 	 */
 	public static void saveCalendars(Context context, long[] checkedIds) {
 		
-		// Création de la chaîne à sauvegarder
+		// Create the string to save
 		StringBuilder builder = new StringBuilder();
 		boolean first = true;
 		for(long id : checkedIds) {
@@ -95,25 +95,25 @@ public class PreferencesManager {
 			builder.append(id);
 		}
 		
-		// Sauvegarde
+		// Save
 		SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		preferences.edit().putString(PREF_AGENDAS, builder.toString()).commit();
 	}
 	
 	public final static void saveMode(Context context, int mode) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_SAUVEGARDE_MODE, mode).commit();
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_SAVED_MODE, mode).commit();
 	}
 	
 	public final static void setActionSonnerie(Context context, int action) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_ACTION_SONNERIE, action).commit();
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_ACTION_RINGER, action).commit();
 	}
 	
 	public final static void setRestaurerEtat(Context context, boolean isChecked) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_RESTAURER_ETAT, isChecked).commit();
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_RESTORE_STATE, isChecked).commit();
 	}
 	
 	public final static void setAfficherNotif(Context context, boolean afficher) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_AFFICHER_NOTIF, afficher).commit();
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_SHOW_NOTIF, afficher).commit();
 	}
 	
 	public final static void setLastSetRingerMode(Context context, int ringerMode) {
@@ -141,19 +141,19 @@ public class PreferencesManager {
 	}
 
 	public final static int getSavedMode(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_SAUVEGARDE_MODE, PREF_SAVED_MODE_NO_VALUE);
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_SAVED_MODE, PREF_SAVED_MODE_NO_VALUE);
 	}
 
-	public static final int getActionSonnerie(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_ACTION_SONNERIE, PREF_ACTION_SONNERIE_DEFAULT);
+	public static final int getRingerAction(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_ACTION_RINGER, PREF_ACTION_RINGER_DEFAULT);
 	}
 
-	public static final boolean getRestaurerEtat(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_RESTAURER_ETAT, PREF_RESTAURER_ETAT_DEFAULT);
+	public static final boolean getRestoreState(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_RESTORE_STATE, PREF_RESTORE_STATE_DEFAULT);
 	}
 	
-	public static boolean getAfficherNotif(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_AFFICHER_NOTIF, PREF_AFFICHER_NOTIF_DEFAULT);
+	public static boolean getShowNotif(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_SHOW_NOTIF, PREF_SHOW_NOTIF_DEFAULT);
 	}
 	
 	public static int getLastSetRingerMode(Context context) {

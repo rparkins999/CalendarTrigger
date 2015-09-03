@@ -12,14 +12,14 @@
 	    android:layout_alignParentLeft="true"
 	    android:orientation="vertical">
 	    <TextView
-	        android:id="@+id/lbl_nom_calendrier"
+	        android:id="@+id/lbl_calendar_name"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/chargement"
 	        android:textAppearance="@android:style/TextAppearance.Medium" />
 	    
 	    <TextView
-	        android:id="@+id/lbl_details_calendrier"
+	        android:id="@+id/lbl_calendar_details"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/chargement"
@@ -28,7 +28,7 @@
      
      
     <CheckBox
-        android:id="@+id/chk_calendrier"
+        android:id="@+id/chk_calendar"
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:clickable="false"

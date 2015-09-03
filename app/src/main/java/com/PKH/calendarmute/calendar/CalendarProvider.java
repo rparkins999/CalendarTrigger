@@ -23,7 +23,7 @@ public class CalendarProvider {
 		this.context = context;
 	}
 	
-	// Projection pour les requêtes de calendrier
+	// Projection for calendar queries
 	public static final String[] CALENDAR_PROJECTION = new String[] {
 		Calendars._ID,
 		Calendars.CALENDAR_DISPLAY_NAME,
@@ -34,7 +34,7 @@ public class CalendarProvider {
 	public static final int CALENDAR_PROJECTION_DISPLAY_NAME_INDEX = 1;
 	public static final int CALENDAR_PROJECTION_IS_SYNCED_INDEX = 2;
 	
-	// Projection pour les requêtes d'évènements
+	// Projection for event queries
 	public static final String[] INSTANCE_PROJECTION = new String[] {
 		Instances.TITLE,
 		Instances.BEGIN,
@@ -48,16 +48,16 @@ public class CalendarProvider {
 	public static final int INSTANCE_PROJECTION_AVAILABILITY = 3;
 	
 	/**
-	 * Récupération des derniers calendriers chargés par listCalendar
-	 * @return Calendriers conservés en mémoire
+	 * Get the last calendars fetched by listCalendar
+	 * @return Calendars in memory
 	 */
 	public static Calendar[] getCachedCalendars() {
 		return savedCalendars;
 	}
 	
 	/**
-	 * Listing des calendriers de l'utilisateur
-	 * @return Tous les calendriers de l'utilisateur
+	 * List the user's calendars
+	 * @return All calendars of the user
 	 */
 	public Calendar[] listCalendars(boolean forceRefresh) {
 		
@@ -81,11 +81,11 @@ public class CalendarProvider {
 		int i=0;
 		while(cur.moveToNext()) {
 			
-			long idAgenda = cur.getLong(CALENDAR_PROJECTION_ID_INDEX);
-			res[i] = new Calendar(idAgenda, 
+			long calendarId = cur.getLong(CALENDAR_PROJECTION_ID_INDEX);
+			res[i] = new Calendar(calendarId,
 					cur.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX),
 					cur.getInt(CALENDAR_PROJECTION_IS_SYNCED_INDEX) == 1,
-					checkedCalendars.containsKey(idAgenda) && checkedCalendars.get(idAgenda)); // Agenda coché
+					checkedCalendars.containsKey(calendarId) && checkedCalendars.get(calendarId)); // Calendar is checked
 			
 			i++;
 		}
@@ -97,13 +97,13 @@ public class CalendarProvider {
 	}
 	
 	private Uri getInstancesQueryUri() {
-		// Fenêtre de recherche des évènements : un mois avant et un mois après pour être large
+		// Event search window : from one month before to one month after, to be sure
 		GregorianCalendar dateDebut = new GregorianCalendar();
 		dateDebut.add(GregorianCalendar.MONTH, -1);
 		GregorianCalendar dateFin = new GregorianCalendar();
 		dateFin.add(GregorianCalendar.MONTH, 1);
 		
-		// Uri de recherche (contient la fenêtre)
+		// search URI (contains the search window)
 		Uri.Builder builder = Instances.CONTENT_URI.buildUpon();
 		ContentUris.appendId(builder, dateDebut.getTimeInMillis());
 		ContentUris.appendId(builder, dateFin.getTimeInMillis());
@@ -112,23 +112,23 @@ public class CalendarProvider {
 	}
 	
 	/**
-	 * Renvoie l'évènement en cours dans un des calendriers enregistrés en préférences
-	 * @param currentTime Heure à laquelle effectuer la recherche
-	 * @param delay Délai étendant l'intervalle des événements à partir de la fin
-	 * @param early Délai étendant l'intervalle des événements avant le début
-	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
+	 * Get the current event in one of the calendars set in the preferences
+	 * @param currentTime Time at which the event should be searched
+	 * @param delay Delay that extends the search interval towards the end
+	 * @param early Delay that extends the search interval towards the beginning
+	 * @return The first event found, or null if there is none
 	 */
 	public CalendarEvent getCurrentEvent(long currentTime, long delay, long early, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
-		// Fabrication de la chaîne de sélection des IDs de calendriers
+		// Make the calendar ID selection string
 		String calIdsSelect = getEventCalendarIdsSelectString();
 		
 		if(calIdsSelect.equals(""))
 			return null;
 		
-		// La sélection est large sur le début de l'évènement et stricte sur la fin
-		// Permet d'être considéré en-dehors de l'évènement en planifiant une alarme à l'heure de fin
+		// Selection must be inclusive on the start time, and eclusive on the end time.
+		// This way when setting an alarm at the end of the event, this moment is considered outside of the event
 		String selection = "(" + calIdsSelect + ") AND "
 				+ Instances.BEGIN + " <= ? AND "
 				+ Instances.END + " > ? AND " + Instances.ALL_DAY + " = 0";
@@ -141,7 +141,7 @@ public class CalendarProvider {
 		String strCurrentTimeDelay = String.valueOf(currentTime - delay);
 		String[] selectionArgs =  new String[] { strCurrentTimeEarly, strCurrentTimeDelay };
 		
-		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.END); // On prend l'évènement qui se termine le plus vite
+		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.END); // Take the event that ends first
 		
 		CalendarEvent res;
 		if(cur.moveToNext()) {
@@ -155,22 +155,22 @@ public class CalendarProvider {
 	}
 	
 	/**
-	 * Renvoie le prochain évènement dans un des calendriers enregistrés en préférences
-	 * @param currentTime Heure à laquelle effectuer la recherche
-	 * @param early Délai à utiliser pour étendre les dates de début des événements avant le début réel
-	 * @return Le premier élément trouvé, ou null si aucun évènement ne l'est
+	 * Get the next event in the calendars set in the preferences
+	 * @param currentTime Time to use to search for events
+	 * @param early Delay to extend event start time before the real start time
+	 * @return The first event found, or null if there is none
 	 */
 	public CalendarEvent getNextEvent(long currentTime, long early, boolean onlyBusy) {
 		ContentResolver cr = context.getContentResolver();
 		
-		// Fabrication de la chaîne de sélection des IDs de calendriers
+		// Make the calendar ID selection string
 		String calIdsSelect = getEventCalendarIdsSelectString();
 		
 		if(calIdsSelect.equals(""))
 			return null;
 		
-		// La sélection est large sur le début de l'évènement
-		// Permet la compatibilité de logique avec getCurrentEvent
+		// Selection is inclusive on event start time.
+		// This way we are consistent wih getCurrentEvent
 		String selection = "(" + calIdsSelect + ") AND "
 				+ Instances.BEGIN + " >= ? AND " + Instances.ALL_DAY + " = 0";
 		
@@ -178,11 +178,11 @@ public class CalendarProvider {
 			selection += " AND " + Instances.AVAILABILITY + " = " + Instances.AVAILABILITY_BUSY;
 		}
 		
-		// On soustrait early à Instances.BEGIN -> revient à l'ajouter à currentTime dans la comparaison
+		// Substract early from Instances.BEGIN -> same as adding early to currentTime when comparing
 		String strCurrentTime = String.valueOf(currentTime + early);
 		String[] selectionArgs =  new String[] { strCurrentTime };
 		
-		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.BEGIN); // On trie par heure de début pour avoir le premier évèn'
+		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION, selection, selectionArgs, Instances.BEGIN); // Sort by start time to get the first event
 		
 		CalendarEvent res;
 		if(cur.moveToNext())
@@ -195,8 +195,8 @@ public class CalendarProvider {
 	}
 	
 	/**
-	 * Construit une clause WHERE filtrant les agendas sélectionné
-	 * @return clause générée, ou une chaîne vide si aucun agenda n'est sélectionné
+	 * Make a WHERE clause to filter selected calendars
+	 * @return generated WHERE clause, or en empty string if there is no calendar selected
 	 */
 	private String getEventCalendarIdsSelectString() {
 		LinkedHashMap<Long, Boolean> checkedCalendars = PreferencesManager.getCheckedCalendars(context);
@@ -212,14 +212,6 @@ public class CalendarProvider {
 			builder.append("(").append(Instances.CALENDAR_ID).append("=").append(idCalendar).append(")");
 		}
 		return builder.toString();
-	}
-	
-	/**
-	 * Récupération des prochains évènements des l'agendas de l'utilisateur
-	 * @return Evènements récupérés
-	 */
-	public CalendarEvent[] getNextEvents() {
-		return null;
 	}
 	
 	public static void invalidateCalendars() {

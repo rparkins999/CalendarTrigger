@@ -24,10 +24,10 @@ public class MainActivity extends Activity {
 		ActionBar ab = getActionBar();
 		ab.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
-		// Ajout des tabs
+		// Add tabs
 		Tab tab = ab.newTab()
 				.setText(R.string.agendas)
-				.setTabListener(new CalendarMuteTabListener<AgendasFragment>(this, TAG_TAB_CALENDARS, AgendasFragment.class));
+				.setTabListener(new CalendarMuteTabListener<CalendarsFragment>(this, TAG_TAB_CALENDARS, CalendarsFragment.class));
 		ab.addTab(tab);
 		
 		tab = ab.newTab()
@@ -36,11 +36,11 @@ public class MainActivity extends Activity {
 		ab.addTab(tab);
 		
 		if(ACTION_SHOW_ACTIONS.equals(getIntent().getAction()))
-			ab.setSelectedNavigationItem(1); // Affichage de l'onglet actions
+			ab.setSelectedNavigationItem(1); // Show actions tab
 		if(savedInstanceState != null && savedInstanceState.containsKey(KEY_SAVED_CURRENT_TAB))
 			ab.setSelectedNavigationItem(savedInstanceState.getInt(KEY_SAVED_CURRENT_TAB));
 		
-		// Démarrage du service
+		// Start service
 		MuteService.startIfNecessary(this);
 	}
 	

@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class AgendasFragment extends Fragment {
+public class CalendarsFragment extends Fragment {
 	
 	private ListView lstAgendas;
 	
@@ -37,7 +37,7 @@ public class AgendasFragment extends Fragment {
 		
 		lstAgendas = (ListView) res.findViewById(R.id.lst_calendars);
 		
-		// Remplissage des agendas
+		// Fill calendars
 		refreshCalendars(false);
 		
 		return res;
@@ -54,9 +54,9 @@ public class AgendasFragment extends Fragment {
 	private class CalendarGetter extends AsyncTask<Boolean, Void, Calendar[]> {
 		@Override
 		protected Calendar[] doInBackground(Boolean... params) {
-			// Récupération des agendas
+			// Fetch calendars
 			Activity a = getActivity();
-			if(a == null) // Fragment déjà détaché
+			if(a == null) // Fragment already detached
 				return null;
 			
 			CalendarProvider provider = new CalendarProvider(a);
@@ -73,7 +73,7 @@ public class AgendasFragment extends Fragment {
 	private void fillCalendars(Calendar[] calendars) {
 		
 		Activity a = getActivity();
-		if(a == null) // Fragment déjà détaché
+		if(a == null) // Fragment already detached
 			return;
 		
 		if(calendars == null) {
@@ -84,7 +84,7 @@ public class AgendasFragment extends Fragment {
 		CalendarAdapter adapter = new CalendarAdapter(getActivity(), calendars);
 		lstAgendas.setAdapter(adapter);
 		
-		// Restauration de la liste d'éléments cochés dans la liste
+		// Restore checked items in the list
 		for(int i=0, max = lstAgendas.getCount(); i<max; i++) {
 			lstAgendas.setItemChecked(i, adapter.getItem(i).isChecked());
 		}
@@ -96,10 +96,10 @@ public class AgendasFragment extends Fragment {
 				Activity a = getActivity();
 				PreferencesManager.saveCalendars(a, lstAgendas.getCheckedItemIds());
 				
-				// Suppression des calendriers en cache (ils sont maintenant invalides)
+				// Remove cached calendars (now invalid)
 				CalendarProvider.invalidateCalendars();
 				
-				// Lancement du service pour vérifier si il y a des évènements actuels
+				// Launch service to check if there are events now
 				MuteService.startIfNecessary(a);
 			}
 		});
@@ -108,7 +108,7 @@ public class AgendasFragment extends Fragment {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
-		case R.id.menu_rafraichir_calendriers:
+		case R.id.menu_refresh_calendars:
 			refreshCalendars(true);
 			return true;
 		default:

@@ -10,7 +10,7 @@
 	    android:orientation="vertical" >
 	
 	    <TextView
-	        android:id="@+id/lblLorsEvenement"
+	        android:id="@+id/lblDuringEvent"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:paddingTop="@dimen/default_padding"
@@ -25,38 +25,38 @@
 			android:background="@android:color/holo_blue_dark"/>
 	
 	    <RadioGroup
-	        android:id="@+id/radioGroupActionSonnerie"
+	        android:id="@+id/radioGroupRingerAction"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content" >
 	
 	        <RadioButton
-	            android:id="@+id/radioRienFaire"
+	            android:id="@+id/radioDoNothing"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:checked="true"
 	            android:text="@string/ne_rien_faire" />
 	
 	        <RadioButton
-	            android:id="@+id/radioSilencieux"
+	            android:id="@+id/radioSilent"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:text="@string/mettre_silencieux" />
 	
 	        <RadioButton
-	            android:id="@+id/radioVibreur"
+	            android:id="@+id/radioVibrate"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:text="@string/mettre_vibreur" />
 	    </RadioGroup>
 	    
 	    <CheckBox
-	        android:id="@+id/chkAfficherNotif"
+	        android:id="@+id/chkShowNotif"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/afficher_notification" />
 	    
 	    <CheckBox
-	        android:id="@+id/chkSeulementOccupe"
+	        android:id="@+id/chkOnlyBusy"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/seulement_evenement_occupe" />
@@ -68,13 +68,13 @@
 	        android:gravity="center_vertical" >
 	        
 	        <CheckBox
-	            android:id="@+id/chkAvanceActivated"
+	            android:id="@+id/chkEarlyActivated"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content"
 	            android:text="@string/avec_avance_x_minutes_pre" />
 
 	        <EditText
-	            android:id="@+id/txtAvance"
+	            android:id="@+id/txtEarly"
 	            android:layout_width="0dp"
 	            android:layout_height="wrap_content"
 	            android:layout_weight="1"
@@ -93,7 +93,7 @@
 	    </LinearLayout>
 	    
 	    <TextView
-	        android:id="@+id/lblEvenementTermine"
+	        android:id="@+id/lblEventOver"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:paddingTop="@dimen/default_padding"
@@ -108,7 +108,7 @@
 			android:background="@android:color/holo_blue_dark"/>
 	
 	    <CheckBox
-	        android:id="@+id/chkRestaurerEtat"
+	        android:id="@+id/chkRestoreState"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:text="@string/restaurer_etat_precedent" />

@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/menu_rafraichir_calendriers"
+        android:id="@+id/menu_refresh_calendars"
         android:orderInCategory="100"
         android:title="@string/rafraichir_calendriers" android:titleCondensed="@string/rafraichir_calendriers_short"/>
 

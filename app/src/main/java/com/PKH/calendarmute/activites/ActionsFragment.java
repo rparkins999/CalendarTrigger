@@ -31,26 +31,26 @@ public class ActionsFragment extends Fragment {
 	private RadioGroup.OnCheckedChangeListener radioGroupActionCheckedChangedListener = new RadioGroup.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(RadioGroup group, int checkedId) {
-			// Sauvegarde de la nouvelle valeur
+			// Save new value
 			Activity a = getActivity();
 			
 			switch(checkedId) {
-			case R.id.radioSilencieux:
-				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX);
+			case R.id.radioSilent:
+				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_RINGER_SILENT);
 				break;
-			case R.id.radioVibreur:
-				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_SONNERIE_VIBREUR);
+			case R.id.radioVibrate:
+				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_RINGER_VIBRATE);
 				break;
-			case R.id.radioRienFaire:
+			case R.id.radioDoNothing:
 			default:
-				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_SONNERIE_RIEN);
+				PreferencesManager.setActionSonnerie(a, PreferencesManager.PREF_ACTION_RINGER_NOTHING);
 				break;
 			}
 			
-			// Suppression du mode assigné actuel pour le remettre à jour
+			// Remove current set mode to update it afterwards
 			PreferencesManager.setLastSetRingerMode(a, PreferencesManager.PREF_LAST_SET_RINGER_MODE_NO_MODE);
 			
-			// Lancement du service pour update
+			// Launch update service
 			MuteService.startIfNecessary(a);
 		}
 	};
@@ -77,7 +77,7 @@ public class ActionsFragment extends Fragment {
 			
 			PreferencesManager.setOnlyBusy(a, isChecked);
 			
-			// Lancement du service pour update
+			// Launch update service
 			MuteService.startIfNecessary(a);
 		}
 	};
@@ -90,7 +90,7 @@ public class ActionsFragment extends Fragment {
 			
 			PreferencesManager.setDelayActived(a, isChecked);
 			
-			// Lancement du service pour update
+			// Launch update service
 			MuteService.startIfNecessary(a);
 		}
 	};
@@ -103,7 +103,7 @@ public class ActionsFragment extends Fragment {
 			
 			PreferencesManager.setEarlyActived(a, isChecked);
 			
-			// Lancement du service pour update
+			// Launch update service
 			MuteService.startIfNecessary(a);
 		}
 	};
@@ -168,16 +168,16 @@ public class ActionsFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View res = inflater.inflate(R.layout.layout_actions, container, false);
 		
-		radioGroupAction = (RadioGroup) res.findViewById(R.id.radioGroupActionSonnerie); 
-		chkRestaurer = (CheckBox) res.findViewById(R.id.chkRestaurerEtat);
-		chkNotif = (CheckBox) res.findViewById(R.id.chkAfficherNotif);
-		chkOnlyBusy = (CheckBox) res.findViewById(R.id.chkSeulementOccupe);
+		radioGroupAction = (RadioGroup) res.findViewById(R.id.radioGroupRingerAction);
+		chkRestaurer = (CheckBox) res.findViewById(R.id.chkRestoreState);
+		chkNotif = (CheckBox) res.findViewById(R.id.chkShowNotif);
+		chkOnlyBusy = (CheckBox) res.findViewById(R.id.chkOnlyBusy);
 		chkDelayActivated = (CheckBox) res.findViewById(R.id.chkDelayActivated);
-		chkEarlyActivated = (CheckBox) res.findViewById(R.id.chkAvanceActivated);
+		chkEarlyActivated = (CheckBox) res.findViewById(R.id.chkEarlyActivated);
 		txtDelay = (EditText) res.findViewById(R.id.txtDelay);
-		txtEarly = (EditText) res.findViewById(R.id.txtAvance);
+		txtEarly = (EditText) res.findViewById(R.id.txtEarly);
 		
-		restaurerValeurs();
+		restoreValues();
 		
 		// Listeners
 		radioGroupAction.setOnCheckedChangeListener(radioGroupActionCheckedChangedListener);
@@ -192,30 +192,30 @@ public class ActionsFragment extends Fragment {
 		return res;
 	}
 	
-	public void restaurerValeurs() {
+	public void restoreValues() {
 		
 		Activity a = getActivity();
 		
 		// Radiogroup
-		int actionSonnerie = PreferencesManager.getActionSonnerie(a);
+		int ringerAction = PreferencesManager.getRingerAction(a);
 		
-		switch(actionSonnerie) {
-		case PreferencesManager.PREF_ACTION_SONNERIE_SILENCIEUX:
-			radioGroupAction.check(R.id.radioSilencieux);
+		switch(ringerAction) {
+		case PreferencesManager.PREF_ACTION_RINGER_SILENT:
+			radioGroupAction.check(R.id.radioSilent);
 			break;
 			
-		case PreferencesManager.PREF_ACTION_SONNERIE_VIBREUR:
-			radioGroupAction.check(R.id.radioVibreur);
+		case PreferencesManager.PREF_ACTION_RINGER_VIBRATE:
+			radioGroupAction.check(R.id.radioVibrate);
 			break;
-		case PreferencesManager.PREF_ACTION_SONNERIE_RIEN:
+		case PreferencesManager.PREF_ACTION_RINGER_NOTHING:
 		default:
-			radioGroupAction.check(R.id.radioRienFaire);
+			radioGroupAction.check(R.id.radioDoNothing);
 			break;
 		}
 		
-		chkRestaurer.setChecked(PreferencesManager.getRestaurerEtat(a));
+		chkRestaurer.setChecked(PreferencesManager.getRestoreState(a));
 		
-		chkNotif.setChecked(PreferencesManager.getAfficherNotif(a));
+		chkNotif.setChecked(PreferencesManager.getShowNotif(a));
 		
 		chkDelayActivated.setChecked(PreferencesManager.getDelayActivated(a));
 		

@@ -21,24 +21,24 @@ public class CalendarListItem extends RelativeLayout implements Checkable {
 		
 		((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.customview_calendar_list_item, this, true);
 		
-		// Récupération de la checkbox
-		checkBox = (CheckBox) findViewById(R.id.chk_calendrier);
+		// Get the checkbox
+		checkBox = (CheckBox) findViewById(R.id.chk_calendar);
 	}
 	
 	public void setTitle(String title) {
-		((TextView) findViewById(R.id.lbl_nom_calendrier)).setText(title);
+		((TextView) findViewById(R.id.lbl_calendar_name)).setText(title);
 	}
 	
 	public void setTitle(int titleResId) {
-		((TextView) findViewById(R.id.lbl_nom_calendrier)).setText(titleResId);
+		((TextView) findViewById(R.id.lbl_calendar_name)).setText(titleResId);
 	}
 	
 	public void setSubTitle(String title) {
-		((TextView) findViewById(R.id.lbl_details_calendrier)).setText(title);
+		((TextView) findViewById(R.id.lbl_calendar_details)).setText(title);
 	}
 	
 	public void setSubTitle(int titleResId) {
-		((TextView) findViewById(R.id.lbl_details_calendrier)).setText(titleResId);
+		((TextView) findViewById(R.id.lbl_calendar_details)).setText(titleResId);
 	}
 
 	@Override

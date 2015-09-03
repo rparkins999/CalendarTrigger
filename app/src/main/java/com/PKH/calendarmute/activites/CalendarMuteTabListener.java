@@ -24,25 +24,25 @@ public class CalendarMuteTabListener<T extends Fragment> implements TabListener 
 		
 		fragment = activity.getFragmentManager().findFragmentByTag(tag);
 		
-		if(fragment == null) { // Création du fragment
+		if(fragment == null) { // Create fragment
 			fragment = Fragment.instantiate(activity, fragmentClass.getName());
 			fragmentTransaction.add(android.R.id.content, fragment, tag);
 		}
-		else { // Réutilisation
+		else { // Reuse
 			fragmentTransaction.attach(fragment);
 		}
 	}
 
 	@Override
 	public void onTabUnselected(Tab tab, FragmentTransaction fragmentTransaction) {
-		// Suppression du fragment
+		// Remove fragment
 		if(fragment != null)
 			fragmentTransaction.detach(fragment);
 	}
 
 	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction fragmentTransaction) {
-		// Rien ici
+		// Nothing here
 	}
 
 }

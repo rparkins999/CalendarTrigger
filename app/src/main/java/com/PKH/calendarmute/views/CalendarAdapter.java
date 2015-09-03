@@ -25,9 +25,9 @@ public class CalendarAdapter extends ArrayAdapter<Calendar> {
 	};
 	
 	/**
-	 * Définit le listener au changement d'état d'un item cochable. Doit être appelé *avant* la création de chacune
-	 * des vues pour s'appliquer à celles-ci
-	 * @param listener Listener à appliquer
+	 * Sets the listener used when changing the state of a checkable item. Must be called *before* creating each view
+	 * so it can apply.
+	 * @param listener Listener to apply
 	 */
 	public void setItemCheckedChangedListener(ItemCheckedChangedListener listener) {
 		changeListener = listener;
@@ -48,10 +48,10 @@ public class CalendarAdapter extends ArrayAdapter<Calendar> {
 			targetView = convertView;
 		else {
 			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			targetView = inflater.inflate(R.layout.list_item_agenda, parent, false);
+			targetView = inflater.inflate(R.layout.list_item_calendar, parent, false);
 		}
 		
-		// Population de la vue
+		// Fill in the vew
 		Calendar cal = this.getItem(position);
 		
 		CalendarListItem view = (CalendarListItem) targetView;
