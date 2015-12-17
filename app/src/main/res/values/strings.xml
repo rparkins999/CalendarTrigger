@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Calendar Mute</string>
+    <string name="app_name">Calendar Trigger</string>
     <string name="prochains_evenements">Next events</string>
     <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
     <string name="agendas">Agendas</string>
