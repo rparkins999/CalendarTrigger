@@ -1,5 +1,6 @@
 package com.RPP.calendartrigger;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.StringTokenizer;
 
@@ -9,166 +10,432 @@ import android.content.SharedPreferences;
 public class PrefsManager {
 
 	private static final String PREFS_NAME = "mainPreferences";
-	
-	private static final String PREF_AGENDAS = "prefAgendas";
-	private static final String PREF_AGENDAS_DELIMITER = ",";
-	
-	private static final String PREF_ACTION_RINGER = "actionSonnerie";
-	
-	private static final String PREF_RESTORE_STATE = "restaurerEtat";
-	
-	private static final String PREF_SAVED_MODE = "lastMode";
-	
-	private static final String PREF_SHOW_NOTIF = "afficherNotif";
-	
-	private static final String PREF_LAST_SET_RINGER_MODE = "lastSetRingerMode";
-	
-	private static final String PREF_ONLY_BUSY = "onlyBusy";
-	
-	private static final String PREF_DELAY = "delay";
-	
-	private static final String PREF_DELAY_ACTIVATED = "delayActivated";
-	
-	private static final String PREF_EARLY = "early";
-	
-	private static final String PREF_EARLY_ACTIVATED = "earlyActivated";
-	
-	public static final int RINGER_MODE_NONE = -99;
-	
-	private static final boolean PREF_RESTORE_STATE_DEFAULT = true;
-	public static final boolean PREF_SHOW_NOTIF_DEFAULT = true;
-	
-	public static final boolean PREF_ONLY_BUSY_DEFAULT = false;
-	
-	public static final int PREF_DELAY_DEFAULT = 5;
-	
-	public static final int PREF_EARLY_DEFAULT = 0;
-	
-	public static final boolean PREF_DELAY_ACTIVATED_DEFAULT = false;
-	
-	public static final boolean PREF_EARLY_ACTIVATED_DEFAULT = false;
-	
-	public static LinkedHashMap<Long, Boolean> getCheckedCalendars(Context context) {
-		SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); 
-		String strChecked = prefs.getString(PREF_AGENDAS, "");
-		
-		StringTokenizer tokenizer = new StringTokenizer(strChecked, PREF_AGENDAS_DELIMITER);
-		
-		LinkedHashMap<Long, Boolean> res = new LinkedHashMap<Long, Boolean>();
-		
-		try {
-			while(tokenizer.hasMoreTokens()) {
-				long nextId = Long.parseLong(tokenizer.nextToken());
-				res.put(nextId, true);
+
+	private static final String NUM_CLASSES = "numClasses";
+
+	private static int getNumClasses(SharedPreferences prefs) {
+		return prefs.getInt(NUM_CLASSES, 0);
+	}
+
+	public static int getNumClasses(Context context) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		return getNumClasses(prefs);
+	}
+
+	private static final String IS_CLASS_USED = "isClassUsed";
+
+	private static boolean isClassUsed(SharedPreferences prefs, int classNum) {
+		String prefName = IS_CLASS_USED.concat(String.valueOf(classNum));
+		return prefs.getBoolean(prefName, false);
+	}
+
+	public static boolean isClassUsed(Context context, int classNum) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		return isClassUsed(prefs, classNum);
+	}
+
+	public static int getNewClass(Context context) {
+		int n = getNumClasses(context);
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		StringBuilder builder = new StringBuilder(IS_CLASS_USED);
+		for (int classNum = 0; classNum < n; ++classNum)
+		{
+			if (!isClassUsed(prefs, classNum))
+			{
+				builder.append(classNum);
+				prefs.edit().putBoolean(builder.toString(), true).commit();
+				return classNum;
 			}
 		}
-		catch(NumberFormatException e) {
-			prefs.edit().putString(PREF_AGENDAS, "").commit(); // Suppress the last invalid preference to avoid crashing the app
-			throw e;
-		}
-		
-		return res;
+		builder.append(n);
+		prefs.edit().putInt(NUM_CLASSES, n + 1)
+			 .putBoolean(builder.toString(), true).commit();
+		return n;
 	}
-	
-	/**
-	 * Save selected calendars in preferences
-	 */
-	public static void saveCalendars(Context context, long[] checkedIds) {
-		
+
+	// (optional) name of class
+	private static final String CLASS_NAME = "className";
+
+	public static void setClassName(
+		Context context, int classNum, String className) {
+		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, className).commit();
+	}
+
+	public static String getClassName(Context context, int classNum) {
+		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
+	// string required in names of events which can be in class
+	private static final String EVENT_NAME = "eventName";
+
+	public static void setEventName(Context context, int classNum, String eventName) {
+		String prefName = EVENT_NAME.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, eventName).commit();
+	}
+
+	public static String getEventName(Context context, int classNum) {
+		String prefName = EVENT_NAME.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
+	// string required in locations of events which can be in class
+	private static final String EVENT_LOCATION = "eventLocation";
+
+	public static void setEventLocation(
+		Context context, int classNum, String eventLocation) {
+		String prefName = EVENT_LOCATION.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, eventLocation).commit();
+	}
+
+	public static String getEventLocation(Context context, int classNum) {
+		String prefName = EVENT_LOCATION.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
+	// string required in descriptions of events which can be in class
+	private static final String EVENT_DESCRIPTION = "eventDescription";
+
+	public static void setEventDescription(
+		Context context, int classNum, String eventDescription) {
+		String prefName = EVENT_DESCRIPTION.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, eventDescription).commit();
+	}
+
+	public static String getEventDescription(Context context, int classNum) {
+		String prefName = EVENT_DESCRIPTION.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
+	// colour of events which can be in class
+	private static final String EVENT_COLOUR = "eventColour";
+
+	public static void setEventColour(
+		Context context, int classNum, String eventColour)
+	{
+		String prefName = EVENT_COLOUR.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, eventColour).commit();
+	}
+
+	public static String getEventColour(Context context, int classNum) {
+		String prefName = EVENT_COLOUR.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
+	// calendars whose events can be in class
+	private static final String AGENDAS = "agendas";
+	private static final String AGENDAS_DELIMITER = ",";
+
+	public static void putCalendars(
+		Context context, int classNum, ArrayList<Long> calendarIds)
+	{
+		String prefName = AGENDAS.concat(String.valueOf(classNum));
 		// Create the string to save
-		StringBuilder builder = new StringBuilder();
+		StringBuilder agendaList = new StringBuilder();
 		boolean first = true;
-		for(long id : checkedIds) {
-			if(first)
+		for (long id : calendarIds)
+		{
+			if (first)
 				first = false;
 			else
-				builder.append(PREF_AGENDAS_DELIMITER);
-			
-			builder.append(id);
+				agendaList.append(AGENDAS_DELIMITER);
+
+			agendaList.append(id);
 		}
-		
-		// Save
-		SharedPreferences preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		preferences.edit().putString(PREF_AGENDAS, builder.toString()).commit();
-	}
-	
-	public final static void saveMode(Context context, int mode) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_SAVED_MODE, mode).commit();
-	}
-	
-	public final static void setActionSonnerie(Context context, int action) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_ACTION_RINGER, action).commit();
-	}
-	
-	public final static void setRestaurerEtat(Context context, boolean isChecked) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_RESTORE_STATE, isChecked).commit();
-	}
-	
-	public final static void setAfficherNotif(Context context, boolean afficher) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_SHOW_NOTIF, afficher).commit();
-	}
-	
-	public final static void setLastSetRingerMode(Context context, int ringerMode) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_LAST_SET_RINGER_MODE, ringerMode).commit();
-	}
-	
-	public final static void setOnlyBusy(Context context, boolean onlyBusy) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_ONLY_BUSY, onlyBusy).commit();
-	}
-	
-	public final static void setDelay(Context context, int delay) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_DELAY, delay).commit();
-	}
-	
-	public final static void setDelayActived(Context context, boolean delayActivated) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_DELAY_ACTIVATED, delayActivated).commit();
-	}
-	
-	public final static void setEarly(Context context, int early) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_EARLY, early).commit();
-	}
-	
-	public final static void setEarlyActived(Context context, boolean earlyActivated) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_EARLY_ACTIVATED, earlyActivated).commit();
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, agendaList.toString())
+			   .commit();
 	}
 
-	public final static int getSavedMode(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_SAVED_MODE, RINGER_MODE_NONE);
+	public static ArrayList<Long> getCalendars(Context context, int classNum) {
+		String prefName = AGENDAS.concat(String.valueOf(classNum));
+		// Create the string to save
+		StringTokenizer tokenizer
+			= new StringTokenizer(
+				context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					.getString(prefName, ""), AGENDAS_DELIMITER);
+		ArrayList<Long> calendarIds = new ArrayList<Long>();
+		while (tokenizer.hasMoreTokens())
+		{
+			long nextId = Long.parseLong(tokenizer.nextToken());
+			calendarIds.add(nextId);
+		}
+		return calendarIds;
 	}
 
-	public static final int getRingerAction(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_ACTION_RINGER, RINGER_MODE_NONE);
+	// whether busy events, not busy events, or both can be in class
+	public static final int BUSY_AND_NOT = 0;
+	public static final int ONLY_BUSY = 1;
+	public static final int ONLY_NOT_BUSY = 2;
+	private static final String WHETHER_BUSY = "whetherBusy";
+
+	public static void setWhetherBusy(Context context, int classNum, int whetherBusy) {
+		String prefName = WHETHER_BUSY.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, whetherBusy).commit();
 	}
 
-	public static final boolean getRestoreState(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_RESTORE_STATE, PREF_RESTORE_STATE_DEFAULT);
+	public static int getWhetherBusy(Context context, int classNum) {
+		String prefName = WHETHER_BUSY.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, BUSY_AND_NOT);
 	}
-	
-	public static boolean getShowNotif(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_SHOW_NOTIF, PREF_SHOW_NOTIF_DEFAULT);
+
+	// whether recurrent events, non-recurrent events, or both can be in class
+	public static final int RECURRENT_AND_NOT = 0;
+	public static final int ONLY_RECURRENT = 1;
+	public static final int ONLY_NOT_RECURRENT = 2;
+	private static final String WHETHER_RECURRENT = "whetherRecurrent";
+
+	public static void setWhetherRecurrent(
+		Context context, int classNum, int whetherRecurrent) {
+		String prefName = WHETHER_RECURRENT.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, whetherRecurrent).commit();
 	}
-	
-	public static int getLastSetRingerMode(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_LAST_SET_RINGER_MODE, RINGER_MODE_NONE);
+
+	public static int getWhetherRecurrent(Context context, int classNum) {
+		String prefName = WHETHER_RECURRENT.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName.toString(), RECURRENT_AND_NOT);
 	}
-	
-	public static boolean getOnlyBusy(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_ONLY_BUSY, PREF_ONLY_BUSY_DEFAULT);
+
+	// whether events organised by phone owner, or not, or both can be in class
+	public static final int ORGANISER_AND_NOT = 0;
+	public static final int ONLY_ORGANISER = 1;
+	public static final int ONLY_NOT_ORGANISER = 2;
+	private static final String WHETHER_ORGANISER = "whetherOrganiser";
+
+	public static void setWhetherOrganiser(
+		Context context, int classNum, int whetherOrganiser) {
+		String prefName = WHETHER_ORGANISER.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, whetherOrganiser).commit();
 	}
-	
-	public static boolean getDelayActivated(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_DELAY_ACTIVATED, PREF_DELAY_ACTIVATED_DEFAULT);
+
+	public static int getWhetherOrganiser(Context context, int classNum) {
+		String prefName = WHETHER_ORGANISER.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, ORGANISER_AND_NOT);
 	}
-	
-	public static boolean getEarlyActivated(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(PREF_EARLY_ACTIVATED, PREF_EARLY_ACTIVATED_DEFAULT);
+
+	// whether publicly visible events, private events, or both can be in class
+	public static final int PUBLIC_AND_PRIVATE = 0;
+	public static final int ONLY_PUBLIC = 1;
+	public static final int ONLY_PRIVATE = 2;
+	private static final String WHETHER_PUBLIC = "whetherPublic";
+
+	public static void setWhetherPublic(
+		Context context, int classNum, int whetherPublic) {
+		String prefName = WHETHER_PUBLIC.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, whetherPublic).commit();
 	}
-	
-	public static int getDelay(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_DELAY, PREF_DELAY_DEFAULT);
+
+	public static int getWhetherPublic(Context context, int classNum) {
+		String prefName = WHETHER_PUBLIC.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, PUBLIC_AND_PRIVATE);
 	}
-	
-	public static int getEarly(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_EARLY, PREF_EARLY_DEFAULT);
+
+	// whether events with attendees, or without, or both can be in class
+	public static final int ATTENDEES_AND_NOT = 0;
+	public static final int ONLY_WITH_ATTENDEES = 1;
+	public static final int ONLY_WITHOUT_ATTENDEES = 2;
+	private static final String WHETHER_ATTENDEES = "whetherAttendees";
+
+	public
+	static void setWhetherAttendees(
+		Context context, int classNum, int whetherAttendees) {
+		String prefName = WHETHER_ATTENDEES.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, whetherAttendees).commit();
+	}
+
+	public static int getWhetherAttendees(Context context, int classNum) {
+		String prefName = WHETHER_ATTENDEES.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, ATTENDEES_AND_NOT);
+	}
+
+	// used for both "no change" and "nothing saved"
+	public static final int RINGER_MODE_NONE = -99;
+
+	// last user's ringer state
+	private static final String USER_RINGER = "userRinger";
+
+	public static void setUserRinger(Context context, int userRinger) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(USER_RINGER, userRinger).commit();
+	}
+
+	public static int getUserRinger(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(USER_RINGER, RINGER_MODE_NONE);
+	}
+
+	// last ringer state set by this app (to check if user changed it)
+	private static final String LAST_RINGER = "lastRinger";
+
+	public static void setLastRinger(Context context, int classNum, int lastRinger) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(LAST_RINGER, lastRinger).commit();
+	}
+
+	public static int getLastRinger(Context context, int classNum) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(LAST_RINGER, RINGER_MODE_NONE);
+	}
+
+	// ringer state wanted during event of this class
+	private static final String RINGER_ACTION = "ringerAction";
+
+	public static void setRingerAction(Context context, int classNum, int action) {
+		String prefName = RINGER_ACTION.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, action).commit();
+	}
+
+	public static int getRingerAction(Context context, int classNum)
+	{
+		String prefName = RINGER_ACTION.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, RINGER_MODE_NONE);
+	}
+
+	// whether to restore ringer after event of this class
+	private static final String RESTORE_RINGER = "restoreRinger";
+
+	public static void setRestoreRinger(
+		Context context, int classNum, boolean restore)
+	{
+		String prefName = RESTORE_RINGER.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, restore).commit();
+	}
+
+	public static boolean getRestoreRinger(Context context, int classNum) {
+		String prefName = RESTORE_RINGER.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// minutes before start time event of this class to take actions
+	private static final String BEFORE_MINUTES = "beforeMinutes";
+
+	public static void setBeforeMinutes(
+		Context context, int classNum, int beforeMinutes) {
+		String prefName = BEFORE_MINUTES.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, beforeMinutes).commit();
+	}
+
+	public static int getBeforeMinutes(Context context, int classNum) {
+		String prefName = BEFORE_MINUTES.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
+	// minutes after end time event of this class to take actions
+	private static final String AFTER_MINUTES = "beforeMinutes";
+
+	public static void setAfterMinutes(
+		Context context, int classNum, int afterMinutes) {
+		String prefName = AFTER_MINUTES.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterMinutes).commit();
+	}
+
+	public static int getAfterMinutes(Context context, int classNum) {
+		String prefName = AFTER_MINUTES.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
+	// whether to display notification before start of event
+	private static final String NOTIFY_START = "notifyStart";
+
+	public static void setNotifyStart(
+		Context context, int classNum, boolean notifyStart) {
+		String prefName = NOTIFY_START.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, notifyStart).commit();
+	}
+
+	public static boolean getNotifyStart(Context context, int classNum) {
+		String prefName = NOTIFY_START.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// whether to display notification after end of event
+	private static final String NOTIFY_END = "notifyEnd";
+
+	public static void setNotifyEnd(Context context, int classNum, boolean notifyEnd) {
+		String prefName = NOTIFY_END.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, notifyEnd).commit();
+	}
+
+	public static boolean getNotifyEnd(Context context, int classNum) {
+		String prefName = NOTIFY_END.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// is an event of this class currently active?
+	private static final String IS_ACTIVE = "isActive";
+
+	public static void setClassActive(
+		Context context, int classNum, boolean isActive)
+	{
+		String prefName = IS_ACTIVE.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, isActive).commit();
+	}
+
+	public static boolean isClassActive(Context context, int classNum) {
+		String prefName = IS_ACTIVE.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	public static void removeClass(Context context, int classNum) {
+		String num = String.valueOf(classNum);
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(IS_CLASS_USED.concat(num), false)
+			   .putString(CLASS_NAME.concat(num), "")
+			   .putString(EVENT_NAME.concat(num), "")
+			   .putString(EVENT_LOCATION.concat(num), "")
+			   .putString(EVENT_DESCRIPTION.concat(num), "")
+			   .putString(EVENT_COLOUR.concat(num), "")
+			   .putString(AGENDAS.concat(num), "")
+			   .putInt(WHETHER_BUSY.concat(num), BUSY_AND_NOT)
+			   .putInt(WHETHER_RECURRENT.concat(num), RECURRENT_AND_NOT)
+			   .putInt(WHETHER_ORGANISER.concat(num), ORGANISER_AND_NOT)
+			   .putInt(WHETHER_PUBLIC.concat(num), PUBLIC_AND_PRIVATE)
+			   .putInt(WHETHER_ATTENDEES.concat(num), ATTENDEES_AND_NOT)
+			   .putInt(RINGER_ACTION.concat(num), RINGER_MODE_NONE)
+			   .putBoolean(RESTORE_RINGER.concat(num), false)
+			   .putInt(BEFORE_MINUTES.concat(num), 0)
+			   .putInt(AFTER_MINUTES.concat(num), 0)
+			   .putBoolean(NOTIFY_START.concat(num), false)
+			   .putBoolean(NOTIFY_END.concat(num), false)
+			   .putBoolean(IS_ACTIVE.concat(num), false)
+			   .commit();
 	}
 }

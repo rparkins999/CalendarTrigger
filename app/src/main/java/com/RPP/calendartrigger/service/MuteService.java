@@ -232,11 +232,11 @@ public class MuteService extends Service {
 			// Add new alarm
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
 			{
-				alarmManager.setExact(AlarmManager.RTC, nextEventTime, pIntent);
+				alarmManager.setExact(AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
 			}
 			else
 			{
-				alarmManager.set(AlarmManager.RTC, nextEventTime, pIntent);
+				alarmManager.set(AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
 			}
 			DateFormat df = DateFormat.getDateTimeInstance();
 			myLog("Setting alarm ".concat(df.format(nextEventTime))

@@ -1,5 +1,6 @@
 package com.RPP.calendartrigger.calendar;
 
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import android.content.ContentResolver;
@@ -196,27 +197,169 @@ public class CalendarProvider {
 		return res;
 	}
 	
-	/**
-	 * Make a WHERE clause to filter selected calendars
-	 * @return generated WHERE clause, or en empty string if there is no calendar selected
-	 */
-	private String getEventCalendarIdsSelectString() {
-		LinkedHashMap<Long, Boolean> checkedCalendars = PrefsManager.getCheckedCalendars(context);
-		
-		StringBuilder builder = new StringBuilder();
-		boolean first = true;
-		for(long idCalendar : checkedCalendars.keySet()) {
-			if(first)
-				first = false;
-			else
-				builder.append(" OR ");
-			
-			builder.append("(").append(Instances.CALENDAR_ID).append("=").append(idCalendar).append(")");
-		}
-		return builder.toString();
+	private String likeQuote(String s) {
+		StringBuilder result = new StringBuilder(" LIKE \"%");
+		String es = s.replace("*", "**").replace("%", "*%")
+					 .replace("_", "*_").replace("\"", "\"\"");
+		result.append(es).append("%\" ESCAPE \"*\"");
+		return result.toString();
 	}
-	
-	public static void invalidateCalendars() {
-		savedCalendars = null;
+
+	// Make selection string for an event class
+	private StringBuilder selection(Context context, int classNum)
+	{
+		ArrayList<Long> calendarIds
+			= PrefsManager.getCalendars(context, classNum);
+		StringBuilder selClause;
+		// for now we don't handle state-only events with no calendars
+		if(calendarIds.isEmpty()) { return selClause; }
+		selClause.append("(");
+		boolean first = true;
+		for(long id : calendarIds) {
+			if(first) { first = false; }
+			else { selClause.append(" OR "); }
+			selClause.append("(").append(Instances.CALENDAR_ID)
+					 .append("=").append(id).append(")");
+		}
+		selClause.append(") AND ").append(Instances.ALL_DAY)
+				 .append(" = 0");
+		String s = PrefsManager.getEventName(context, classNum);
+		if (!s.isEmpty()) {
+			selClause.append(" AND ").append(Instances.TITLE)
+					 .append(likeQuote(s));
+		}
+		s = PrefsManager.getEventLocation(context, classNum);
+		if (!s.isEmpty()) {
+			selClause.append(" AND ").append(Instances.EVENT_LOCATION)
+					 .append(likeQuote(s));
+		}
+		s = PrefsManager.getEventDescription(context, classNum);
+		if (!s.isEmpty()) {
+			selClause.append(" AND ").append(Instances.DESCRIPTION)
+					 .append(likeQuote(s));
+		}
+		s = PrefsManager.getEventColour(context, classNum);
+		if (!s.isEmpty()) {
+			selClause.append(" AND ").append(Instances.EVENT_COLOR)
+				 .append(likeQuote(s));
+		}
+		switch (PrefsManager.getWhetherBusy(context, classNum))
+		{
+			case 1:
+				selClause.append(" AND ").append(Instances.AVAILABILITY)
+						 .append("=").append(Instances.AVAILABILITY_BUSY);
+				break;
+			case 2:
+				selClause.append(" AND ").append(Instances.AVAILABILITY)
+						 .append("=").append(Instances.AVAILABILITY_FREE);
+				break;
+			default:
+		}
+		switch (PrefsManager.getWhetherRecurrent(context, classNum))
+		{
+		// check if missing entry is null or ""
+			case 1:
+				selClause.append(" AND ").append(Instances.RRULE)
+						 .append(" IS NOT NULL");
+				break;
+			case 2:
+				selClause.append(" AND ").append(Instances.RRULE)
+						 .append(" IS NULL");
+				break;
+			default:
+		}
+		switch (PrefsManager.getWhetherOrganiser(context, classNum))
+		{
+			case 1:
+				selClause.append(" AND ").append(Instances.IS_ORGANIZER )
+						 .append(" = 1");
+				break;
+			case 2:
+				selClause.append(" AND ").append(Instances.IS_ORGANIZER )
+						 .append(" != 1");
+				break;
+			default:
+		}
+		switch (PrefsManager.getWhetherPublic(context, classNum))
+		{
+			case 1:
+				selClause.append(" AND ").append(Instances.ACCESS_LEVEL )
+						 .append(" != ").append(Instances.ACCESS_PRIVATE);
+				break;
+			case 2:
+				selClause.append(" AND ").append(Instances.IS_ORGANIZER )
+						 .append(" = ").append(Instances.ACCESS_PRIVATE);
+				break;
+			default:
+		}
+		switch (PrefsManager.getWhetherAttendees(context, classNum))
+		{
+			case 1:
+				selClause.append(" AND ").append(Instances.HAS_ATTENDEE_DATA )
+						 .append(" = 1");
+				break;
+			case 2:
+				selClause.append(" AND ").append(Instances.HAS_ATTENDEE_DATA )
+						 .append(" = 0");
+				break;
+			default:
+		}
+		return selClause;
+	}
+
+	// time of next start or end of an event
+	public int nextActionTime(
+		Context context, long currentTime)
+	{
+		long result = Long.MAX_VALUE;
+		String[] projection = new String[] { Instances.BEGIN, Instances.END };
+		ContentResolver cr = context.getContentResolver();
+		int n = PrefsManager.getNumClasses(context);
+		for (int classNum = 0; classNum < n; ++classNum)
+		{
+			if (!PrefsManager.isClassUsed(context, classNum)) { continue; }
+			StringBuilder selClause = selection(context, classNum);
+			selClause.append(" AND ( ").append(Instances.BEGIN)
+					 .append(" > ? OR ").append(Instances.END)
+					 .append(" > ? )");
+			int before = PrefsManager.getBeforeMinutes(context, classNum));
+			int after = PrefsManager.getBeforeMinutes(context, classNum));
+			String[] selectionArgs = new String[] {
+				String.valueOf(currentTime + before),
+				String.valueOf(currentTime - after)
+			};
+			Cursor cur = cr.query(getInstancesQueryUri(), projection,
+								  selClause.toString(), selectionArgs, null);
+			while (cur.moveToNext())
+			{
+				long t = cur.getLong(1) - before;
+				if ((t > currentTime) && (t < result)) { result = t; }
+				t = cur.getLong(2) + after;
+				if ((t > currentTime) && (t < result)) { result = t; }
+			}
+		}
+		return result;
+	}
+}
+
+	// is an event of this class active?
+	public boolean isNowActive(
+		Context context, int classNum, long currentTime)
+	{
+		StringBuilder selClause = selection(context, classNum);
+		selClause.append(" AND ").append(Instances.BEGIN)
+				 .append(" <= ? AND ").append(Instances.END)
+				 .append(" > ?");
+		String[] selectionArgs = new String[] {
+			String.valueOf(currentTime
+						   + PrefsManager.getBeforeMinutes(context, classNum)),
+			String.valueOf(currentTime
+						   - PrefsManager.getAfterMinutes(context, classNum))
+		};
+		String[] projection = new String[] { Instances.TITLE };
+		ContentResolver cr = context.getContentResolver();
+		Cursor cur = cr.query(getInstancesQueryUri(), projection,
+							  selClause.toString(), selectionArgs, null);
+		return cur.getCount() > 0;
 	}
 }
