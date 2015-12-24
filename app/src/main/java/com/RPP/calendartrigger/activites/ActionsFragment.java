@@ -52,7 +52,7 @@ public class ActionsFragment extends Fragment {
 			PrefsManager.setLastSetRingerMode(a, PrefsManager.RINGER_MODE_NONE);
 			
 			// Launch update service
-			MuteService.startIfNecessary(a);
+			MuteService.startIfNecessary(a, "actions changed");
 		}
 	};
 	
@@ -79,7 +79,7 @@ public class ActionsFragment extends Fragment {
 			PrefsManager.setOnlyBusy(a, isChecked);
 			
 			// Launch update service
-			MuteService.startIfNecessary(a);
+			MuteService.startIfNecessary(a, "busy state changed");
 		}
 	};
 	
@@ -92,7 +92,7 @@ public class ActionsFragment extends Fragment {
 			PrefsManager.setDelayActived(a, isChecked);
 			
 			// Launch update service
-			MuteService.startIfNecessary(a);
+			MuteService.startIfNecessary(a, "chkDelayActivatedChangeListener");
 		}
 	};
 	
@@ -105,7 +105,7 @@ public class ActionsFragment extends Fragment {
 			PrefsManager.setEarlyActived(a, isChecked);
 			
 			// Launch update service
-			MuteService.startIfNecessary(a);
+			MuteService.startIfNecessary(a, "chkEarlyActivatedChangeListener");
 		}
 	};
 	
@@ -126,7 +126,7 @@ public class ActionsFragment extends Fragment {
 				
 				PrefsManager.setDelay(a, delay);
 				
-				MuteService.startIfNecessary(a);
+				MuteService.startIfNecessary(a, "txtDelayChangeListener");
 			}
 			catch(NumberFormatException e) {
 				txtDelay.setText(String.valueOf(PrefsManager.PREF_DELAY_DEFAULT));
@@ -154,7 +154,7 @@ public class ActionsFragment extends Fragment {
 				
 				PrefsManager.setEarly(a, early);
 				
-				MuteService.startIfNecessary(a);
+				MuteService.startIfNecessary(a, "txtEarlyChangeListener");
 			}
 			catch(NumberFormatException e) {
 				txtEarly.setText(String.valueOf(PrefsManager.PREF_DELAY_DEFAULT));

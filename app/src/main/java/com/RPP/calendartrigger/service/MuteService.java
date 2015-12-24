@@ -11,7 +11,6 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -29,7 +28,12 @@ import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
 
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getWakeTime;
+import static com.RPP.calendartrigger.service.MuteService
+				  .StartServiceReceiver.clearCause;
+import static com.RPP.calendartrigger.service.MuteService
+				  .StartServiceReceiver.getCause;
+import static com.RPP.calendartrigger.service.MuteService
+				  .StartServiceReceiver.getWakeTime;
 
 public class MuteService extends Service {
 
@@ -81,10 +85,12 @@ public class MuteService extends Service {
 	public static class StartServiceReceiver
 			extends WakefulBroadcastReceiver {
 		static long wakeTime;
+		static String cause;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			wakeTime = System.currentTimeMillis();
+			cause = intent.getAction();
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
@@ -93,6 +99,8 @@ public class MuteService extends Service {
 			}
 		}
 		public static long getWakeTime() { return wakeTime; }
+		public static String getCause() { return cause; }
+		public static void clearCause() { cause = null; }
 	}
 	
 	private LocalBinder localBinder = new LocalBinder();
@@ -172,7 +180,8 @@ public class MuteService extends Service {
 				if(PrefsManager.getShowNotif(this))
 					showNotif(ringerAction, event.getNom());
 			}
-			// No action if the current setting is already OK (and do not save the current setting either)
+			// No action if the current setting is already OK
+			// (and do not save the current setting either)
 		}
 	}
 	
@@ -181,7 +190,8 @@ public class MuteService extends Service {
 		int resText = ringerAction == AudioManager.RINGER_MODE_SILENT ? R.string.mode_sonnerie_change_silencieux_pour : R.string.mode_sonnerie_change_vibreur_pour;
 		
 		Resources res = getResources();
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+		NotificationCompat.Builder builder
+			= new NotificationCompat.Builder(this)
 			.setSmallIcon(R.drawable.notif_icon)
 			.setContentTitle(res.getString(R.string.mode_sonnerie_change))
 			.setContentText(res.getString(resText) + " " + nomEven);
@@ -194,26 +204,37 @@ public class MuteService extends Service {
 		stackBuilder.addParentStack(MainActivity.class);
 		stackBuilder.addNextIntent(intent);
 		
-		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+			0, PendingIntent.FLAG_UPDATE_CURRENT);
 		builder.setContentIntent(resultPendingIntent);
 		
 		// Show notification
-		NotificationManager notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		NotificationManager notifManager = (NotificationManager)
+			getSystemService(Context.NOTIFICATION_SERVICE);
 		notifManager.notify(NOTIF_ID, builder.build());
 	}
 	
-	private void setNextAlarm(CalendarEvent currentEvent, long timeNow, long delay, long early, boolean onlyBusy, CalendarProvider provider) {
+	private void setNextAlarm(CalendarEvent currentEvent, long timeNow,
+							  long delay, long early, boolean onlyBusy,
+							  CalendarProvider provider)
+	{
 		
-		PendingIntent pIntent = PendingIntent.getService(this, 0, new Intent(this, MuteService.class), PendingIntent.FLAG_ONE_SHOT);
-		AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+		PendingIntent pIntent = PendingIntent.getService(
+			this, 0, new Intent(this, MuteService.class),
+			PendingIntent.FLAG_ONE_SHOT);
+		AlarmManager alarmManager
+			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		
 		long nextEventTime = Long.MAX_VALUE;
 		long currentEndTime = Long.MAX_VALUE;
 		String evName = "";
-		if(currentEvent != null) { // There is an event right now: call again at the end of the event
-			currentEndTime = currentEvent.getEndTime().getTimeInMillis() + delay;
+		if(currentEvent != null) {
+			// There is an event right now: call again at the end of the event
+			currentEndTime
+				= currentEvent.getEndTime().getTimeInMillis() + delay;
 		}
-		CalendarEvent nextEvent = provider.getNextEvent(timeNow, early, onlyBusy);
+		CalendarEvent nextEvent
+			= provider.getNextEvent(timeNow, early, onlyBusy);
 			
 		if(nextEvent != null)
 		{
@@ -249,19 +270,38 @@ public class MuteService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		long wake = getWakeTime();
 		DateFormat df = DateFormat.getDateTimeInstance();
-		myLog("Alarm at ".concat(df.format(wake)));
+		if (getCause() == null)
+		{
+			if (intent.getAction() == null)
+			{
+				myLog("onStartCommand() from null action");
+			}
+			else
+			{
+				myLog("onStartCommand() from ".concat(intent.getAction()));
+			}
+		}
+		else
+		{
+			myLog("onReceive() from ".concat(getCause()).concat(" at ")
+									 .concat(df.format(wake)));
+			clearCause();
+		}
 		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
 		boolean delayActivated = PrefsManager.getDelayActivated(this);
 		boolean earlyActivated = PrefsManager.getEarlyActivated(this);
-		long delay = delayActivated ? PrefsManager.getDelay(this) * 60 * 1000 : 0;
-		long early = earlyActivated ? PrefsManager.getEarly(this) * 60 * 1000 : 0;
+		long delay = delayActivated ? PrefsManager.getDelay(this) * 60 * 1000
+									: 0;
+		long early = earlyActivated ? PrefsManager.getEarly(this) * 60 * 1000
+									: 0;
 		
 		boolean onlyBusy = PrefsManager.getOnlyBusy(this);
 
 		// Get the current event, if any
 		CalendarProvider provider = new CalendarProvider(this);
-		CalendarEvent currentEvent = provider.getCurrentEvent(timeNow, delay, early, onlyBusy);
+		CalendarEvent currentEvent
+			= provider.getCurrentEvent(timeNow, delay, early, onlyBusy);
 		
 		updateStatutSonnerie(currentEvent);
 		
@@ -270,12 +310,13 @@ public class MuteService extends Service {
 
 		// Release the wake lock if we were called from WakefulBroadcastReceiver
 		WakefulBroadcastReceiver.completeWakefulIntent (intent);
-		
-		return START_NOT_STICKY; // The service can be destroyed now that it has finished its work
+
+		// The service can be destroyed now that it has finished its work
+		return START_NOT_STICKY;
 	}
 	
-	public static void startIfNecessary(Context c) {
+	public static void startIfNecessary(Context c, String caller) {
 		if(PrefsManager.getRingerAction(c) != PrefsManager.RINGER_MODE_NONE)
-			c.startService(new Intent(c, MuteService.class));
+			c.startService(new Intent(caller, null, c, MuteService.class));
 	}
 }

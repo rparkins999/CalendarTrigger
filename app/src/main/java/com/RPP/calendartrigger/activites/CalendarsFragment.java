@@ -9,6 +9,7 @@ import com.RPP.calendartrigger.views.CalendarAdapter;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -100,7 +101,7 @@ public class CalendarsFragment extends Fragment {
 				CalendarProvider.invalidateCalendars();
 				
 				// Launch service to check if there are events now
-				MuteService.startIfNecessary(a);
+				MuteService.startIfNecessary(a, "fillCalendars");
 			}
 		});
 	}
