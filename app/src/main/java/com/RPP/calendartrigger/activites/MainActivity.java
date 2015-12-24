@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
 			ab.setSelectedNavigationItem(savedInstanceState.getInt(KEY_SAVED_CURRENT_TAB));
 		
 		// Start service
-		MuteService.startIfNecessary(this);
+		MuteService.startIfNecessary(this, "MainActivity");
 	}
 	
 	

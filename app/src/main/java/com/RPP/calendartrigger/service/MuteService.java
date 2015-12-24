@@ -85,23 +85,12 @@ public class MuteService extends Service {
 	public static class StartServiceReceiver
 			extends WakefulBroadcastReceiver {
 		static long wakeTime;
-		static int cause;
+		static String cause;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			wakeTime = System.currentTimeMillis();
-			if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
-			{
-				cause = 1;
-			}
-			else if (intent.getAction().equals(Intent.ACTION_PROVIDER_CHANGED))
-			{
-				cause = 2;
-			}
-			else
-			{
-				cause = 0;
-			}
+			cause = intent.getAction();
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
@@ -110,8 +99,8 @@ public class MuteService extends Service {
 			}
 		}
 		public static long getWakeTime() { return wakeTime; }
-		public static int getCause() { return cause; }
-		public static void clearCause() { cause = -1; }
+		public static String getCause() { return cause; }
+		public static void clearCause() { cause = null; }
 	}
 	
 	private LocalBinder localBinder = new LocalBinder();
@@ -225,7 +214,10 @@ public class MuteService extends Service {
 		notifManager.notify(NOTIF_ID, builder.build());
 	}
 	
-	private void setNextAlarm(CalendarEvent currentEvent, long timeNow, long delay, long early, boolean onlyBusy, CalendarProvider provider) {
+	private void setNextAlarm(CalendarEvent currentEvent, long timeNow,
+							  long delay, long early, boolean onlyBusy,
+							  CalendarProvider provider)
+	{
 		
 		PendingIntent pIntent = PendingIntent.getService(
 			this, 0, new Intent(this, MuteService.class),
@@ -279,26 +271,23 @@ public class MuteService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		long wake = getWakeTime();
-		int cause = getCause();
-		clearCause();
 		DateFormat df = DateFormat.getDateTimeInstance();
-		switch (cause)
+		if (getCause() == null)
 		{
-		case 0:
-			myLog("onReceive() with unexpected intent at "
-				  .concat(df.format(wake)));
-			break;
-		case 1:
-			myLog("onReceive() from ACTION_BOOT_COMPLETED at "
-				  .concat(df.format(wake)));
-			break;
-		case 2:
-			myLog("onReceive() from ACTION_PROVIDER_CHANGED at "
-				  .concat(df.format(wake)));
-			break;
-		default: // -1
-			myLog("onStartCommand() called, not from onReceive()");
-			break;
+			if (intent.getAction() == null)
+			{
+				myLog("onStartCommand() from null action");
+			}
+			else
+			{
+				myLog("onStartCommand() from ".concat(intent.getAction()));
+			}
+		}
+		else
+		{
+			myLog("onReceive() from ".concat(getCause()).concat(" at ")
+									 .concat(df.format(wake)));
+			clearCause();
 		}
 		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
@@ -328,8 +317,8 @@ public class MuteService extends Service {
 		return START_NOT_STICKY;
 	}
 	
-	public static void startIfNecessary(Context c) {
+	public static void startIfNecessary(Context c, String caller) {
 		if(PrefsManager.getRingerAction(c) != PrefsManager.RINGER_MODE_NONE)
-			c.startService(new Intent(c, MuteService.class));
+			c.startService(new Intent(caller, null, c, MuteService.class));
 	}
 }
