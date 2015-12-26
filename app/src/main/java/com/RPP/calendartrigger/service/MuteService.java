@@ -90,7 +90,7 @@ public class MuteService extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			wakeTime = System.currentTimeMillis();
-			cause = intent.getAction();
+			cause = intent.toString();
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
