@@ -23,6 +23,18 @@ public class PrefsManager {
 		return getNumClasses(prefs);
 	}
 
+	private static final String LAST_ALARM = "lastAlarmTime";
+
+	public static void setLastAlarmTime(Context context, long time) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putLong(LAST_ALARM, time).commit();
+	}
+
+	public static long getLastAlarmTime(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getLong(LAST_ALARM, Long.MAX_VALUE);
+	}
+
 	private static final String IS_CLASS_USED = "isClassUsed";
 
 	private static boolean isClassUsed(SharedPreferences prefs, int classNum) {

@@ -27,11 +27,14 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Set;
 
 import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.clearCause;
+import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getCategories;
 import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.getCause;
+import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getKeys;
 import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.getWakeTime;
 
@@ -86,11 +89,15 @@ public class MuteService extends Service {
 			extends WakefulBroadcastReceiver {
 		static long wakeTime;
 		static String cause;
+		static Set<String> categories;
+		static Set<String> keys;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			wakeTime = System.currentTimeMillis();
 			cause = intent.getAction();
+			categories = intent.getCategories();
+			keys = intent.getExtras().keySet();
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
@@ -101,6 +108,8 @@ public class MuteService extends Service {
 		public static long getWakeTime() { return wakeTime; }
 		public static String getCause() { return cause; }
 		public static void clearCause() { cause = null; }
+		public static Set<String> getCategories() { return categories; }
+		public static Set<String> getKeys() { return keys; }
 	}
 	
 	private LocalBinder localBinder = new LocalBinder();
@@ -246,22 +255,33 @@ public class MuteService extends Service {
 			evName = " for end of ".concat(currentEvent.getNom());
 		}
 
-		// Remove previous alarms
-		alarmManager.cancel(pIntent);
+		long lastAlarm = PrefsManager.getLastAlarmTime(this);
+		DateFormat df = DateFormat.getDateTimeInstance();
+		if (nextEventTime != lastAlarm)
+		{
+			// Remove previous alarms
+			if (lastAlarm != Long.MAX_VALUE) { alarmManager.cancel(pIntent); }
 
-		if(nextEventTime != Long.MAX_VALUE) {
-			// Add new alarm
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+			if (nextEventTime != Long.MAX_VALUE)
 			{
-				alarmManager.setExact(AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				// Add new alarm
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+				{
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				} else
+				{
+					alarmManager.set(
+						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				}
+				myLog("Setting alarm ".concat(df.format(nextEventTime))
+									  .concat(evName));
 			}
-			else
-			{
-				alarmManager.set(AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
-			}
-			DateFormat df = DateFormat.getDateTimeInstance();
-			myLog("Setting alarm ".concat(df.format(nextEventTime))
-								  .concat(evName));
+		}
+		else
+		{
+			myLog("Alarm time unchanged from "
+					  .concat(df.format(nextEventTime)));
 		}
 	}
 	
@@ -286,6 +306,42 @@ public class MuteService extends Service {
 			myLog("onReceive() from ".concat(getCause()).concat(" at ")
 									 .concat(df.format(wake)));
 			clearCause();
+			if (getCategories() != null)
+			{
+				String cats = "Categories: ";
+				boolean first = true;
+				for (String s: getCategories())
+				{
+					if (first)
+					{
+						first = false;
+						cats = cats.concat(s);
+					}
+					else
+					{
+						cats = cats.concat(", ").concat(s);
+					} 
+				}
+				myLog(cats);
+			}
+			if (getKeys() != null)
+			{
+				String cats = "Keys: ";
+				boolean first = true;
+				for (String s: getKeys())
+				{
+					if (first)
+					{
+						first = false;
+						cats = cats.concat(s);
+					}
+					else
+					{
+						cats = cats.concat(", ").concat(s);
+					} 
+				}
+				myLog(cats);
+			}
 		}
 		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
