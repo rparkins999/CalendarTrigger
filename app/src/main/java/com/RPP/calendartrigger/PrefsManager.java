@@ -68,6 +68,17 @@ public class PrefsManager {
 		return n;
 	}
 
+	private static final String PREF_LAST_ALARM = "lastAlarmTime";
+
+		public static void setLastAlarmTime(Context context, long time) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putLong(PREF_LAST_ALARM, time).commit();
+	}
+
+	public static long getLastAlarmTime(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getLong(PREF_LAST_ALARM, Long.MAX_VALUE);
+
 	// (optional) name of class
 	private static final String CLASS_NAME = "className";
 
