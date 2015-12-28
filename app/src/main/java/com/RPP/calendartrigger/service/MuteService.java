@@ -10,13 +10,14 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
+import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -27,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Set;
 
 import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.clearCause;
@@ -34,25 +36,26 @@ import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.getCause;
 import static com.RPP.calendartrigger.service.MuteService
 				  .StartServiceReceiver.getWakeTime;
+import static com.RPP.calendartrigger.service.MuteService
+				  .StartServiceReceiver.getCategories;
+import static com.RPP.calendartrigger.service.MuteService
+				  .StartServiceReceiver.getKeys;
 
-public class MuteService extends Service {
+public class MuteService extends IntentService {
 
-	public static final String CALENDARTRIGGERLOGFILE
-			= "/sdcard/data/CalendarTriggerLog.txt";
+	public MuteService() { super("CalendarTriggerService"); }
+
 	private void myLog(String s) {
+		final String LOGFILE = "/sdcard/data/CalendarTriggerLog.txt";
 		try
 		{
-			FileOutputStream out
-					= new FileOutputStream(CALENDARTRIGGERLOGFILE, true);
+			FileOutputStream out = new FileOutputStream(LOGFILE, true);
 			PrintStream log = new PrintStream(out);
 			log.printf("CalendarTrigger %s: %s\n",
 					   DateFormat.getDateTimeInstance().format(new Date()), s);
 			log.close();
 		} catch (FileNotFoundException e) {
-			AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-			alertBuilder.setTitle("File not found");
-			alertBuilder.setMessage(CALENDARTRIGGERLOGFILE);
-			alertBuilder.show();
+			// We can't do anything here because we're a background thread
 		}
 	}
 
@@ -76,21 +79,20 @@ public class MuteService extends Service {
 	public static final int NOTIF_ID = 1427;
 	
 	
-	public class LocalBinder extends Binder {
-		MuteService getService() {
-			return MuteService.this;
-		}
-	}
-	
 	public static class StartServiceReceiver
 			extends WakefulBroadcastReceiver {
 		static long wakeTime;
 		static String cause;
+		static Set<String> categories;
+		static Set<String> keys;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			wakeTime = System.currentTimeMillis();
 			cause = intent.toString();
+			categories = intent.getCategories();
+			Bundle b = intent.getExtras();
+			keys = (b != null) ? b.keySet() : null;
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
@@ -101,13 +103,8 @@ public class MuteService extends Service {
 		public static long getWakeTime() { return wakeTime; }
 		public static String getCause() { return cause; }
 		public static void clearCause() { cause = null; }
-	}
-	
-	private LocalBinder localBinder = new LocalBinder();
-	
-	@Override
-	public IBinder onBind(Intent intent) {
-		return localBinder;
+		public static Set<String> getCategories() { return categories; }
+		public static Set<String> getKeys() { return keys; }
 	}
 	
 	/**
@@ -246,30 +243,40 @@ public class MuteService extends Service {
 			evName = " for end of ".concat(currentEvent.getNom());
 		}
 
-		// Remove previous alarms
-		alarmManager.cancel(pIntent);
+		long lastAlarm = PrefsManager.getLastAlarmTime(this);
+		DateFormat df = DateFormat.getDateTimeInstance();
+		if (nextEventTime != lastAlarm)
+		{
+			// Remove previous alarms
+			if (lastAlarm != Long.MAX_VALUE) { alarmManager.cancel(pIntent); }
 
-		if(nextEventTime != Long.MAX_VALUE) {
-			// Add new alarm
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+			if (nextEventTime != Long.MAX_VALUE)
 			{
-				alarmManager.setExact(
-					AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				// Add new alarm
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+				{
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				} else
+				{
+					alarmManager.set(
+						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+				}
+				myLog("Setting alarm ".concat(df.format(nextEventTime))
+									  .concat(evName));
 			}
-			else
-			{
-				alarmManager.set(
-					AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
-			}
-			DateFormat df = DateFormat.getDateTimeInstance();
-			myLog("Setting alarm ".concat(df.format(nextEventTime))
-								  .concat(evName));
+			PrefsManager.setLastAlarmTime(this, nextEventTime);
+		}
+		else
+		{
+			myLog("Alarm time unchanged from "
+					  .concat(df.format(nextEventTime)));
 		}
 	}
 	
 	
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+	public void onHandleIntent(Intent intent) {
 		long wake = getWakeTime();
 		DateFormat df = DateFormat.getDateTimeInstance();
 		if (getCause() == null)
@@ -288,6 +295,42 @@ public class MuteService extends Service {
 			myLog("onReceive() from ".concat(getCause()).concat(" at ")
 									 .concat(df.format(wake)));
 			clearCause();
+			if (getCategories() != null)
+			{
+				String cats = "Categories: ";
+				boolean first = true;
+				for (String s: getCategories())
+				{
+					if (first)
+					{
+						first = false;
+						cats = cats.concat(s);
+					}
+					else
+					{
+						cats = cats.concat(", ").concat(s);
+					}
+				}
+				myLog(cats);
+			}
+			if (getKeys() != null)
+			{
+				String cats = "Keys: ";
+				boolean first = true;
+				for (String s: getKeys())
+				{
+					if (first)
+					{
+						first = false;
+						cats = cats.concat(s);
+					}
+					else
+					{
+						cats = cats.concat(", ").concat(s);
+					}
+				}
+				myLog(cats);
+			}
 		}
 		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
@@ -312,9 +355,6 @@ public class MuteService extends Service {
 
 		// Release the wake lock if we were called from WakefulBroadcastReceiver
 		WakefulBroadcastReceiver.completeWakefulIntent (intent);
-
-		// The service can be destroyed now that it has finished its work
-		return START_NOT_STICKY;
 	}
 	
 	public static void startIfNecessary(Context c, String caller) {

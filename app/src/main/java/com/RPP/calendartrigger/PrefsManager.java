@@ -32,6 +32,8 @@ public class PrefsManager {
 	private static final String PREF_EARLY = "early";
 	
 	private static final String PREF_EARLY_ACTIVATED = "earlyActivated";
+
+	private static final String PREF_LAST_ALARM = "lastAlarmTime";
 	
 	public static final int RINGER_MODE_NONE = -99;
 	
@@ -170,5 +172,15 @@ public class PrefsManager {
 	
 	public static int getEarly(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_EARLY, PREF_EARLY_DEFAULT);
+	}
+
+	public static void setLastAlarmTime(Context context, long time) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putLong(PREF_LAST_ALARM, time).commit();
+	}
+
+	public static long getLastAlarmTime(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getLong(PREF_LAST_ALARM, Long.MAX_VALUE);
 	}
 }
