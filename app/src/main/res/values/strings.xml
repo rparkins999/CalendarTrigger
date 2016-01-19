@@ -2,6 +2,8 @@
 <resources>
 
     <string name="app_name">Calendar Trigger</string>
+    <string name="NewEventClass">New Event Class</string>
+    <string name="EditEventClass">Edit %s</string>
     <string name="prochains_evenements">Next events</string>
     <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
     <string name="agendas">Agendas</string>
@@ -19,11 +21,15 @@
     <string name="une_fois_even_termine">When the event ends</string>
     <string name="afficher_notification">Show a notification</string>
 	<string name="mode_sonnerie_change">Ringer mode changed</string>
-	<string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event</string>
-	<string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event</string>
+	<string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event </string>
+	<string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event </string>
+    <string name="mode_sonnerie_change_vibreur_apres">Restored to vibrate after the event </string>
+    <string name="mode_sonnerie_change_normale_apres">Restored to sound after the event </string>
 	<string name="seulement_evenement_occupe">Only for \"busy\" events</string>
 	<string name="avec_delai_x_minutes_pre">With a</string>
 	<string name="avec_delai_x_minutes_suf">minutes delay</string>
 	<string name="avec_avance_x_minutes_pre">Start</string>
 	<string name="avec_avance_x_minutes_suf">minutes early</string>
+	<string name="logfail">Cannot open log file</string>
+	<string name="logfilename">File </string>
 </resources>

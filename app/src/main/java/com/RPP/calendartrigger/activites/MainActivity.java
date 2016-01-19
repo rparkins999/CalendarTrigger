@@ -1,55 +1,85 @@
 package com.RPP.calendartrigger.activites;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+
+import com.RPP.calendartrigger.PrefsManager;
 import com.RPP.calendartrigger.R;
 import com.RPP.calendartrigger.service.MuteService;
 
-import android.os.Bundle;
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.Activity;
-
 public class MainActivity extends Activity {
-	
-	public static final String TAG_TAB_CALENDARS = "calendars";
-	public static final String TAG_TAB_ACTIONS = "actions";
-	
-	private static final String KEY_SAVED_CURRENT_TAB = "currentTab";
-	
-	public static final String ACTION_SHOW_ACTIONS = "showActions";
-	
+
+	static final int CREATE_CLASS_REQUEST = 1;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		ActionBar ab = getActionBar();
-		ab.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		
-		// Add tabs
-		Tab tab = ab.newTab()
-				.setText(R.string.agendas)
-				.setTabListener(new CalendarTabListener<CalendarsFragment>(this, TAG_TAB_CALENDARS, CalendarsFragment.class));
-		ab.addTab(tab);
-		
-		tab = ab.newTab()
-				.setText(R.string.actions)
-				.setTabListener(new CalendarTabListener<ActionsFragment>(this, TAG_TAB_ACTIONS, ActionsFragment.class));
-		ab.addTab(tab);
-		
-		if(ACTION_SHOW_ACTIONS.equals(getIntent().getAction()))
-			ab.setSelectedNavigationItem(1); // Show actions tab
-		if(savedInstanceState != null && savedInstanceState.containsKey(KEY_SAVED_CURRENT_TAB))
-			ab.setSelectedNavigationItem(savedInstanceState.getInt(KEY_SAVED_CURRENT_TAB));
-		
-		// Start service
-		MuteService.startIfNecessary(this, "MainActivity");
-	}
-	
-	
-	@Override
-	protected void onSaveInstanceState(Bundle b) {
-		super.onSaveInstanceState(b);
-		
-		b.putInt(KEY_SAVED_CURRENT_TAB, getActionBar().getSelectedNavigationIndex());
 	}
 
+	@Override
+	protected void onPause() {
+		// Don't start service until user finishes setup
+		super.onPause();
+		MuteService.startIfNecessary(this, "MainActivity");
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		/* we use a dynamic menu, so we don't inflate it here */
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		menu.clear();
+		MenuItem mi;
+		mi = menu.add(R.string.NewEventClass);
+		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		int nc = PrefsManager.getNumClasses(this);
+		for (int i = 0; i < nc; ++i)
+		{
+			if (PrefsManager.isClassUsed(this, i))
+			{
+				menu.add(getResources()
+							 .getString(R.string.EditEventClass,
+										PrefsManager.getClassName(this, i)));
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		String name = item.getTitle().toString();
+		if (name.equals(getResources().getString(R.string.NewEventClass)))
+		{
+			// create a new event class
+			startActivityForResult(new Intent(this, CreateActivity.class),
+								   CREATE_CLASS_REQUEST);
+		}
+		else
+		{
+			// edit (or delete) an existing event class
+			name = name.substring(
+				getResources().getString(R.string.EditEventClass).indexOf('%'));
+			Intent i = new Intent(this, EditActivity.class);
+			i.putExtra("classname", name);
+			startActivity(new Intent(this, EditActivity.class));
+		}
+		return true;
+	}
+
+	@Override
+	protected void onActivityResult(
+		int requestCode, int resultCode, Intent data) {
+		if ((requestCode == CREATE_CLASS_REQUEST)
+			&& (resultCode == RESULT_OK))
+		{
+			Intent i = new Intent(this, EditActivity.class);
+			i.putExtras(data.getExtras());
+			startActivity(new Intent(this, EditActivity.class));
+		}
+	}
 }

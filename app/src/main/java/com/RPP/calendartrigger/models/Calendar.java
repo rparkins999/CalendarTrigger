@@ -5,13 +5,11 @@ public class Calendar {
 	private long id;
 	private String displayName;
 	private boolean synced;
-	private boolean checked;
 
-	public Calendar(long id, String displayName, boolean synced, boolean checked) {
+	public Calendar(long id, String displayName, boolean synced) {
 		this.id = id;
 		this.displayName = displayName;
 		this.synced = synced;
-		this.checked = checked;
 	}
 	
 	public long getId() {
@@ -24,10 +22,6 @@ public class Calendar {
 	
 	public boolean isSynced() {
 		return synced;
-	}
-	
-	public boolean isChecked() {
-		return checked;
 	}
 
 	@Override

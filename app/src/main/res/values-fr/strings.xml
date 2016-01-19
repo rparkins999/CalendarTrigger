@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Calendar Mute</string>
+    <string name="NewEventClass">Nouvelle Classe</string>
+    <string name="EditEventClass">Changer %s</string>
     <string name="prochains_evenements">Prochains évènements</string>
     <string name="erreur_listing_agendas">Erreur de listing de vos agendas ; Google Calendar est-il installé ?</string>
     <string name="agendas">Agendas</string>
@@ -20,9 +22,13 @@
 	<string name="mode_sonnerie_change">Mode de sonnerie changé</string>
 	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement</string>
 	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement</string>
+    <string name="mode_sonnerie_change_silencieux_apres">Restauration mode vibreur apres l\'évènement</string>
+    <string name="mode_sonnerie_change_normale_apres">Restauration mode sonnerie apres l\'évènement</string>
 	<string name="seulement_evenement_occupe">Seulement pour évènements \"occupé\"</string>
 	<string name="avec_delai_x_minutes_pre">Avec un délai de</string>
 	<string name="avec_delai_x_minutes_suf">minutes</string>
 	<string name="avec_avance_x_minutes_pre">Avec</string>
 	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
+	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
+	<string name="logfilename">Fichier </string>
 </resources>

@@ -1,11 +1,10 @@
 package com.RPP.calendartrigger;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.StringTokenizer;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 public class PrefsManager {
 
@@ -14,6 +13,12 @@ public class PrefsManager {
 	private static final String NUM_CLASSES = "numClasses";
 
 	private static int getNumClasses(SharedPreferences prefs) {
+		// hack for first use of new version only
+		if (prefs.contains("delay"))
+		{
+			// old style preferences, remove
+			prefs.edit().clear().commit();
+		}
 		return prefs.getInt(NUM_CLASSES, 0);
 	}
 
@@ -21,18 +26,6 @@ public class PrefsManager {
 		SharedPreferences prefs
 			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		return getNumClasses(prefs);
-	}
-
-	private static final String LAST_ALARM = "lastAlarmTime";
-
-	public static void setLastAlarmTime(Context context, long time) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putLong(LAST_ALARM, time).commit();
-	}
-
-	public static long getLastAlarmTime(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getLong(LAST_ALARM, Long.MAX_VALUE);
 	}
 
 	private static final String IS_CLASS_USED = "isClassUsed";
@@ -49,9 +42,9 @@ public class PrefsManager {
 	}
 
 	public static int getNewClass(Context context) {
-		int n = getNumClasses(context);
 		SharedPreferences prefs
 			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		int n = getNumClasses(prefs);
 		StringBuilder builder = new StringBuilder(IS_CLASS_USED);
 		for (int classNum = 0; classNum < n; ++classNum)
 		{
@@ -77,7 +70,8 @@ public class PrefsManager {
 
 	public static long getLastAlarmTime(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			.getLong(PREF_LAST_ALARM, Long.MAX_VALUE);
+					  .getLong(PREF_LAST_ALARM, Long.MAX_VALUE);
+	}
 
 	// (optional) name of class
 	private static final String CLASS_NAME = "className";
@@ -89,10 +83,30 @@ public class PrefsManager {
 			   .edit().putString(prefName, className).commit();
 	}
 
+	private static String getClassName(SharedPreferences prefs, int classNum) {
+		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		return prefs.getString(prefName, ((Integer)classNum).toString());
+	}
+
 	public static String getClassName(Context context, int classNum) {
 		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getString(prefName, "");
+					  .getString(prefName, ((Integer)classNum).toString());
+	}
+
+	public static int getClassNum(Context context, String className) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		int n = getNumClasses(prefs);
+		for (int classNum = 0; classNum < n; ++classNum)
+		{
+			if (   isClassUsed(prefs, classNum)
+				&& getClassName(prefs, classNum).equals(className))
+			{
+				return classNum;
+			}
+		}
+		return -1; // className not found
 	}
 
 	// string required in names of events which can be in class
@@ -314,12 +328,12 @@ public class PrefsManager {
 	// last ringer state set by this app (to check if user changed it)
 	private static final String LAST_RINGER = "lastRinger";
 
-	public static void setLastRinger(Context context, int classNum, int lastRinger) {
+	public static void setLastRinger(Context context, int lastRinger) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(LAST_RINGER, lastRinger).commit();
 	}
 
-	public static int getLastRinger(Context context, int classNum) {
+	public static int getLastRinger(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(LAST_RINGER, RINGER_MODE_NONE);
 	}
