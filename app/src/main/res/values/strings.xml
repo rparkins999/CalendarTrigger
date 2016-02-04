@@ -2,8 +2,10 @@
 <resources>
 
     <string name="app_name">Calendar Trigger</string>
-    <string name="NewEventClass">New Event Class</string>
-    <string name="EditEventClass">Edit %s</string>
+    <string name="new_event_class">New Event Class</string>
+    <string name="create_it">Create</string>
+    <string name="cancel_create">Cancel</string>
+    <string name="edit_event_class">Edit %s</string>
     <string name="prochains_evenements">Next events</string>
     <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
     <string name="agendas">Agendas</string>

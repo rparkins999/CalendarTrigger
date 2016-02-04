@@ -12,7 +12,6 @@ import com.RPP.calendartrigger.service.MuteService;
 
 public class MainActivity extends Activity {
 
-	static final int CREATE_CLASS_REQUEST = 1;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -27,7 +26,12 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		/* we use a dynamic menu, so we don't inflate it here */
+		menu.clear();
+		super.onCreateOptionsMenu(menu);
+		MenuItem mi;
+		mi = menu.add(R.string.new_event_class);
+		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		super.onCreateOptionsMenu(menu);
 		return true;
 	}
 
@@ -35,15 +39,16 @@ public class MainActivity extends Activity {
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
 		MenuItem mi;
-		mi = menu.add(R.string.NewEventClass);
+		mi = menu.add(R.string.new_event_class);
 		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		super.onPrepareOptionsMenu(menu);
 		int nc = PrefsManager.getNumClasses(this);
 		for (int i = 0; i < nc; ++i)
 		{
 			if (PrefsManager.isClassUsed(this, i))
 			{
 				menu.add(getResources()
-							 .getString(R.string.EditEventClass,
+							 .getString(R.string.edit_event_class,
 										PrefsManager.getClassName(this, i)));
 			}
 		}
@@ -53,33 +58,30 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String name = item.getTitle().toString();
-		if (name.equals(getResources().getString(R.string.NewEventClass)))
+		if (name.equals(getResources().getString(R.string.new_event_class)))
 		{
-			// create a new event class
-			startActivityForResult(new Intent(this, CreateActivity.class),
-								   CREATE_CLASS_REQUEST);
+		    DialogFragment newFragment = new CreateClassDialog();
+		    newFragment.show(getFragmentManager(), "CreateClassDialog");
 		}
 		else
 		{
 			// edit (or delete) an existing event class
-			name = name.substring(
-				getResources().getString(R.string.EditEventClass).indexOf('%'));
+			name = name.substring(getResources()
+				.getString(R.string.edit_event_class).indexOf('%'));
 			Intent i = new Intent(this, EditActivity.class);
 			i.putExtra("classname", name);
-			startActivity(new Intent(this, EditActivity.class));
+			startActivity(i);
 		}
 		return true;
 	}
 
-	@Override
-	protected void onActivityResult(
-		int requestCode, int resultCode, Intent data) {
-		if ((requestCode == CREATE_CLASS_REQUEST)
-			&& (resultCode == RESULT_OK))
-		{
-			Intent i = new Intent(this, EditActivity.class);
-			i.putExtras(data.getExtras());
-			startActivity(new Intent(this, EditActivity.class));
-		}
+	public void doPositiveClick(text) {
+		int n = PrefsManager.getNewClass(this);
+		PrefsManager.setClassName(this, n, text);
+		 invalidateOptionsMenu();
+	}
+
+	public void doNegativeClick() {
+		// nothing
 	}
 }
