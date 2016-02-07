@@ -192,12 +192,33 @@ public class MuteService extends IntentService {
 							  long delay, long early, boolean onlyBusy,
 							  CalendarProvider provider)
 	{
-		
-		PendingIntent pIntent = PendingIntent.getService(
-			this, 0, new Intent(this, MuteService.class),
-			PendingIntent.FLAG_ONE_SHOT);
-		AlarmManager alarmManager
-			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+/* This code is bascially copied from the Android alarm clock:
+        int flags = nextAlarm == null ? PendingIntent.FLAG_NO_CREATE : 0;
+		Intent indicator = new Intent(
+			context, MuteService.class).setAction(DO_NOTHING);
+		requestCode = 0;
+        PendingIntent operation = PendingIntent.getBroadcast(
+			context, requestCode, indicator, flags);
+
+        if (nextAlarm != null) {
+            long alarmTime = nextAlarm.getAlarmTime().getTimeInMillis();
+
+            Intent viewer = Alarm.createIntent(
+				context, DeskClock.class, nextAlarm.id);
+	        viewer.putExtra("deskclock.select.tab", 0);
+	        viewer.putExtra("deskclock.scroll.to.alarm", alarmId);
+	        viewer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent viewIntent = PendingIntent.getActivity(
+				context, nextAlarm.hashCode(), viewer,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+            AlarmManager.AlarmClockInfo info =
+                    new AlarmManager.AlarmClockInfo(alarmTime, viewIntent);
+            alarmManager.setAlarmClock(info, operation);
+        } else if (operation != null) {
+            alarmManager.cancel(operation);
+        }
+*/
 		
 		long nextEventTime = Long.MAX_VALUE;
 		long currentEndTime = Long.MAX_VALUE;
@@ -210,16 +231,28 @@ public class MuteService extends IntentService {
 		CalendarEvent nextEvent
 			= provider.getNextEvent(timeNow, early, onlyBusy);
 			
-		if(nextEvent != null)
+		int flags;
+		if (nextEvent != null)
 		{
 			nextEventTime = nextEvent.getStartTime().getTimeInMillis();
 			evName = " for start of ".concat(nextEvent.getNom());
+			flags = 0;
 		}
-		if (currentEndTime < nextEventTime) {
+		else
+		{
+			flags = PendingIntent.FLAG_NO_CREATE;
+		}
+		if (currentEndTime < nextEventTime)
+		{
 			nextEventTime = currentEndTime;
 			evName = " for end of ".concat(currentEvent.getNom());
 		}
 
+		PendingIntent pIntent = PendingIntent.getBroadcast(
+			this, 0 /*requestCode*/,
+			new Intent(this, StartServiceReceiver.class), flags);
+		AlarmManager alarmManager
+			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		long lastAlarm = PrefsManager.getLastAlarmTime(this);
 		DateFormat df = DateFormat.getDateTimeInstance();
 		if (nextEventTime != lastAlarm)
@@ -230,9 +263,11 @@ public class MuteService extends IntentService {
 			if (nextEventTime != Long.MAX_VALUE)
 			{
 				// Add new alarm
-				alarmManager.setAlarmClock(
-					new AlarmManager.AlarmClockInfo(
-						nextEventTime, null), pIntent);
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
+//				alarmManager.setAlarmClock(
+//					new AlarmManager.AlarmClockInfo(
+//						nextEventTime, null), pIntent);
 				myLog("Alarm time set to "
 						  .concat(df.format(nextEventTime))
 						  .concat(evName));
