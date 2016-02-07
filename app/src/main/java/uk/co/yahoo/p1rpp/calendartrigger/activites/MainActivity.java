@@ -1,16 +1,16 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.RPP.calendartrigger.PrefsManager;
-import android.os.Bundle;
-
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+
 public class MainActivity extends Activity {
 
 	@Override
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void doPositiveClick(text) {
+	public void doPositiveClick(String text) {
 		int n = PrefsManager.getNewClass(this);
 		PrefsManager.setClassName(this, n, text);
 		 invalidateOptionsMenu();

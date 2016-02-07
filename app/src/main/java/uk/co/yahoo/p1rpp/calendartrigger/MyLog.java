@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger;
+package uk.co.yahoo.p1rpp.calendartrigger;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
+
+import uk.co.yahoo.p1rpp.calendartrigger.R;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

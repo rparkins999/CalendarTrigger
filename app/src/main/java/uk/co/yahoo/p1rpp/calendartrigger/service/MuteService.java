@@ -11,18 +11,13 @@ import android.media.AudioManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
-import com.RPP.calendartrigger.MyLog;
-import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.calendar.CalendarProvider;
-
 import java.text.DateFormat;
 
+import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
-import uk.co.yahoo.p1rpp.calendartrigger.activites.MainActivity;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
-import uk.co.yahoo.p1rpp.calendartrigger.models.CalendarEvent;
+
 
 public class MuteService extends IntentService {
 
@@ -33,10 +28,8 @@ public class MuteService extends IntentService {
 	public boolean wantRestoreRinger;
 	public String startEvent;
 	public String endEvent;
-			// Actually we could show a notification
 
 	public static final String EXTRA_WAKE_TIME = "wakeTime";
-
 	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
 
 	public static class StartServiceReceiver
@@ -92,8 +85,6 @@ public class MuteService extends IntentService {
 	private static final int NOTIFY_ID = 1427;
 	private void emitNotification(int resNum, String event)
 	{
-					  ? R.string.mode_sonnerie_change_silencieux_pour
-					  : R.string.mode_sonnerie_change_vibreur_pour;
 		Resources res = getResources();
 		NotificationCompat.Builder builder
 			= new NotificationCompat.Builder(this)
@@ -112,6 +103,13 @@ public class MuteService extends IntentService {
 	// Incidentally we compute the next alarm time
 	public void updateState()
 	{
+		// Timestamp used in all requests (so it remains consistent)
+		long currentTime = System.currentTimeMillis();
+		AudioManager audio
+			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		int userRinger = audio.getRingerMode();
+		wantedRinger = userRinger;
+		canRestoreRinger = userRinger == PrefsManager.getLastRinger(this);
 		wantRestoreRinger = false;
 		long nextAlarmTime = Long.MAX_VALUE;
 		startEvent = "";
@@ -131,18 +129,15 @@ public class MuteService extends IntentService {
 						activateClass(classNum, result.eventName);
 					}
 					if (result.endTime < nextAlarmTime)
-		int flags;
-		if (nextEvent != null)
 					{
 						nextAlarmTime = result.endTime;
-			flags = 0;
 					}
-		else
-		{
-			flags = PendingIntent.FLAG_NO_CREATE;
-		}
-		if (currentEndTime < nextEventTime)
-		{
+				}
+				else
+				{
+					if (PrefsManager.isClassActive(this, classNum))
+					{
+						deactivateClass(classNum, result.eventName);
 					}
 					if (result.startTime < nextAlarmTime)
 					{
@@ -160,8 +155,8 @@ public class MuteService extends IntentService {
 			{
 				int resNum =
 					(wantedRinger == AudioManager.RINGER_MODE_SILENT)
-					? R.string.mode_sonnerie_change_silencieux_pour
-					: R.string.mode_sonnerie_change_vibreur_pour;
+									 ? R.string.mode_sonnerie_change_silencieux_pour
+									 : R.string.mode_sonnerie_change_vibreur_pour;
 				emitNotification(resNum, startEvent);
 				new MyLog(this, "Setting ringer to "
 					.concat(MyLog.rm(wantedRinger))
@@ -179,8 +174,8 @@ public class MuteService extends IntentService {
 				{
 					int resNum =
 						(wantedRinger == AudioManager.RINGER_MODE_VIBRATE)
-						? R.string.mode_sonnerie_change_vibreur_apres
-						: R.string.mode_sonnerie_change_normale_apres;
+										 ? R.string.mode_sonnerie_change_vibreur_apres
+										 : R.string.mode_sonnerie_change_normale_apres;
 					emitNotification(resNum, endEvent);
 					new MyLog(this, "Restoring ringer to "
 						.concat(MyLog.rm(wantedRinger))
@@ -191,19 +186,18 @@ public class MuteService extends IntentService {
 			PrefsManager.setLastRinger(this, PrefsManager.RINGER_MODE_NONE);
 		}
 
-		PendingIntent pIntent = PendingIntent.getBroadcast(
-			this, 0 /*requestCode*/,
-			new Intent(this, StartServiceReceiver.class), flags);
-		AlarmManager alarmManager
-			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		long lastAlarm = PrefsManager.getLastAlarmTime(this);
 		if (nextAlarmTime != lastAlarm)
 		{
-			PendingIntent pIntent = PendingIntent.getService(
-				this, 0, new Intent(this, MuteService.class),
-				PendingIntent.FLAG_ONE_SHOT);
-			AlarmManager alarmManager;
-			alarmManager = (AlarmManager)
+			int flags = 0;
+			if (lastAlarm == Long.MAX_VALUE)
+			{
+				flags = PendingIntent.FLAG_NO_CREATE;
+			}
+			PendingIntent pIntent = PendingIntent.getBroadcast(
+				this, 0 /*requestCode*/,
+				new Intent(this, StartServiceReceiver.class), flags);
+			AlarmManager alarmManager = (AlarmManager)
 				getSystemService(Context.ALARM_SERVICE);
 			// Remove previous alarms
 			if (lastAlarm != Long.MAX_VALUE) { alarmManager.cancel(pIntent); }
@@ -213,15 +207,14 @@ public class MuteService extends IntentService {
 				// Add new alarm
 					alarmManager.setExact(
 						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-				myLog("Alarm time set to "
-						  .concat(df.format(nextEventTime))
-						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+					DateFormat df = DateFormat.getDateTimeInstance();
+					new MyLog(this, "Alarm time set to "
+									.concat(df.format(nextAlarmTime)));
 				}
 			}
 			PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		}
-	}
-	
+
 	@Override
 	public void onHandleIntent(Intent intent) {
 		String wake;
@@ -230,19 +223,13 @@ public class MuteService extends IntentService {
 		{
 			wake = " received at "
 				.concat(df.format(intent.getLongExtra(EXTRA_WAKE_TIME, 0)));
-				new MyLog(this, "onStartCommand() from null action");
-				new MyLog(this, "onStartCommand() from "
-					.concat(intent.getAction()));
-			new MyLog(this, "onReceive() from "
-				.concat(getCause()).concat(" at ")
-				.concat(df.format(wake)));
 		}
 		else
 		{
 			wake = "";
 		}
 		String cause;
-				new MyLog(this, cats);
+		if (intent.hasExtra(EXTRA_WAKE_CAUSE))
 		{
 			cause = intent.getStringExtra(EXTRA_WAKE_CAUSE);
 		}
@@ -250,12 +237,11 @@ public class MuteService extends IntentService {
 		{
 			cause = "null action";
 		}
-
-				new MyLog(this, cats);
+		new MyLog(this, "onReceive() from "
+						.concat(cause).concat(" at ")
+						.concat(wake));
 
 		updateState();
-		myLog("timeNow is ".concat(df.format(timeNow)));
-
 
 		// Release the wake lock if we were called from WakefulBroadcastReceiver
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);

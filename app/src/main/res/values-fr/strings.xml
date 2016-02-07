@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Calendar Mute</string>
-    <string name="new_event_class">Nouvelle Classe d'évènements</string>
+    <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
     <string name="edit_event_class">Changer %s</string>
