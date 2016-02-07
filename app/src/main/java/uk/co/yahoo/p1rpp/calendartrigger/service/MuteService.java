@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger.service;
+package uk.co.yahoo.p1rpp.calendartrigger.service;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
-import android.os.Build;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
@@ -19,13 +17,12 @@ import com.RPP.calendartrigger.R;
 import com.RPP.calendartrigger.calendar.CalendarProvider;
 
 import java.text.DateFormat;
-import java.util.Set;
 
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.clearCause;
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getCategories;
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getCause;
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getKeys;
-import static com.RPP.calendartrigger.service.MuteService.StartServiceReceiver.getWakeTime;
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.activites.MainActivity;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.models.CalendarEvent;
 
 public class MuteService extends IntentService {
 
@@ -36,29 +33,24 @@ public class MuteService extends IntentService {
 	public boolean wantRestoreRinger;
 	public String startEvent;
 	public String endEvent;
+			// Actually we could show a notification
+
+	public static final String EXTRA_WAKE_TIME = "wakeTime";
+
+	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
 
 	public static class StartServiceReceiver
 			extends WakefulBroadcastReceiver {
-		static long wakeTime;
-		static String cause;
-		static Set<String> categories;
-		static Set<String> keys;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			wakeTime = System.currentTimeMillis();
-			cause = intent.toString();
-			categories = intent.getCategories();
-			Bundle b = intent.getExtras();
-			keys = (b != null) ? b.keySet() : null;
-			startWakefulService(context, new Intent(
-				context, MuteService.class));
+			long wakeTime = System.currentTimeMillis();
+			String wakeCause = intent.toString();
+				Intent mute = new Intent(context, MuteService.class);
+				mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
+				mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
+				startWakefulService(context, mute);
 		}
-		public static long getWakeTime() { return wakeTime; }
-		public static String getCause() { return cause; }
-		public static void clearCause() { cause = null; }
-		public static Set<String> getCategories() { return categories; }
-		public static Set<String> getKeys() { return keys; }
 	}
 
 	// Handle event class becoming active
@@ -100,6 +92,8 @@ public class MuteService extends IntentService {
 	private static final int NOTIFY_ID = 1427;
 	private void emitNotification(int resNum, String event)
 	{
+					  ? R.string.mode_sonnerie_change_silencieux_pour
+					  : R.string.mode_sonnerie_change_vibreur_pour;
 		Resources res = getResources();
 		NotificationCompat.Builder builder
 			= new NotificationCompat.Builder(this)
@@ -118,13 +112,6 @@ public class MuteService extends IntentService {
 	// Incidentally we compute the next alarm time
 	public void updateState()
 	{
-		// Timestamp used in all requests (so it remains consistent)
-		long currentTime = System.currentTimeMillis();
-		AudioManager audio
-			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		int userRinger = audio.getRingerMode();
-		wantedRinger = userRinger;
-		canRestoreRinger = userRinger == PrefsManager.getLastRinger(this);
 		wantRestoreRinger = false;
 		long nextAlarmTime = Long.MAX_VALUE;
 		startEvent = "";
@@ -144,15 +131,18 @@ public class MuteService extends IntentService {
 						activateClass(classNum, result.eventName);
 					}
 					if (result.endTime < nextAlarmTime)
+		int flags;
+		if (nextEvent != null)
 					{
 						nextAlarmTime = result.endTime;
+			flags = 0;
 					}
-				}
-				else
-				{
-					if (PrefsManager.isClassActive(this, classNum))
-					{
-						deactivateClass(classNum, result.eventName);
+		else
+		{
+			flags = PendingIntent.FLAG_NO_CREATE;
+		}
+		if (currentEndTime < nextEventTime)
+		{
 					}
 					if (result.startTime < nextAlarmTime)
 					{
@@ -201,7 +191,11 @@ public class MuteService extends IntentService {
 			PrefsManager.setLastRinger(this, PrefsManager.RINGER_MODE_NONE);
 		}
 
-		// Set next alarm if needed
+		PendingIntent pIntent = PendingIntent.getBroadcast(
+			this, 0 /*requestCode*/,
+			new Intent(this, StartServiceReceiver.class), flags);
+		AlarmManager alarmManager
+			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		long lastAlarm = PrefsManager.getLastAlarmTime(this);
 		if (nextAlarmTime != lastAlarm)
 		{
@@ -217,13 +211,10 @@ public class MuteService extends IntentService {
 			if (nextAlarmTime != Long.MAX_VALUE)
 			{
 				// Add new alarm
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-				{
 					alarmManager.setExact(
 						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-				} else
-				{
-					alarmManager.set(
+				myLog("Alarm time set to "
+						  .concat(df.format(nextEventTime))
 						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
 				}
 			}
@@ -233,64 +224,38 @@ public class MuteService extends IntentService {
 	
 	@Override
 	public void onHandleIntent(Intent intent) {
-		long wake = getWakeTime();
+		String wake;
 		DateFormat df = DateFormat.getDateTimeInstance();
-		if (getCause() == null)
+		if (intent.hasExtra(EXTRA_WAKE_TIME))
 		{
-			if (intent.getAction() == null)
-			{
+			wake = " received at "
+				.concat(df.format(intent.getLongExtra(EXTRA_WAKE_TIME, 0)));
 				new MyLog(this, "onStartCommand() from null action");
-			}
-			else
-			{
 				new MyLog(this, "onStartCommand() from "
 					.concat(intent.getAction()));
-			}
-		}
-		else
-		{
 			new MyLog(this, "onReceive() from "
 				.concat(getCause()).concat(" at ")
 				.concat(df.format(wake)));
-			clearCause();
-			if (getCategories() != null)
-			{
-				String cats = "Categories: ";
-				boolean first = true;
-				for (String s: getCategories())
-				{
-					if (first)
-					{
-						first = false;
-						cats = cats.concat(s);
-					}
-					else
-					{
-						cats = cats.concat(", ").concat(s);
-					}
-				}
-				new MyLog(this, cats);
-			}
-			if (getKeys() != null)
-			{
-				String cats = "Keys: ";
-				boolean first = true;
-				for (String s: getKeys())
-				{
-					if (first)
-					{
-						first = false;
-						cats = cats.concat(s);
-					}
-					else
-					{
-						cats = cats.concat(", ").concat(s);
-					}
-				}
-				new MyLog(this, cats);
-			}
 		}
+		else
+		{
+			wake = "";
+		}
+		String cause;
+				new MyLog(this, cats);
+		{
+			cause = intent.getStringExtra(EXTRA_WAKE_CAUSE);
+		}
+		else
+		{
+			cause = "null action";
+		}
+
+				new MyLog(this, cats);
+
 		updateState();
+		myLog("timeNow is ".concat(df.format(timeNow)));
+
 
 		// Release the wake lock if we were called from WakefulBroadcastReceiver
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);

@@ -1,11 +1,11 @@
-package com.RPP.calendartrigger.activites;
+package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.calendar.CalendarProvider;
-import com.RPP.calendartrigger.models.Calendar;
-import com.RPP.calendartrigger.service.MuteService;
-import com.RPP.calendartrigger.views.CalendarAdapter;
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+import uk.co.yahoo.p1rpp.calendartrigger.views.CalendarAdapter;
 
 import android.app.Activity;
 import android.app.Fragment;

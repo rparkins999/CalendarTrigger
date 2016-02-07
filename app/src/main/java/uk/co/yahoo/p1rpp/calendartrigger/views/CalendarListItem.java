@@ -1,6 +1,6 @@
-package com.RPP.calendartrigger.views;
+package uk.co.yahoo.p1rpp.calendartrigger.views;
 
-import com.RPP.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.CheckBox;

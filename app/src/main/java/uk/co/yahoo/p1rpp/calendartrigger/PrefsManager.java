@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger;
+package uk.co.yahoo.p1rpp.calendartrigger;
 
 import android.content.Context;
 import android.content.SharedPreferences;

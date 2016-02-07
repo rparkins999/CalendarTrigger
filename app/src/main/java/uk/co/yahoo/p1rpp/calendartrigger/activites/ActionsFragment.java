@@ -1,8 +1,4 @@
-package com.RPP.calendartrigger.activites;
-
-import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.service.MuteService;
+package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -17,6 +13,10 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 
 public class ActionsFragment extends Fragment {
 

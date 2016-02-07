@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger.activites;
+package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,9 +7,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.service.MuteService;
+import android.os.Bundle;
 
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 public class MainActivity extends Activity {
 
 	@Override

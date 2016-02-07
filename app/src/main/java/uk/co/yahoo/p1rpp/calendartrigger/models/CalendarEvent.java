@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger.models;
+package uk.co.yahoo.p1rpp.calendartrigger.models;
 
 import java.util.GregorianCalendar;
 
