@@ -161,7 +161,9 @@ public class MuteService extends IntentService {
 	
 	private void showNotif(int ringerAction, String nomEven) {
 		
-		int resText = ringerAction == AudioManager.RINGER_MODE_SILENT ? R.string.mode_sonnerie_change_silencieux_pour : R.string.mode_sonnerie_change_vibreur_pour;
+		int resText = ringerAction == AudioManager.RINGER_MODE_SILENT
+					  ? R.string.mode_sonnerie_change_silencieux_pour
+					  : R.string.mode_sonnerie_change_vibreur_pour;
 		
 		Resources res = getResources();
 		NotificationCompat.Builder builder
@@ -192,34 +194,6 @@ public class MuteService extends IntentService {
 							  long delay, long early, boolean onlyBusy,
 							  CalendarProvider provider)
 	{
-/* This code is bascially copied from the Android alarm clock:
-        int flags = nextAlarm == null ? PendingIntent.FLAG_NO_CREATE : 0;
-		Intent indicator = new Intent(
-			context, MuteService.class).setAction(DO_NOTHING);
-		requestCode = 0;
-        PendingIntent operation = PendingIntent.getBroadcast(
-			context, requestCode, indicator, flags);
-
-        if (nextAlarm != null) {
-            long alarmTime = nextAlarm.getAlarmTime().getTimeInMillis();
-
-            Intent viewer = Alarm.createIntent(
-				context, DeskClock.class, nextAlarm.id);
-	        viewer.putExtra("deskclock.select.tab", 0);
-	        viewer.putExtra("deskclock.scroll.to.alarm", alarmId);
-	        viewer.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            PendingIntent viewIntent = PendingIntent.getActivity(
-				context, nextAlarm.hashCode(), viewer,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-            AlarmManager.AlarmClockInfo info =
-                    new AlarmManager.AlarmClockInfo(alarmTime, viewIntent);
-            alarmManager.setAlarmClock(info, operation);
-        } else if (operation != null) {
-            alarmManager.cancel(operation);
-        }
-*/
-		
 		long nextEventTime = Long.MAX_VALUE;
 		long currentEndTime = Long.MAX_VALUE;
 		String evName = "";
@@ -265,9 +239,6 @@ public class MuteService extends IntentService {
 				// Add new alarm
 					alarmManager.setExact(
 						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
-//				alarmManager.setAlarmClock(
-//					new AlarmManager.AlarmClockInfo(
-//						nextEventTime, null), pIntent);
 				myLog("Alarm time set to "
 						  .concat(df.format(nextEventTime))
 						  .concat(evName));
