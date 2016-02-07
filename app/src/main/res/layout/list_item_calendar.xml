@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.RPP.calendartrigger.views.CalendarListItem
+<uk.co.yahoo.p1rpp.calendartrigger.views.CalendarListItem
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"

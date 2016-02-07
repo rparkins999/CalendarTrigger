@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger.calendar;
+package uk.co.yahoo.p1rpp.calendartrigger.calendar;
 
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
@@ -10,9 +10,9 @@ import android.net.Uri;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Instances;
 
-import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.models.Calendar;
-import com.RPP.calendartrigger.models.CalendarEvent;
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
+import uk.co.yahoo.p1rpp.calendartrigger.models.CalendarEvent;
 
 public class CalendarProvider {
 

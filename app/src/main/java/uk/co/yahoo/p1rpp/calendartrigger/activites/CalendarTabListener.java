@@ -1,4 +1,4 @@
-package com.RPP.calendartrigger.activites;
+package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.ActionBar.Tab;
 import android.app.ActionBar.TabListener;

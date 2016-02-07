@@ -1,7 +1,7 @@
-package com.RPP.calendartrigger.views;
+package uk.co.yahoo.p1rpp.calendartrigger.views;
 
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.models.Calendar;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
 
 import android.content.Context;
 import android.view.LayoutInflater;

@@ -1,24 +1,13 @@
-package com.RPP.calendartrigger.service;
-
-import com.RPP.calendartrigger.PrefsManager;
-import com.RPP.calendartrigger.R;
-import com.RPP.calendartrigger.activites.MainActivity;
-import com.RPP.calendartrigger.calendar.CalendarProvider;
-import com.RPP.calendartrigger.models.CalendarEvent;
+package uk.co.yahoo.p1rpp.calendartrigger.service;
 
 import android.app.AlarmManager;
-import android.app.AlertDialog;
+import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
-import android.os.Binder;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -28,18 +17,12 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Set;
 
-import static com.RPP.calendartrigger.service.MuteService
-				  .StartServiceReceiver.clearCause;
-import static com.RPP.calendartrigger.service.MuteService
-				  .StartServiceReceiver.getCause;
-import static com.RPP.calendartrigger.service.MuteService
-				  .StartServiceReceiver.getWakeTime;
-import static com.RPP.calendartrigger.service.MuteService
-				  .StartServiceReceiver.getCategories;
-import static com.RPP.calendartrigger.service.MuteService
-				  .StartServiceReceiver.getKeys;
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.activites.MainActivity;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.models.CalendarEvent;
 
 public class MuteService extends IntentService {
 
@@ -56,6 +39,7 @@ public class MuteService extends IntentService {
 			log.close();
 		} catch (FileNotFoundException e) {
 			// We can't do anything here because we're a background thread
+			// Actually we could show a notification
 		}
 	}
 
@@ -77,34 +61,27 @@ public class MuteService extends IntentService {
 	public static final String ACTION_CHECK_CALENDAR_STATUS = "checkStatus";
 	
 	public static final int NOTIF_ID = 1427;
-	
-	
+
+	public static final String EXTRA_WAKE_TIME = "wakeTime";
+
+	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
+
 	public static class StartServiceReceiver
 			extends WakefulBroadcastReceiver {
-		static long wakeTime;
-		static String cause;
-		static Set<String> categories;
-		static Set<String> keys;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			wakeTime = System.currentTimeMillis();
-			cause = intent.toString();
-			categories = intent.getCategories();
-			Bundle b = intent.getExtras();
-			keys = (b != null) ? b.keySet() : null;
+			long wakeTime = System.currentTimeMillis();
+			String wakeCause = intent.toString();
 			if(PrefsManager.getRingerAction(context)
 			   != PrefsManager.RINGER_MODE_NONE)
 			{
-				startWakefulService(context, new Intent(
-					context, MuteService.class));
+				Intent mute = new Intent(context, MuteService.class);
+				mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
+				mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
+				startWakefulService(context, mute);
 			}
 		}
-		public static long getWakeTime() { return wakeTime; }
-		public static String getCause() { return cause; }
-		public static void clearCause() { cause = null; }
-		public static Set<String> getCategories() { return categories; }
-		public static Set<String> getKeys() { return keys; }
 	}
 	
 	/**
@@ -253,17 +230,12 @@ public class MuteService extends IntentService {
 			if (nextEventTime != Long.MAX_VALUE)
 			{
 				// Add new alarm
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-				{
-					alarmManager.setExact(
-						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
-				} else
-				{
-					alarmManager.set(
-						AlarmManager.RTC_WAKEUP, nextEventTime, pIntent);
-				}
-				myLog("Setting alarm ".concat(df.format(nextEventTime))
-									  .concat(evName));
+				alarmManager.setAlarmClock(
+					new AlarmManager.AlarmClockInfo(
+						nextEventTime, null), pIntent);
+				myLog("Alarm time set to "
+						  .concat(df.format(nextEventTime))
+						  .concat(evName));
 			}
 			PrefsManager.setLastAlarmTime(this, nextEventTime);
 		}
@@ -277,63 +249,33 @@ public class MuteService extends IntentService {
 	
 	@Override
 	public void onHandleIntent(Intent intent) {
-		long wake = getWakeTime();
+		String wake;
 		DateFormat df = DateFormat.getDateTimeInstance();
-		if (getCause() == null)
+		if (intent.hasExtra(EXTRA_WAKE_TIME))
 		{
-			if (intent.getAction() == null)
-			{
-				myLog("onStartCommand() from null action");
-			}
-			else
-			{
-				myLog("onStartCommand() from ".concat(intent.getAction()));
-			}
+			wake = " received at "
+				.concat(df.format(intent.getLongExtra(EXTRA_WAKE_TIME, 0)));
 		}
 		else
 		{
-			myLog("onReceive() from ".concat(getCause()).concat(" at ")
-									 .concat(df.format(wake)));
-			clearCause();
-			if (getCategories() != null)
-			{
-				String cats = "Categories: ";
-				boolean first = true;
-				for (String s: getCategories())
-				{
-					if (first)
-					{
-						first = false;
-						cats = cats.concat(s);
-					}
-					else
-					{
-						cats = cats.concat(", ").concat(s);
-					}
-				}
-				myLog(cats);
-			}
-			if (getKeys() != null)
-			{
-				String cats = "Keys: ";
-				boolean first = true;
-				for (String s: getKeys())
-				{
-					if (first)
-					{
-						first = false;
-						cats = cats.concat(s);
-					}
-					else
-					{
-						cats = cats.concat(", ").concat(s);
-					}
-				}
-				myLog(cats);
-			}
+			wake = "";
 		}
+		String cause;
+		if (intent.hasExtra(EXTRA_WAKE_CAUSE))
+		{
+			cause = intent.getStringExtra(EXTRA_WAKE_CAUSE);
+		}
+		else
+		{
+			cause = "null action";
+		}
+
+		myLog("onReceive() from ".concat(cause).concat(wake));
+
 		// Timestamp used in all requests (so it remains consistent)
 		long timeNow = System.currentTimeMillis();
+		myLog("timeNow is ".concat(df.format(timeNow)));
+
 		boolean delayActivated = PrefsManager.getDelayActivated(this);
 		boolean earlyActivated = PrefsManager.getEarlyActivated(this);
 		long delay = delayActivated ? PrefsManager.getDelay(this) * 60 * 1000
