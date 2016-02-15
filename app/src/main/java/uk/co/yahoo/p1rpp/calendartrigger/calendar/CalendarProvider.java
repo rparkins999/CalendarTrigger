@@ -8,11 +8,11 @@ import android.net.Uri;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Instances;
 
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
-import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
-import uk.co.yahoo.p1rpp.calendartrigger.models.CalendarEvent;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
 
 public class CalendarProvider {
 
@@ -96,26 +96,25 @@ public class CalendarProvider {
 		ArrayList<Long> calendarIds
 			= PrefsManager.getCalendars(context, classNum);
 		StringBuilder selClause = new StringBuilder();
-		// for now we don't handle state-only events with no calendars
-		if (calendarIds.isEmpty())
+		if (!calendarIds.isEmpty())
 		{
-			return selClause;
-		}
-		selClause.append("(");
-		boolean first = true;
-		for (long id : calendarIds)
-		{
-			if (first)
+			selClause.append("(");
+			boolean first = true;
+			for (long id : calendarIds)
 			{
-				first = false;
-			} else
-			{
-				selClause.append(" OR ");
+				if (first)
+				{
+					first = false;
+				} else
+				{
+					selClause.append(" OR ");
+				}
+				selClause.append("(").append(Instances.CALENDAR_ID)
+						 .append("=").append(id).append(")");
 			}
-			selClause.append("(").append(Instances.CALENDAR_ID)
-					 .append("=").append(id).append(")");
+			selClause.append(") AND ");
 		}
-		selClause.append(") AND ").append(Instances.ALL_DAY)
+		selClause.append(Instances.ALL_DAY)
 				 .append(" = 0");
 		String s = PrefsManager.getEventName(context, classNum);
 		if (!s.isEmpty())

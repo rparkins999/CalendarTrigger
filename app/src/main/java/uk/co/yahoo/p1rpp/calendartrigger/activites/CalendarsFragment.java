@@ -1,15 +1,7 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
-import uk.co.yahoo.p1rpp.calendartrigger.R;
-import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
-import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
-import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
-import uk.co.yahoo.p1rpp.calendartrigger.views.CalendarAdapter;
-
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,6 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+import uk.co.yahoo.p1rpp.calendartrigger.views.CalendarAdapter;
 
 public class CalendarsFragment extends Fragment {
 	
@@ -45,11 +43,7 @@ public class CalendarsFragment extends Fragment {
 	}
 	
 	public void refreshCalendars(boolean forceRefresh) {
-		Calendar[] savedCalendars;
-		if(!forceRefresh && (savedCalendars = CalendarProvider.getCachedCalendars()) != null)
-			fillCalendars(savedCalendars);
-		else
-			new CalendarGetter().execute(true);
+		new CalendarGetter().execute(true);
 	}
 	
 	private class CalendarGetter extends AsyncTask<Boolean, Void, Calendar[]> {
@@ -62,7 +56,7 @@ public class CalendarsFragment extends Fragment {
 			
 			CalendarProvider provider = new CalendarProvider(a);
 
-			return provider.listCalendars(params[0]);
+			return provider.listCalendars();
 		}
 		
 		@Override
@@ -87,7 +81,6 @@ public class CalendarsFragment extends Fragment {
 		
 		// Restore checked items in the list
 		for(int i=0, max = lstAgendas.getCount(); i<max; i++) {
-			lstAgendas.setItemChecked(i, adapter.getItem(i).isChecked());
 		}
 		
 		adapter.setItemCheckedChangedListener(new CalendarAdapter.ItemCheckedChangedListener() {
@@ -95,11 +88,7 @@ public class CalendarsFragment extends Fragment {
 			public void onItemCheckedChanged() {
 				
 				Activity a = getActivity();
-				PrefsManager.saveCalendars(a, lstAgendas.getCheckedItemIds());
-				
-				// Remove cached calendars (now invalid)
-				CalendarProvider.invalidateCalendars();
-				
+
 				// Launch service to check if there are events now
 				MuteService.startIfNecessary(a, "fillCalendars");
 			}

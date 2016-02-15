@@ -4,7 +4,7 @@
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
-    <string name="edit_event_class">Changer %s</string>
+    <string name="edit_event_class">Changer classe %s</string>
     <string name="prochains_evenements">Prochains évènements</string>
     <string name="erreur_listing_agendas">Erreur de listing de vos agendas ; Google Calendar est-il installé ?</string>
     <string name="agendas">Agendas</string>
@@ -33,4 +33,10 @@
 	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
 	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
 	<string name="logfilename">Fichier </string>
+    <string name="name">nom</string>
+    <string name="title_section1">Détruire classe</string>
+    <string name="title_section2">Conditions pour classe</string>
+    <string name="title_section3">Au début d\'un évènement</string>
+    <string name="title_section4">À la fin d\'un évènement</string>
+    <string name="editing">Changement classe %s</string>
 </resources>

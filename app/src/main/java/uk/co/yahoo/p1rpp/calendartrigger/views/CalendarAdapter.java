@@ -1,14 +1,14 @@
 package uk.co.yahoo.p1rpp.calendartrigger.views;
 
-import uk.co.yahoo.p1rpp.calendartrigger.R;
-import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
 
 public class CalendarAdapter extends ArrayAdapter<Calendar> {
 
@@ -58,8 +58,7 @@ public class CalendarAdapter extends ArrayAdapter<Calendar> {
 		view.setTitle(cal.getDisplayName());
 		int syncInfo = cal.isSynced() ? R.string.synchronise : R.string.non_synchronise;
 		view.setSubTitle(syncInfo);
-		view.setChecked(cal.isChecked());
-		
+
 		if(changeListener != null)
 			view.setCheckboxOnCheckedChangeListener(changeListener);
 

@@ -120,8 +120,8 @@ public class MuteService extends IntentService {
 			if (PrefsManager.isClassUsed(this, classNum))
 			{
 				CalendarProvider provider = new CalendarProvider(this);
-				CalendarProvider.startAndEnd result = provider.nextActionTimes(
-					this, currentTime, classNum);
+				CalendarProvider.startAndEnd result
+					= provider.nextActionTimes(this, currentTime, classNum);
 				if (result.startTime == Long.MAX_VALUE)
 				{
 					if (!PrefsManager.isClassActive(this, classNum))
