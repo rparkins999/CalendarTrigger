@@ -229,8 +229,8 @@ public class MuteService extends IntentService {
 			= (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		long lastAlarm = PrefsManager.getLastAlarmTime(this);
 		DateFormat df = DateFormat.getDateTimeInstance();
-		if (nextEventTime != lastAlarm)
-		{
+		//if (nextEventTime != lastAlarm)
+		//{
 			// Remove previous alarms
 			if (lastAlarm != Long.MAX_VALUE) { alarmManager.cancel(pIntent); }
 
@@ -244,12 +244,12 @@ public class MuteService extends IntentService {
 						  .concat(evName));
 			}
 			PrefsManager.setLastAlarmTime(this, nextEventTime);
-		}
-		else
-		{
-			myLog("Alarm time unchanged from "
-					  .concat(df.format(nextEventTime)));
-		}
+		//}
+		//else
+		//{
+		//	myLog("Alarm time unchanged from "
+		//			  .concat(df.format(nextEventTime)));
+		//}
 	}
 	
 	
