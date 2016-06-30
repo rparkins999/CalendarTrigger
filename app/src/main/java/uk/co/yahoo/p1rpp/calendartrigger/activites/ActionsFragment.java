@@ -21,6 +21,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 public class ActionsFragment extends Fragment {
 
 	protected RadioGroup radioGroupAction;
+	protected RadioGroup radioGroupLogging;
 	protected CheckBox chkRestaurer;
 	protected CheckBox chkNotif;
 	protected CheckBox chkDelayActivated;
@@ -43,9 +44,9 @@ public class ActionsFragment extends Fragment {
 				PrefsManager.setActionSonnerie(a, AudioManager.RINGER_MODE_VIBRATE);
 				break;
 			case R.id.radioDoNothing:
-			default:
 				PrefsManager.setActionSonnerie(a, PrefsManager.RINGER_MODE_NONE);
 				break;
+			default:
 			}
 			
 			// Remove current set mode to update it afterwards
@@ -55,7 +56,27 @@ public class ActionsFragment extends Fragment {
 			MuteService.startIfNecessary(a, "actions changed");
 		}
 	};
-	
+
+	private RadioGroup.OnCheckedChangeListener
+		radioGroupLoggingCheckedChangedListener = new RadioGroup.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(RadioGroup group, int checkedId) {
+			// Save new value
+			Activity a = getActivity();
+
+			switch(checkedId)
+			{
+				case R.id.radioLoggingOn:
+					PrefsManager.setLoggingMode(a, true);
+					break;
+				case R.id.radioLoggingOff:
+					PrefsManager.setLoggingMode(a, false);
+					break;
+				default:
+			}
+		}
+	};
+
 	private CompoundButton.OnCheckedChangeListener chkRestaurerCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -168,8 +189,10 @@ public class ActionsFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View res = inflater.inflate(R.layout.layout_actions, container, false);
-		
+
 		radioGroupAction = (RadioGroup) res.findViewById(R.id.radioGroupRingerAction);
+		radioGroupLogging = (RadioGroup) res.findViewById(R.id
+														.radioGroupLogging);
 		chkRestaurer = (CheckBox) res.findViewById(R.id.chkRestoreState);
 		chkNotif = (CheckBox) res.findViewById(R.id.chkShowNotif);
 		chkOnlyBusy = (CheckBox) res.findViewById(R.id.chkOnlyBusy);
@@ -182,6 +205,7 @@ public class ActionsFragment extends Fragment {
 		
 		// Listeners
 		radioGroupAction.setOnCheckedChangeListener(radioGroupActionCheckedChangedListener);
+		radioGroupLogging.setOnCheckedChangeListener(radioGroupLoggingCheckedChangedListener);
 		chkRestaurer.setOnCheckedChangeListener(chkRestaurerCheckedChangeListener);
 		chkNotif.setOnCheckedChangeListener(chkAfficherNotifCheckedChangeListener);
 		chkDelayActivated.setOnCheckedChangeListener(chkDelayActivatedChangeListener);

@@ -1,10 +1,10 @@
 package uk.co.yahoo.p1rpp.calendartrigger;
 
-import java.util.LinkedHashMap;
-import java.util.StringTokenizer;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import java.util.LinkedHashMap;
+import java.util.StringTokenizer;
 
 public class PrefsManager {
 
@@ -34,7 +34,9 @@ public class PrefsManager {
 	private static final String PREF_EARLY_ACTIVATED = "earlyActivated";
 
 	private static final String PREF_LAST_ALARM = "lastAlarmTime";
-	
+
+	private static final String PREF_LOGGING = "logging";
+
 	public static final int RINGER_MODE_NONE = -99;
 	
 	private static final boolean PREF_RESTORE_STATE_DEFAULT = true;
@@ -101,7 +103,12 @@ public class PrefsManager {
 	public final static void setActionSonnerie(Context context, int action) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putInt(PREF_ACTION_RINGER, action).commit();
 	}
-	
+
+	public final static void setLoggingMode(Context context, boolean On) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putBoolean(PREF_LOGGING, On).commit();
+	}
+
 	public final static void setRestaurerEtat(Context context, boolean isChecked) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(PREF_RESTORE_STATE, isChecked).commit();
 	}
@@ -140,6 +147,11 @@ public class PrefsManager {
 
 	public static final int getRingerAction(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getInt(PREF_ACTION_RINGER, RINGER_MODE_NONE);
+	}
+
+	public static final boolean getLoggingMode(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_LOGGING, false);
 	}
 
 	public static final boolean getRestoreState(Context context) {

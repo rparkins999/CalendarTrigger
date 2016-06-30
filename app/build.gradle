@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
+    project.archivesBaseName = "CalendarTrigger";
     defaultConfig {
         applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
         minSdkVersion 21
@@ -16,8 +17,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                           'proguard-rules.pro'
         }
-    }
-    productFlavors {
     }
 }
 

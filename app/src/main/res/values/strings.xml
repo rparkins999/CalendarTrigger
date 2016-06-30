@@ -26,4 +26,7 @@
 	<string name="avec_delai_x_minutes_suf">minutes delay</string>
 	<string name="avec_avance_x_minutes_pre">Start</string>
 	<string name="avec_avance_x_minutes_suf">minutes early</string>
+    <string name="Logging">Logging</string>
+    <string name="LoggingOn">On</string>
+    <string name="LoggingOff">Off</string>
 </resources>

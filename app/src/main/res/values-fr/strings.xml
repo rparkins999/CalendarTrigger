@@ -25,4 +25,7 @@
 	<string name="avec_delai_x_minutes_suf">minutes</string>
 	<string name="avec_avance_x_minutes_pre">Avec</string>
 	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
+    <string name="Logging">Écrire journal</string>
+    <string name="LoggingOn">Oui</string>
+    <string name="LoggingOff">Non</string>
 </resources>

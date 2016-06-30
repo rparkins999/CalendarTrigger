@@ -30,16 +30,21 @@ public class MuteService extends IntentService {
 
 	private void myLog(String s) {
 		final String LOGFILE = "/sdcard/data/CalendarTriggerLog.txt";
-		try
+		if (PrefsManager.getLoggingMode(this))
 		{
-			FileOutputStream out = new FileOutputStream(LOGFILE, true);
-			PrintStream log = new PrintStream(out);
-			log.printf("CalendarTrigger %s: %s\n",
-					   DateFormat.getDateTimeInstance().format(new Date()), s);
-			log.close();
-		} catch (FileNotFoundException e) {
-			// We can't do anything here because we're a background thread
-			// Actually we could show a notification
+			try
+			{
+				FileOutputStream out = new FileOutputStream(LOGFILE, true);
+				PrintStream log = new PrintStream(out);
+				log.printf("CalendarTrigger %s: %s\n",
+						   DateFormat.getDateTimeInstance().format(new Date()), s);
+				log.close();
+			}
+			catch (FileNotFoundException e)
+			{
+				// We can't do anything here because we're a background thread
+				// Actually we could show a notification
+			}
 		}
 	}
 
