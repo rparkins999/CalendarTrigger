@@ -22,27 +22,30 @@ public class MyLog extends Object {
 		= Environment.getExternalStorageDirectory().getPath()
 					 .concat("/data/CalendarTriggerLog.txt");
 	public MyLog(Context c, String s) {
-		try
+		if (PrefsManager.getLoggingMode(this))
 		{
-			FileOutputStream out = new FileOutputStream(LOGFILE, true);
-			PrintStream log = new PrintStream(out);
-			log.printf("CalendarTrigger %s: %s\n",
-					   DateFormat.getDateTimeInstance().format(new Date()), s);
-			log.close();
-		} catch (FileNotFoundException e) {
-			Resources res = c.getResources();
-			NotificationCompat.Builder builder
-				= new NotificationCompat.Builder(c)
-				.setSmallIcon(R.drawable.notif_icon)
-				.setContentTitle(res.getString(R.string.logfail))
-				.setContentText(res.getString(R.string.logfilename)
-								.concat(LOGFILE)
-								.concat(":\n")
-								.concat(e.getLocalizedMessage()));
-			// Show notification
-			NotificationManager notifManager = (NotificationManager)
-				c.getSystemService(Context.NOTIFICATION_SERVICE);
-			notifManager.notify(NOTIFY_ID, builder.build());
+			try
+			{
+				FileOutputStream out = new FileOutputStream(LOGFILE, true);
+				PrintStream log = new PrintStream(out);
+				log.printf("CalendarTrigger %s: %s\n",
+						   DateFormat.getDateTimeInstance().format(new Date()), s);
+				log.close();
+			} catch (FileNotFoundException e) {
+				Resources res = c.getResources();
+				NotificationCompat.Builder builder
+					= new NotificationCompat.Builder(c)
+					.setSmallIcon(R.drawable.notif_icon)
+					.setContentTitle(res.getString(R.string.logfail))
+					.setContentText(res.getString(R.string.logfilename)
+									.concat(LOGFILE)
+									.concat(":\n")
+									.concat(e.getLocalizedMessage()));
+				// Show notification
+				NotificationManager notifManager = (NotificationManager)
+					c.getSystemService(Context.NOTIFICATION_SERVICE);
+				notifManager.notify(NOTIFY_ID, builder.build());
+			}
 		}
 	}
 

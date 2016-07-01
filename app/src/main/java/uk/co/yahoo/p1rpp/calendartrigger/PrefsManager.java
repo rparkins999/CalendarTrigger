@@ -9,6 +9,18 @@ import java.util.StringTokenizer;
 public class PrefsManager {
 
 	private static final String PREFS_NAME = "mainPreferences";
+	
+	private static final String PREF_LOGGING = "logging";
+
+	public static void setLoggingMode(Context context, boolean IsOn) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putBoolean(PREF_LOGGING, IsOn).commit();
+	}
+
+	public static boolean getLoggingMode(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_LOGGING, false);
+	}
 
 	private static final String NUM_CLASSES = "numClasses";
 
