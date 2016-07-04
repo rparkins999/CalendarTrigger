@@ -41,5 +41,7 @@
     <string name="title_section2">Conditions pour classe</string>
     <string name="title_section3">Au début d\'un évènement</string>
     <string name="title_section4">À la fin d\'un évènement</string>
+    <string name="deleteButtonLabel">Détruire classe %s (impossible d\'annuler)</string>
     <string name="editing">Changement classe %s</string>
+    <string name="title_defining">Conditions pour classe %s</string>
 </resources>

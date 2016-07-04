@@ -9,7 +9,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.EditActivity">
+    tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.EditActivity"
+    android:background="#ffffff">
 
     <!-- As the main content view, the view below consumes the entire
          space available using match_parent in both dimensions. -->

@@ -46,5 +46,10 @@
     <string name="title_section4">At end of event</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="deleteButtonLabel">Really delete class %s (cannot be undone)</string>
     <string name="editing">Editing class %s</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_defining">Conditions for class %s</string>
 </resources>

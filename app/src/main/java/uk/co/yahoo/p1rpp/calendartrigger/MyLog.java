@@ -7,8 +7,6 @@ import android.media.AudioManager;
 import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 
-import uk.co.yahoo.p1rpp.calendartrigger.R;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -22,7 +20,7 @@ public class MyLog extends Object {
 		= Environment.getExternalStorageDirectory().getPath()
 					 .concat("/data/CalendarTriggerLog.txt");
 	public MyLog(Context c, String s) {
-		if (PrefsManager.getLoggingMode(this))
+		if (PrefsManager.getLoggingMode(c))
 		{
 			try
 			{

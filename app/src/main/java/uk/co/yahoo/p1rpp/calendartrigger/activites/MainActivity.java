@@ -45,6 +45,12 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
+	protected void onResume() {
+		super.onResume();
+		invalidateOptionsMenu();
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		String name = item.getTitle().toString();
 		if (name.equals(getResources()

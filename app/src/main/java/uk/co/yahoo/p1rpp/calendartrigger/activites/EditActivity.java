@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
 public class EditActivity extends Activity
@@ -25,14 +26,29 @@ public class EditActivity extends Activity
      * navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
+    private String className;
+    private Fragment activeFragment;
+    private boolean drawerOpen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
+        drawerOpen = false;
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
             getFragmentManager().findFragmentById(R.id.navigation_drawer);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent i = getIntent();
+        className = i.getStringExtra("classname");
+        if (className != null)
+        {
+            setTitle(getString(R.string.editing, className));
+        }
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
@@ -41,43 +57,36 @@ public class EditActivity extends Activity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Intent i = getIntent();
-        String s = i.getStringExtra("classname");
-        if (s != null) {
-            setTitle(getString(R.string.editing, s));
-        }
-    }
-
-    @Override
     public void onNavigationDrawerItemSelected(int position) {
+        switch (position)
+        {
+            case 0:
+                setTitle(getString(R.string.title_section1));
+                activeFragment =
+                    DeleteClassFragment.newInstance(className);
+                break;
+            case 1:
+                setTitle(getString(R.string.title_defining, className));
+                activeFragment =
+                    DefineClassFragment.newInstance(className);
+                break;
+            case 2:
+                setTitle(getString(R.string.title_section3));
+                activeFragment = PlaceholderFragment.newInstance(position + 1);
+                break;
+            case 3 :
+                setTitle(getString(R.string.title_section4));
+                activeFragment = PlaceholderFragment.newInstance(position + 1);
+                break;
+            default: return;
+        }
         // update the main content by replacing fragments
         FragmentManager fm = getFragmentManager();
         fm.beginTransaction()
-          .replace(R.id.container,
-                   PlaceholderFragment.newInstance(position + 1))
+          .add(R.id.container, activeFragment)
           .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-          .addToBackStack(null)
           .commit();
-    }
-
-    public void onSectionAttached(int number) {
-        switch (number)
-        {
-            case 1:
-                setTitle(getString(R.string.title_section1));
-                break;
-            case 2:
-                setTitle(getString(R.string.title_section2));
-                break;
-            case 3:
-                setTitle(getString(R.string.title_section3));
-                break;
-            case 4:
-                setTitle(getString(R.string.title_section4));
-                break;
-        }
+        drawerOpen = true;
     }
 
     /**
@@ -106,13 +115,6 @@ public class EditActivity extends Activity
         }
 
         @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((EditActivity)activity).onSectionAttached(
-                getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-
-        @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
             View rootView =
@@ -121,4 +123,39 @@ public class EditActivity extends Activity
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        if (drawerOpen)
+        {
+            onResume();
+            drawerOpen = false;
+        }
+        else
+        {
+            super.onBackPressed();
+        }
+    }
+
+    private void closeActiveFragment(View v) {
+        FragmentManager fm = getFragmentManager();
+        fm.beginTransaction()
+          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+          .remove(activeFragment)
+          .commit();
+        activeFragment = null;
+    }
+
+    public void doCancel(View v) {
+        closeActiveFragment(v);
+        onResume();
+    }
+
+    public void doDeletion(View v) {
+        PrefsManager.removeClass(this, className);
+        closeActiveFragment(v);
+        drawerOpen = false;
+
+        // we can't edit once the class has gone
+        finishAfterTransition();
+    }
 }

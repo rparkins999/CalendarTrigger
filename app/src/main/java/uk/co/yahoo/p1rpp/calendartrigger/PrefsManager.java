@@ -106,19 +106,21 @@ public class PrefsManager {
 					  .getString(prefName, ((Integer)classNum).toString());
 	}
 
-	public static int getClassNum(Context context, String className) {
-		SharedPreferences prefs
-			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+	private static int getClassNum(SharedPreferences prefs, String className) {
 		int n = getNumClasses(prefs);
 		for (int classNum = 0; classNum < n; ++classNum)
 		{
 			if (   isClassUsed(prefs, classNum)
-				&& getClassName(prefs, classNum).equals(className))
+				   && getClassName(prefs, classNum).equals(className))
 			{
 				return classNum;
 			}
 		}
 		return -1; // className not found
+	}
+
+	public static int getClassNum(Context context, String className) {
+		return getClassNum(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE), className);
 	}
 
 	// string required in names of events which can be in class
@@ -463,28 +465,33 @@ public class PrefsManager {
 					  .getBoolean(prefName, false);
 	}
 
-	public static void removeClass(Context context, int classNum) {
+	private static void removeClass(SharedPreferences prefs, int classNum) {
 		String num = String.valueOf(classNum);
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putBoolean(IS_CLASS_USED.concat(num), false)
-			   .putString(CLASS_NAME.concat(num), "")
-			   .putString(EVENT_NAME.concat(num), "")
-			   .putString(EVENT_LOCATION.concat(num), "")
-			   .putString(EVENT_DESCRIPTION.concat(num), "")
-			   .putString(EVENT_COLOUR.concat(num), "")
-			   .putString(AGENDAS.concat(num), "")
-			   .putInt(WHETHER_BUSY.concat(num), BUSY_AND_NOT)
-			   .putInt(WHETHER_RECURRENT.concat(num), RECURRENT_AND_NOT)
-			   .putInt(WHETHER_ORGANISER.concat(num), ORGANISER_AND_NOT)
-			   .putInt(WHETHER_PUBLIC.concat(num), PUBLIC_AND_PRIVATE)
-			   .putInt(WHETHER_ATTENDEES.concat(num), ATTENDEES_AND_NOT)
-			   .putInt(RINGER_ACTION.concat(num), RINGER_MODE_NONE)
-			   .putBoolean(RESTORE_RINGER.concat(num), false)
-			   .putInt(BEFORE_MINUTES.concat(num), 0)
-			   .putInt(AFTER_MINUTES.concat(num), 0)
-			   .putBoolean(NOTIFY_START.concat(num), false)
-			   .putBoolean(NOTIFY_END.concat(num), false)
-			   .putBoolean(IS_ACTIVE.concat(num), false)
-			   .commit();
+		prefs.edit().putBoolean(IS_CLASS_USED.concat(num), false)
+			 .putString(CLASS_NAME.concat(num), "")
+			 .putString(EVENT_NAME.concat(num), "")
+			 .putString(EVENT_LOCATION.concat(num), "")
+			 .putString(EVENT_DESCRIPTION.concat(num), "")
+			 .putString(EVENT_COLOUR.concat(num), "")
+			 .putString(AGENDAS.concat(num), "")
+			 .putInt(WHETHER_BUSY.concat(num), BUSY_AND_NOT)
+			 .putInt(WHETHER_RECURRENT.concat(num), RECURRENT_AND_NOT)
+			 .putInt(WHETHER_ORGANISER.concat(num), ORGANISER_AND_NOT)
+			 .putInt(WHETHER_PUBLIC.concat(num), PUBLIC_AND_PRIVATE)
+			 .putInt(WHETHER_ATTENDEES.concat(num), ATTENDEES_AND_NOT)
+			 .putInt(RINGER_ACTION.concat(num), RINGER_MODE_NONE)
+			 .putBoolean(RESTORE_RINGER.concat(num), false)
+			 .putInt(BEFORE_MINUTES.concat(num), 0)
+			 .putInt(AFTER_MINUTES.concat(num), 0)
+			 .putBoolean(NOTIFY_START.concat(num), false)
+			 .putBoolean(NOTIFY_END.concat(num), false)
+			 .putBoolean(IS_ACTIVE.concat(num), false)
+			 .commit();
+	}
+
+	public static void removeClass(Context context, String name) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		removeClass(prefs, getClassNum(prefs, name));
 	}
 }
