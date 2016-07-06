@@ -40,16 +40,11 @@
     <string name="name">name</string>
     <string name="title_activity_edit">EditActivity</string>
     <string name="action_settings">Settings</string>
-    <string name="title_section1">Delete the class</string>
-    <string name="title_section2">Conditions for class</string>
-    <string name="title_section3">At start of event</string>
-    <string name="title_section4">At end of event</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="deleteButtonLabel">Really delete class %s (cannot be undone)</string>
-    <string name="editing">Editing class %s</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_defining">Conditions for class %s</string>
+    <string name="deleteButtonLabel">Delete class %s (no undo)</string>
+    <string name="defineButtonLabel">Conditions for class %s</string>
+    <string name="defineStartLabel">Event start definition for class %s</string>
+    <string name="actionStartLabel">Event start action for class %s</string>
+    <string name="defineStopLabel">Event end definition for class %s</string>
+    <string name="actionStopLabel">Event end action for class %s</string>
+    <string name="doneLabel">Finish editing class %s</string>
 </resources>

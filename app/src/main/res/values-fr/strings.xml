@@ -37,11 +37,12 @@
 	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
 	<string name="logfilename">Fichier </string>
     <string name="name">nom</string>
-    <string name="title_section1">Détruire classe</string>
-    <string name="title_section2">Conditions pour classe</string>
-    <string name="title_section3">Au début d\'un évènement</string>
-    <string name="title_section4">À la fin d\'un évènement</string>
+    <string name="action_settings">Settings</string>
     <string name="deleteButtonLabel">Détruire classe %s (impossible d\'annuler)</string>
-    <string name="editing">Changement classe %s</string>
-    <string name="title_defining">Conditions pour classe %s</string>
+    <string name="defineButtonLabel">Conditions pour classe %s</string>
+    <string name="defineStartLabel">Définition début d\'un évènement pour classe %s</string>
+    <string name="actionStartLabel">Action au début d\'un évènement pour classe %s</string>
+    <string name="defineStopLabel">Définition fin d\'un évènement pour classe %s</string>
+    <string name="actionStopLabel">Action à la fin d\'un évènement pour classe %s</string>
+    <string name="doneLabel">Fin changement classe %s</string>
 </resources>

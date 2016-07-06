@@ -29,16 +29,17 @@ public class MainActivity extends Activity {
 		menu.clear();
 		super.onPrepareOptionsMenu(menu);
 		MenuItem mi;
-		mi = menu.add(R.string.new_event_class);
+		mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
 		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		int nc = PrefsManager.getNumClasses(this);
 		for (int i = 0; i < nc; ++i)
 		{
 			if (PrefsManager.isClassUsed(this, i))
 			{
-				menu.add(
-					getResources().getString(R.string.edit_event_class,
-											 PrefsManager.getClassName(this, i)));
+				menu.add(Menu.NONE, i, Menu.NONE,
+					getResources().getString(
+						R.string.edit_event_class,
+						PrefsManager.getClassName(this, i)));
 			}
 		}
 		return true;
@@ -52,9 +53,8 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		String name = item.getTitle().toString();
-		if (name.equals(getResources()
-							.getString(R.string.new_event_class)))
+		int i = item.getItemId();
+		if (i < 0)
 		{
 			CreateClassDialog newFragment = new CreateClassDialog();
 		    newFragment.show(getFragmentManager(), "CreateClassDialog");
@@ -62,11 +62,10 @@ public class MainActivity extends Activity {
 		else
 		{
 			// edit (or delete) an existing event class
-			name = name.substring(getResources()
-				.getString(R.string.edit_event_class).indexOf('%'));
-			Intent i = new Intent(this, EditActivity.class);
-			i.putExtra("classname", name);
-			startActivity(i);
+			String name = PrefsManager.getClassName(this, i);
+			Intent it = new Intent(this, EditActivity.class);
+			it.putExtra("classname", name);
+			startActivity(it);
 		}
 		return true;
 	}

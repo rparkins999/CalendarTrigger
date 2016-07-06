@@ -5,39 +5,23 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.Button;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
-public class EditActivity extends Activity
-    implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class EditActivity extends Activity {
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the
-     * navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
     private String className;
-    private Fragment activeFragment;
-    private boolean drawerOpen;
-
+    private Activity me = this; // needed for nested classes
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
-        drawerOpen = false;
-
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-            getFragmentManager().findFragmentById(R.id.navigation_drawer);
     }
 
     @Override
@@ -45,117 +29,75 @@ public class EditActivity extends Activity
         super.onResume();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
-        if (className != null)
-        {
-            setTitle(getString(R.string.editing, className));
-        }
-
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-            R.id.navigation_drawer,
-            (DrawerLayout)findViewById(R.id.drawer_layout));
-    }
-
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        switch (position)
-        {
-            case 0:
-                setTitle(getString(R.string.title_section1));
-                activeFragment =
-                    DeleteClassFragment.newInstance(className);
-                break;
-            case 1:
-                setTitle(getString(R.string.title_defining, className));
-                activeFragment =
-                    DefineClassFragment.newInstance(className);
-                break;
-            case 2:
-                setTitle(getString(R.string.title_section3));
-                activeFragment = PlaceholderFragment.newInstance(position + 1);
-                break;
-            case 3 :
-                setTitle(getString(R.string.title_section4));
-                activeFragment = PlaceholderFragment.newInstance(position + 1);
-                break;
-            default: return;
-        }
-        // update the main content by replacing fragments
-        FragmentManager fm = getFragmentManager();
-        fm.beginTransaction()
-          .add(R.id.container, activeFragment)
-          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-          .commit();
-        drawerOpen = true;
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-            View rootView =
-                inflater.inflate(R.layout.fragment_edit, container, false);
-            return rootView;
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerOpen)
-        {
-            onResume();
-            drawerOpen = false;
-        }
-        else
-        {
-            super.onBackPressed();
-        }
-    }
-
-    private void closeActiveFragment(View v) {
-        FragmentManager fm = getFragmentManager();
-        fm.beginTransaction()
-          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
-          .remove(activeFragment)
-          .commit();
-        activeFragment = null;
-    }
-
-    public void doCancel(View v) {
-        closeActiveFragment(v);
-        onResume();
-    }
-
-    public void doDeletion(View v) {
-        PrefsManager.removeClass(this, className);
-        closeActiveFragment(v);
-        drawerOpen = false;
-
-        // we can't edit once the class has gone
-        finishAfterTransition();
+        Button b = (Button)findViewById(R.id.deleteclassbutton);
+        b.setText(getString(
+            R.string.deleteButtonLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                PrefsManager.removeClass(me, className);
+                // we can't edit once the class has gone
+                finish();
+            }
+        });
+        b = (Button)findViewById(R.id.defineclassbutton);
+        b.setText(getString(
+            R.string.defineButtonLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentTransaction ft =
+                    getFragmentManager().beginTransaction();
+                ft.add(DefineClassFragment.newInstance(className), "dc")
+                  .addToBackStack(null)
+                  .commit();
+            }
+        });
+        b = (Button)findViewById(R.id.definestartbutton);
+        b.setText(getString(
+            R.string.defineStartLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentTransaction ft =
+                    getFragmentManager().beginTransaction();
+                ft.add(DefineStartFragment.newInstance(className), "")
+                  .addToBackStack(null)
+                  .commit();
+            }
+        });
+        b = (Button)findViewById(R.id.actionstartbutton);
+        b.setText(getString(
+            R.string.actionStartLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentTransaction ft =
+                    getFragmentManager().beginTransaction();
+                ft.add(ActionStartFragment.newInstance(className), "")
+                  .addToBackStack(null)
+                  .commit();
+            }
+        });
+        b = (Button)findViewById(R.id.definestopbutton);
+        b.setText(getString(
+            R.string.defineStopLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentTransaction ft =
+                    getFragmentManager().beginTransaction();
+                ft.add(DefineStopFragment.newInstance(className), "")
+                  .addToBackStack(null)
+                  .commit();
+            }
+        });
+        b = (Button)findViewById(R.id.actionstopbutton);
+        b.setText(getString(
+            R.string.actionStopLabel, className));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentTransaction ft =
+                    getFragmentManager().beginTransaction();
+                ft.add(ActionStopFragment.newInstance(className), "")
+                  .addToBackStack(null)
+                  .commit();
+            }
+        });
     }
 }
