@@ -5,6 +5,7 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,15 +18,31 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 public class EditActivity extends Activity {
 
     private String className;
-    private Activity me = this; // needed for nested classes
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit);
+        setContentView(R.layout.edit_activity);
+    }
+
+    public void setButtonVisibility(int visibility) {
+        Button b = (Button)findViewById(R.id.deleteclassbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.defineclassbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.definestartbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.actionstartbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.definestopbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.actionstopbutton);
+        b.setVisibility(visibility);
     }
 
     @Override
     protected void onResume() {
+        final EditActivity me = this;
         super.onResume();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
@@ -44,9 +61,11 @@ public class EditActivity extends Activity {
             R.string.defineButtonLabel, className));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                ft.add(DefineClassFragment.newInstance(className), "dc")
+                Fragment f = DefineClassFragment.newInstance(className);
+                ft.replace(R.id.edit_activity_container, f, "dcf")
                   .addToBackStack(null)
                   .commit();
             }
@@ -56,9 +75,11 @@ public class EditActivity extends Activity {
             R.string.defineStartLabel, className));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                ft.add(DefineStartFragment.newInstance(className), "")
+                Fragment f = DefineStartFragment.newInstance(className);
+                ft.replace(R.id.edit_activity_container, f, "dtf")
                   .addToBackStack(null)
                   .commit();
             }
@@ -68,9 +89,11 @@ public class EditActivity extends Activity {
             R.string.actionStartLabel, className));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                ft.add(ActionStartFragment.newInstance(className), "")
+                Fragment f = ActionStartFragment.newInstance(className);
+                ft.replace(R.id.edit_activity_container, f, "atf")
                   .addToBackStack(null)
                   .commit();
             }
@@ -80,9 +103,11 @@ public class EditActivity extends Activity {
             R.string.defineStopLabel, className));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                ft.add(DefineStopFragment.newInstance(className), "")
+                Fragment f = DefineStopFragment.newInstance(className);
+                ft.replace(R.id.edit_activity_container, f, "dpf")
                   .addToBackStack(null)
                   .commit();
             }
@@ -92,9 +117,11 @@ public class EditActivity extends Activity {
             R.string.actionStopLabel, className));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                ft.add(ActionStopFragment.newInstance(className), "")
+                Fragment f = ActionStopFragment.newInstance(className);
+                ft.replace(R.id.edit_activity_container, f, "apf")
                   .addToBackStack(null)
                   .commit();
             }
