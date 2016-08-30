@@ -2,6 +2,16 @@
 <resources>
 
     <string name="app_name">Calendar Trigger</string>
+    <string name="settings">Settings</string>
+    <string name="lastcalldetail">Last called at %s</string>
+    <string name="lastCallHelp">This is the time at which CalendarTrigger was
+        most recently called, either directly by the user, or as a result of an
+        alarm set by CalendarTrigger itself. This information is mainly for
+        debugging.</string>
+    <string name="lastalarmdetail">Last alarm set for %s</string>
+    <string name="lastAlarmHelp">This is the time of the alarm set by
+        CalendarTrigger the last time it was called. This information is mainly
+        for debugging.</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
@@ -19,7 +29,6 @@
     <string name="ne_rien_faire">Do nothing</string>
     <string name="mettre_silencieux">Switch to silent</string>
     <string name="mettre_vibreur">Switch to vibrate</string>
-    <string name="restaurer_etat_precedent">Restore the previous mode</string>
     <string name="une_fois_even_termine">When the event ends</string>
     <string name="afficher_notification">Show a notification</string>
     <string name="mode_sonnerie_change">Ringer mode changed</string>
@@ -32,7 +41,7 @@
     <string name="avec_delai_x_minutes_suf">minutes delay</string>
     <string name="avec_avance_x_minutes_pre">Start</string>
     <string name="avec_avance_x_minutes_suf">minutes early</string>
-    <string name="Logging">Logging</string>
+    <string name="Logging">Logging to file %s</string>
     <string name="LoggingOn">On</string>
     <string name="LoggingOff">Off</string>
     <string name="logfail">Cannot open log file</string>
@@ -40,11 +49,181 @@
     <string name="name">name</string>
     <string name="title_activity_edit">EditActivity</string>
     <string name="action_settings">Settings</string>
+    <string name="backgroundLabel">This screen allows you to define the
+        characteristics of class %s or delete it. When you have done, press
+        the back button. A long press on any of the buttons below will bring up
+        some help information about it.</string>
+    <string name="longpresslabel">Long press here for help information.</string>
+    <string name="defineclasspopup">This screen allows you to specify the
+        conditions for a calendar event to be in class %s. All conditions
+        must be satisfied for the event to be in the class, but each condition
+        has a default option which is satisfied by any event. When you have
+        done, press the back button. A long press on any of the controls below
+        will bring up some help information about it.</string>
+    <string name="defineclasslist">An event is in class %s if:-</string>
+    <string name="ifanycalendar">the event is in any of the calendars
+        below which is checked</string>
+    <string name="allcalendars">If no calendar is checked, the event
+        can be in the class if it is in any calendar. Note that this is
+        different from checking all calendars: if a new calendar is
+        added later, it will not be checked unless you explicitly edit the
+        class again.</string>
+    <string name="eventnamehelp">An empty match string matches any
+        event name or an event with no name at all.</string>
+    <string name="eventnamefirst">the event name contains</string>
+    <string name="eventnamenotfirst">and the event name contains</string>
+    <string name="locationhelp">An empty match string matches any
+        event location or an event with no location at all.</string>
+    <string name="locationfirst">the event location contains</string>
+    <string name="locationnotfirst">and the event location contains</string>
+    <string name="descriptionlabel">and the event description contains</string>
+    <string name="descriptionhelp">An empty match string matches any
+        event description or an event with no description at all.</string>
+    <string name="busyhelp">Determine whether events which are busy, not busy,
+        or either (the default), are in this class.</string>
+    <string name="busylabel">and the event is:</string>
+    <string name="onlybusy">busy</string>
+    <string name="onlynotbusy">not busy</string>
+    <string name="busyandnot">either</string>
+    <string name="recurrenthelp">Determine whether events which are recurrent,
+        not recurrent, or either (the default), are in this class.</string>
+    <string name="recurrentlabel">and the event is:</string>
+    <string name="onlyrecurrent">recurrent</string>
+    <string name="onlynotrecurrent">not recurrent</string>
+    <string name="recurrentandnot">either</string>
+    <string name="organiserhelp">Determine whether events for which you are the
+        organiser, or not the organiser, or either (the default), are in this
+        class.</string>
+    <string name="organiserlabel">and the event\'s organiser is:</string>
+    <string name="onlyorganiser">you</string>
+    <string name="onlynotorganiser">not you</string>
+    <string name="organiserandnot">either</string>
+    <string name="privatehelp">Determine whether events which are private,
+        public, or either (the default), are in this class.</string>
+    <string name="privatelabel">and the event is:</string>
+    <string name="onlyprivate">private</string>
+    <string name="onlynotprivate">public</string>
+    <string name="privateandnot">either</string>
+    <string name="attendeeshelp">Determine whether events which have attendees,
+        or do not have attendees, or either (the default), are in this class.
+        </string>
+    <string name="attendeeslabel">and the event has:</string>
+    <string name="onlyattendees">attendees</string>
+    <string name="onlynoattendees">no attendees</string>
+    <string name="attendeesandnot">either</string>
     <string name="deleteButtonLabel">Delete class %s (no undo)</string>
-    <string name="defineButtonLabel">Conditions for class %s</string>
+    <string name="deleteButtonHelp">This button deletes the class and
+        cancels any actions scheduled for calendar events in this class. This
+        action cannot be undone. The events themselves are not affected.
+    </string>
+    <string name="defineButtonLabel">Conditions for a calendar event to be in
+        class %s</string>
+    <string name="defineButtonHelp">Define the conditions for a calendar event
+        to be in this class. An event can be in more than one class: in
+        that case it will trigger the action(s) for each class it belongs to.
+    </string>
     <string name="defineStartLabel">Event start definition for class %s</string>
+    <string name="defineStartHelp">Define the conditions for the event start
+        action(s) to be triggered for an event in this class.</string>
+    <string name="definestartpopup">This screen allows you to define when
+        the start action for an event in class %s will be triggered. This can
+        be a set number of minutes (defaulting to zero) before the start time
+        of the event, possibly delayed until the device is in some particular
+        state. When you have done, press the back button. A long press on any
+        of the controls below will bring up some help information about it.
+    </string>
+    <string name="definestartlist">Do start action for an event in class %s:-
+    </string>
+    <string name="startminuteslabel">minutes before event start time</string>
+    <string name="startminuteshelp">This defines the number of minutes (which
+        may be zero) before the start time of the event at which
+        CalendarTrigger will begin to consider triggering the event\'s start
+        action. It may however be delayed by other conditions below.</string>
+    <string name="startnotuntillabel">but not until:-</string>
+    <string name="startnotuntilhelp">This section is reserved for delaying the
+        start action until the device is in some particular state. No state
+        tests are implemented yet.</string>
     <string name="actionStartLabel">Event start action for class %s</string>
+    <string name="actionStartHelp">Define the action(s) to be
+        triggered at or before the start of an event in this class.</string>
+    <string name="actionstartpopup">This screen allows you to define what
+        actions are performed for the start of an event in class %s. A long
+        press on any of the controls below will bring up some help
+        information about it.</string>
+    <string name="actionstartlist">At start of an event in class %s:-</string>
+    <string name="setRinger">Set ringer to at most</string>
+    <string name="setRingerHelp">This sets the state of the ringer during the
+        event. CalendarTrigger will only set the ringer to a state \"weaker\"
+        than it is already in, as set by the user or an overlapping event.
+        Silent is weaker than vibrate which is weaker than normal ringtone.
+    </string>
+    <string name="normal">normal</string>
+    <string name="vibrate">vibrate</string>
+    <string name="silent">silent</string>
+    <string name="startNotifyHelp">If this is checked, CalendarTrigger will
+        show a notification at the start of the event. The way in which the
+        notification is presented depends on the user\'s notification settings.
+    </string>
     <string name="defineStopLabel">Event end definition for class %s</string>
+    <string name="defineStopHelp">Define the conditions for the event end
+        action(s) to be triggered for an event in this class.</string>
+    <string name="definestoppopup">This screen allows you to define when
+        the end action for an event in class %s will be triggered. This can
+        be a set number of minutes (defaulting to zero) after the end time
+        of the event, possibly delayed until the device has moved by some
+        distance or is in some particular state. When you have done, press the
+        back button. A long press on any of the controls below will bring up
+        some help information about it.</string>
+    <string name="definestoplist">Do end action for an event in class %s:-
+    </string>
+    <string name="stopminuteslabel">minutes after event end time</string>
+    <string name="stopminuteshelp">This defines the number of minutes (which
+        may be zero) after the end time of the event at which
+        CalendarTrigger will begin to consider triggering the event\'s end
+        action. It may however be delayed by other conditions below.</string>
+    <string name="stopnotuntillabel">but not until:-</string>
+    <string name="stopnotuntilhelp">Here you can delay the end action until
+        something else has happened or the device is in some particular state.
+    </string>
+    <string name="stepcounteryes">Delay the end action until the user holding
+        the device has taken a specified number of steps. This can be useful if
+        the event is a meeting and you do not want to re-enable the ringer until
+        the meeting has ended and you have walked out of the meeting room.
+    </string>
+    <string name="stepcounterno">This option is disabled because the device does
+        not support a step sensor.</string>
+    <string name="firststepslabel">The device has moved by the user taking
+    </string>
+    <string name="laststepslabel">steps.</string>
+    <string name="locationyes">Delay the end action until the device has moved
+        by a specified number of metres. This can be useful if the event is in
+        a building and you do not want to re-enable the ringer until you have
+        left the building. The position resolution is of the order of 100
+        metres (better if the building has Wi-Fi or the device uses GPS) so you
+        should not make this number too small. If it is zero there is no
+        movement test.</string>
+    <string name="locationno">This option is disabled because CalendarTrigger
+        does not have permission ACCESS_FINE_LOCATION to create a Geofence.
+        You can enable this permission from the device\'s Settings tool by
+        selecting the Application Manager.</string>
+    <string name="firstlocationlabel">The device has moved by</string>
+    <string name="lastlocationlabel">metres.</string>
     <string name="actionStopLabel">Event end action for class %s</string>
-    <string name="doneLabel">Finish editing class %s</string>
+    <string name="actionStopHelp">Define the action(s) to be
+        triggered at or after the end of an event in this class.</string>
+    <string name="actionstoppopup">This screen allows you to define what
+        actions are performed at the end of an event in class %s. A long
+        press on any of the controls below will bring up some help
+        information about it.</string>
+    <string name="actionstoplist">At end of an event in class %s:-</string>
+    <string name="restaurer_etat_precedent">Restore the previous ringer mode
+    </string>
+    <string name="restoreRingerHelp">If this is checked, CalendarTrigger will
+        restore the original ringer mode at the end of the event, provided
+        that the user has not changed the mode in the meantime and no other
+        overlapping event is requiring a \"weaker\" mode.</string>
+    <string name="endNotifyHelp">If this is checked, CalendarTrigger will
+        show a notification at the end of the event. The way in which the
+        notification is presented depends on the user\'s notification settings.
+    </string>
 </resources>

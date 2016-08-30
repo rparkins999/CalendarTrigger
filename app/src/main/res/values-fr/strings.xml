@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Calendar Mute</string>
+    <string name="settings">Settings</string>
+    <string name="lastcalldetail">Dernier appel à %s</string>
+    <string name="lastCallHelp">Ceci est l\'heure quand CalendarTrigger a été
+        invoqué le plus récemment, soit par l\'usager, soit par une alarme
+        provoqué par CalendarTrigger soi-même. Cet information est
+        principalement pour débogage.</string>
+    <string name="lastalarmdetail">Dernière alarme à %s</string>
+    <string name="lastAlarmHelp">Ceci est l\'heure de l\'alarme le plus récent
+        installé par CalendarTrigger. Cet information est principalement pour
+        débogage.</string>
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
@@ -31,18 +41,103 @@
 	<string name="avec_delai_x_minutes_suf">minutes</string>
 	<string name="avec_avance_x_minutes_pre">Avec</string>
 	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
-    <string name="Logging">Écrire journal</string>
+    <string name="Logging">Écrire journal sur fichier %s</string>
     <string name="LoggingOn">Oui</string>
     <string name="LoggingOff">Non</string>
 	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
 	<string name="logfilename">Fichier </string>
     <string name="name">nom</string>
     <string name="action_settings">Settings</string>
-    <string name="deleteButtonLabel">Détruire classe %s (impossible d\'annuler)</string>
+    <string name="backgroundLabel">Ici vous pouvez définir les propriétés
+        d\'une classe ou la détruire. Quand vous avez fini, touchez \'fin\'.
+        Une longue presse d\'un bouton montrera un message d\'assistance.
+        </string>
+    <string name="defineclassLabel">Longue toucher ici pour un message
+        d\'assistance.</string>
+    <string name="defineclassspopup">Ici vous pouvez définir quand un
+        évènement calendrier appartient à une classe. Tous les
+        conditions doivent être réalisé afin que l\'évènement
+        appartient à la classe, mais pour chaque condition il y a une valeur
+        par défaut qui est réalisé par tous évènements. Quand vous avez fini,
+        touchez \'fin\'. Une longue presse d\'une commande montrera un
+        message d\'assistance.</string>
+    <string name="defineclasslist">Un évènement appartient à classe %s
+        si:-</string>
+    <string name="ifanycalendar">l\'évènement appartient à quelconque
+        calendrier en dessous qui est coché</string>
+    <string name="allcalendars">Si aucun calendrier n\'est coché, l\'évènement
+        peu appartenir à la classe s\'il appartient à quelconque calendrier.
+        Ce n\'est pas la même chose que cocher tous le calendriers: si on
+        ajoute un nouveau calendrier plus tard, il ne sera pas coché jusqu\'à
+        ce que vous le cochez en changeant la classe.</string>
+    <string name="eventnamehelp">Choisir évènements dont le nom contient
+        certains caractères. Une chaîne de caractères vide correspond à tous
+        évènements.</string>
+    <string name="eventnamefirst">le nom de l\'évènement contient</string>
+    <string name="eventnamenotfirst">et le nom de l\'évènement contient</string>
+    <string name="locationhelp">Choisir évènements dont le lieu contient
+        certains caractères. Une chaîne de caractères vide correspond à tous
+        évènements.</string>
+    <string name="locationfirst">le lieu de l\'évènement contient</string>
+    <string name="locationnotfirst">et le lieu de l\'évènement contient</string>
+    <string name="descriptionlabel">et le description de l\'évènement
+        contient</string>
+    <string name="descriptionhelp">Choisir évènements dont le description
+        contient certains caractères. Une chaîne de caractères vide
+        correspond à tous évènements.</string>
+    <string name="busyhelp">Choisir évènements qui sont occupés, libres, ou
+        n\'importe lequel.</string>
+    <string name="busylabel">et l\'évènement est</string>
+    <string name="onlybusy">occupé</string>
+    <string name="onlynotbusy">libre</string>
+    <string name="busyandnot">n\'importe</string>
+    <string name="recurrenthelp">Choisir évènements qui sont récurrentes, non
+        récurrentes, ou n\'importe lequel.</string>
+    <string name="recurrentlabel">et l\'évènement est:</string>
+    <string name="onlyrecurrent">récurrente</string>
+    <string name="onlynotrecurrent">non récurrente</string>
+    <string name="recurrentandnot">n\'importe</string>
+    <string name="organiserhelp">Choisir évènements qui sont organisés par vous,
+        par autres (ou sans organisateur), ou n\'importe lequel.</string>
+    <string name="organiserlabel">et l\'organisateur de l\'évènement est:
+    </string>
+    <string name="onlyorganiser">vous</string>
+    <string name="onlynotorganiser">non vous</string>
+    <string name="organiserandnot">n\'importe</string>
+    <string name="privatehelp">Choisir évènements qui sont privés, publiciques,
+        ou n\'importe lequel.</string>
+    <string name="privatelabel">et l\'évènement est:</string>
+    <string name="onlyprivate">privé</string>
+    <string name="onlynotprivate">publicique</string>
+    <string name="privateandnot">n\'importe</string>
+    <string name="attendeeshelp">Determine whether events which have attendees,
+        or do not have attendees, or either (the default), are in this class.
+        </string>
+    <string name="attendeeslabel">et l\'évènement:</string>
+    <string name="onlyattendees">a participants</string>
+    <string name="onlynoattendees">n\'a pas participants</string>
+    <string name="attendeesandnot">n\'importe</string>
+    <string name="deleteButtonLabel">Détruire classe %s (impossible d\'annuler)
+    </string>
+    <string name="deleteButtonHelp">Ce bouton détruit la classe at annule tous
+        les actions prévues pour cette classe. Destruction d\'une classe ne peut
+        pas être annulée. Les évènements eux-mêmes ne sont pas touchés.
+    </string>
     <string name="defineButtonLabel">Conditions pour classe %s</string>
+    <string name="defineButtonHelp">Définir les conditions pour un évènement
+        d\'appartenir à la classe. Un évènement peut appartenir à plus q\'une
+        classe. En ce cas les actions seront déclenchées pour toutes les classes
+        auxquelles l\'évènement appartient.</string>
     <string name="defineStartLabel">Définition début d\'un évènement pour classe %s</string>
+    <string name="defineStartHelp">Définir conditions requises pour déclencher
+        les actions à ou en avant du début d\'un évènement de la classe.</string>
     <string name="actionStartLabel">Action au début d\'un évènement pour classe %s</string>
+    <string name="actionStartHelp">Définir action(s) déclenchées à ou en
+        avant du début d\'un évènement de la classe.</string>
     <string name="defineStopLabel">Définition fin d\'un évènement pour classe %s</string>
+    <string name="defineStopHelp">Définir conditions requises pour déclencher
+        les actions à ou après la fin d\'un évènement de la classe.</string>
     <string name="actionStopLabel">Action à la fin d\'un évènement pour classe %s</string>
-    <string name="doneLabel">Fin changement classe %s</string>
+    <string name="actionStopHelp">Définir action(s) déclenchées à ou après la
+        fin d\'un évènement de la classe.</string>
 </resources>

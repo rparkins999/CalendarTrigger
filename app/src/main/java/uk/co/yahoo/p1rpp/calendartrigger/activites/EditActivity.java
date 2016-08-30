@@ -11,13 +11,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
+import static android.text.Html.fromHtml;
+import static android.text.TextUtils.htmlEncode;
+
 public class EditActivity extends Activity {
 
     private String className;
+    private String italicName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +32,8 @@ public class EditActivity extends Activity {
     }
 
     public void setButtonVisibility(int visibility) {
+        TextView tv = (TextView)findViewById (R.id.backgroundtext);
+        tv.setVisibility(visibility);
         Button b = (Button)findViewById(R.id.deleteclassbutton);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.defineclassbutton);
@@ -46,9 +54,12 @@ public class EditActivity extends Activity {
         super.onResume();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
+        italicName = "<i>" + htmlEncode(className) + "</i>";
+        TextView tv = (TextView)findViewById (R.id.backgroundtext);
+        tv.setText(fromHtml(getString(R.string.backgroundLabel, italicName)));
         Button b = (Button)findViewById(R.id.deleteclassbutton);
-        b.setText(getString(
-            R.string.deleteButtonLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.deleteButtonLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 PrefsManager.removeClass(me, className);
@@ -56,12 +67,19 @@ public class EditActivity extends Activity {
                 finish();
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.deleteButtonHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.defineclassbutton);
-        b.setText(getString(
-            R.string.defineButtonLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.defineButtonLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
                 Fragment f = DefineClassFragment.newInstance(className);
@@ -70,12 +88,19 @@ public class EditActivity extends Activity {
                   .commit();
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.defineButtonHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.definestartbutton);
-        b.setText(getString(
-            R.string.defineStartLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.defineStartLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
                 Fragment f = DefineStartFragment.newInstance(className);
@@ -84,12 +109,19 @@ public class EditActivity extends Activity {
                   .commit();
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.defineStartHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.actionstartbutton);
-        b.setText(getString(
-            R.string.actionStartLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.actionStartLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
                 Fragment f = ActionStartFragment.newInstance(className);
@@ -98,12 +130,19 @@ public class EditActivity extends Activity {
                   .commit();
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.actionStartHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.definestopbutton);
-        b.setText(getString(
-            R.string.defineStopLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.defineStopLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
                 Fragment f = DefineStopFragment.newInstance(className);
@@ -112,18 +151,33 @@ public class EditActivity extends Activity {
                   .commit();
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.defineStopHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.actionstopbutton);
-        b.setText(getString(
-            R.string.actionStopLabel, className));
+        b.setText(fromHtml(getString(
+            R.string.actionStopLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                setButtonVisibility(View.INVISIBLE);
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
                 Fragment f = ActionStopFragment.newInstance(className);
                 ft.replace(R.id.edit_activity_container, f, "apf")
                   .addToBackStack(null)
                   .commit();
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.actionStopHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
             }
         });
     }

@@ -10,6 +10,9 @@ import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 
+import static android.text.Html.fromHtml;
+import static android.text.TextUtils.htmlEncode;
+
 public class MainActivity extends Activity {
 
 	@Override
@@ -29,6 +32,7 @@ public class MainActivity extends Activity {
 		menu.clear();
 		super.onPrepareOptionsMenu(menu);
 		MenuItem mi;
+		mi = menu.add(Menu.NONE, -2, Menu.NONE, R.string.settings);
 		mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
 		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		int nc = PrefsManager.getNumClasses(this);
@@ -36,10 +40,12 @@ public class MainActivity extends Activity {
 		{
 			if (PrefsManager.isClassUsed(this, i))
 			{
+				String className =
+					"<i>" + htmlEncode(PrefsManager.getClassName(this, i)) +
+					"</i>";
 				menu.add(Menu.NONE, i, Menu.NONE,
-					getResources().getString(
-						R.string.edit_event_class,
-						PrefsManager.getClassName(this, i)));
+					fromHtml(getResources().getString(
+						R.string.edit_event_class, className)));
 			}
 		}
 		return true;
@@ -54,7 +60,12 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int i = item.getItemId();
-		if (i < 0)
+		if (i == -2)
+		{
+			Intent it = new Intent(this, SettingsActivity.class);
+			startActivity(it);
+		}
+		else if (i == -1)
 		{
 			CreateClassDialog newFragment = new CreateClassDialog();
 		    newFragment.show(getFragmentManager(), "CreateClassDialog");

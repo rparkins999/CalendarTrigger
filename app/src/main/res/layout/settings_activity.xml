@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. Richard P. Parkins, M. A.
+  -->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:id="@+id/edit_activity_container"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.SettingsActivity"
+             tools:ignore="MergeRootFrame" >
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="left|top">
+        <TextView
+            android:id="@+id/lblDuringEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/default_padding"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:textColor="@android:color/holo_blue_dark"
+            android:text="@string/settings" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/lastcalltext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/lastalarmtext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/logfiletext"/>
+        <RadioGroup
+            android:id="@+id/radioGroupLogging"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <RadioButton
+                android:id="@+id/radioLoggingOn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/LoggingOn" />
+
+            <RadioButton
+                android:id="@+id/radioLoggingOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/LoggingOff" />
+
+        </RadioGroup>
+    </LinearLayout>
+
+</FrameLayout>

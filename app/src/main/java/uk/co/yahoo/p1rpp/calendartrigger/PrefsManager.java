@@ -73,9 +73,21 @@ public class PrefsManager {
 		return n;
 	}
 
+	private static final String PREF_LAST_INVOCATION = "lastInvocationTime";
+
+		public static void setLastInvocationTime(Context context, long time) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putLong(PREF_LAST_INVOCATION, time).commit();
+	}
+
+	public static long getLastInvocationTime(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getLong(PREF_LAST_INVOCATION, Long.MAX_VALUE);
+	}
+
 	private static final String PREF_LAST_ALARM = "lastAlarmTime";
 
-		public static void setLastAlarmTime(Context context, long time) {
+	public static void setLastAlarmTime(Context context, long time) {
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putLong(PREF_LAST_ALARM, time).commit();
 	}
@@ -229,9 +241,11 @@ public class PrefsManager {
 	}
 
 	// whether busy events, not busy events, or both can be in class
-	public static final int BUSY_AND_NOT = 0;
-	public static final int ONLY_BUSY = 1;
-	public static final int ONLY_NOT_BUSY = 2;
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_BUSY = 0;
+	public static final int ONLY_NOT_BUSY = 1;
+	public static final int BUSY_AND_NOT = 2;
 	private static final String WHETHER_BUSY = "whetherBusy";
 
 	public static void setWhetherBusy(Context context, int classNum, int whetherBusy) {
@@ -247,9 +261,11 @@ public class PrefsManager {
 	}
 
 	// whether recurrent events, non-recurrent events, or both can be in class
-	public static final int RECURRENT_AND_NOT = 0;
-	public static final int ONLY_RECURRENT = 1;
-	public static final int ONLY_NOT_RECURRENT = 2;
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_RECURRENT = 0;
+	public static final int ONLY_NOT_RECURRENT = 1;
+	public static final int RECURRENT_AND_NOT = 2;
 	private static final String WHETHER_RECURRENT = "whetherRecurrent";
 
 	public static void setWhetherRecurrent(
@@ -266,9 +282,11 @@ public class PrefsManager {
 	}
 
 	// whether events organised by phone owner, or not, or both can be in class
-	public static final int ORGANISER_AND_NOT = 0;
-	public static final int ONLY_ORGANISER = 1;
-	public static final int ONLY_NOT_ORGANISER = 2;
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_ORGANISER = 0;
+	public static final int ONLY_NOT_ORGANISER = 1;
+	public static final int ORGANISER_AND_NOT = 2;
 	private static final String WHETHER_ORGANISER = "whetherOrganiser";
 
 	public static void setWhetherOrganiser(
@@ -285,9 +303,11 @@ public class PrefsManager {
 	}
 
 	// whether publicly visible events, private events, or both can be in class
-	public static final int PUBLIC_AND_PRIVATE = 0;
-	public static final int ONLY_PUBLIC = 1;
-	public static final int ONLY_PRIVATE = 2;
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_PUBLIC = 0;
+	public static final int ONLY_PRIVATE = 1;
+	public static final int PUBLIC_AND_PRIVATE = 2;
 	private static final String WHETHER_PUBLIC = "whetherPublic";
 
 	public static void setWhetherPublic(
@@ -304,9 +324,11 @@ public class PrefsManager {
 	}
 
 	// whether events with attendees, or without, or both can be in class
-	public static final int ATTENDEES_AND_NOT = 0;
-	public static final int ONLY_WITH_ATTENDEES = 1;
-	public static final int ONLY_WITHOUT_ATTENDEES = 2;
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_WITH_ATTENDEES = 0;
+	public static final int ONLY_WITHOUT_ATTENDEES = 1;
+	public static final int ATTENDEES_AND_NOT = 2;
 	private static final String WHETHER_ATTENDEES = "whetherAttendees";
 
 	public
@@ -323,7 +345,7 @@ public class PrefsManager {
 					  .getInt(prefName, ATTENDEES_AND_NOT);
 	}
 
-	// used for both "no change" and "nothing saved"
+	// used for "nothing saved"
 	public static final int RINGER_MODE_NONE = -99;
 
 	// last user's ringer state
@@ -402,7 +424,7 @@ public class PrefsManager {
 	}
 
 	// minutes after end time event of this class to take actions
-	private static final String AFTER_MINUTES = "beforeMinutes";
+	private static final String AFTER_MINUTES = "afterMinutes";
 
 	public static void setAfterMinutes(
 		Context context, int classNum, int afterMinutes) {
@@ -413,6 +435,38 @@ public class PrefsManager {
 
 	public static int getAfterMinutes(Context context, int classNum) {
 		String prefName = AFTER_MINUTES.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
+	// steps moved after end time event of this class to take actions
+	private static final String AFTER_STEPS = "afterSteps";
+
+	public static void setAfterSteps(
+		Context context, int classNum, int afterSteps) {
+		String prefName = AFTER_STEPS.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterSteps).commit();
+	}
+
+	public static int getAfterSteps(Context context, int classNum) {
+		String prefName = AFTER_STEPS.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
+	// metres moved after end time event of this class to take actions
+	private static final String AFTER_METRES = "afterMetres";
+
+	public static void setAfterMetres(
+		Context context, int classNum, int afterSteps) {
+		String prefName = AFTER_METRES.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterSteps).commit();
+	}
+
+	public static int getAfterMetres(Context context, int classNum) {
+		String prefName = AFTER_METRES.concat(String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}

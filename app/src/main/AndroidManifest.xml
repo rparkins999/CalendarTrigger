@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:allowBackup="true"
@@ -42,6 +43,9 @@
 
         <activity
             android:name=".activites.EditActivity"
+        />
+        <activity
+            android:name=".activites.SettingsActivity"
         />
     </application>
 

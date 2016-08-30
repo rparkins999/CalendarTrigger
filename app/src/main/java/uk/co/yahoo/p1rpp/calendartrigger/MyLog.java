@@ -16,9 +16,12 @@ import java.util.Date;
 public class MyLog extends Object {
 
 	private static final int NOTIFY_ID = 1427;
-	private final String LOGFILE
+	private static final String LOGFILE
 		= Environment.getExternalStorageDirectory().getPath()
 					 .concat("/data/CalendarTriggerLog.txt");
+	public static String LogFileName() {
+		return LOGFILE;
+	}
 	public MyLog(Context c, String s) {
 		if (PrefsManager.getLoggingMode(c))
 		{

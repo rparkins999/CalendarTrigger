@@ -21,7 +21,9 @@ import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 
 public class MuteService extends IntentService {
 
-	public MuteService() { super("CalendarTriggerService"); }
+	public MuteService() {
+		super("CalendarTriggerService");
+	}
 
 	public int wantedRinger;
 	public boolean canRestoreRinger;
@@ -33,45 +35,48 @@ public class MuteService extends IntentService {
 	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
 
 	public static class StartServiceReceiver
-			extends WakefulBroadcastReceiver {
+		extends WakefulBroadcastReceiver {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			long wakeTime = System.currentTimeMillis();
 			String wakeCause = intent.toString();
-				Intent mute = new Intent(context, MuteService.class);
-				mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
-				mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
-				startWakefulService(context, mute);
+			Intent mute = new Intent(context, MuteService.class);
+			mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
+			mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
+			startWakefulService(context, mute);
 		}
 	}
 
 	// Handle event class becoming active
-	private void activateClass(int classNum, String name)
-	{
+	private void activateClass(int classNum, String name) {
 		int ringerAction = PrefsManager.getRingerAction(this, classNum);
-		if (   (   (ringerAction == AudioManager.RINGER_MODE_SILENT)
-				   && (wantedRinger != AudioManager.RINGER_MODE_SILENT))
-			   || (   (ringerAction == AudioManager.RINGER_MODE_VIBRATE)
-					  && (wantedRinger == AudioManager.RINGER_MODE_NORMAL)))
+		if (((ringerAction == AudioManager.RINGER_MODE_SILENT)
+			 && (wantedRinger != AudioManager.RINGER_MODE_SILENT))
+			|| ((ringerAction == AudioManager.RINGER_MODE_VIBRATE)
+				&& (wantedRinger == AudioManager.RINGER_MODE_NORMAL)))
 		{
 			wantedRinger = ringerAction;
+			canRestoreRinger = false;
+			wantRestoreRinger = false;
 			if (PrefsManager.getNotifyStart(this, classNum))
 			{
 				startEvent = name;
 			}
-			canRestoreRinger = false;
-			wantRestoreRinger = false;
 			endEvent = "";
+		}
+		if (   (PrefsManager.getNotifyStart(this, classNum))
+			&& (startEvent.isEmpty()))
+		{
+			startEvent = name;
 		}
 		PrefsManager.setClassActive(this, classNum, true);
 	}
 
 	// Handle event class becoming inactive
-	private void deactivateClass(int classNum, String name)
-	{
-		if (   canRestoreRinger
-			   && (PrefsManager.getRestoreRinger(this, classNum)))
+	private void deactivateClass(int classNum, String name) {
+		if (canRestoreRinger
+			&& (PrefsManager.getRestoreRinger(this, classNum)))
 		{
 			wantRestoreRinger = true;
 			if (PrefsManager.getNotifyEnd(this, classNum))
@@ -83,8 +88,8 @@ public class MuteService extends IntentService {
 	}
 
 	private static final int NOTIFY_ID = 1427;
-	private void emitNotification(int resNum, String event)
-	{
+
+	private void emitNotification(int resNum, String event) {
 		Resources res = getResources();
 		NotificationCompat.Builder builder
 			= new NotificationCompat.Builder(this)
@@ -101,8 +106,7 @@ public class MuteService extends IntentService {
 	// and which event classes have become inactive
 	// and consequently what we need to do.
 	// Incidentally we compute the next alarm time
-	public void updateState()
-	{
+	public void updateState() {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
 		AudioManager audio
@@ -132,8 +136,7 @@ public class MuteService extends IntentService {
 					{
 						nextAlarmTime = result.endTime;
 					}
-				}
-				else
+				} else
 				{
 					if (PrefsManager.isClassActive(this, classNum))
 					{
@@ -155,16 +158,15 @@ public class MuteService extends IntentService {
 			{
 				int resNum =
 					(wantedRinger == AudioManager.RINGER_MODE_SILENT)
-									 ? R.string.mode_sonnerie_change_silencieux_pour
-									 : R.string.mode_sonnerie_change_vibreur_pour;
+					? R.string.mode_sonnerie_change_silencieux_pour
+					: R.string.mode_sonnerie_change_vibreur_pour;
 				emitNotification(resNum, startEvent);
 				new MyLog(this, "Setting ringer to "
 					.concat(MyLog.rm(wantedRinger))
 					.concat(" for event ")
 					.concat(startEvent));
 			}
-		}
-		else if (wantRestoreRinger)
+		} else if (wantRestoreRinger)
 		{
 			wantedRinger = PrefsManager.getUserRinger(this);
 			if (wantedRinger != userRinger)
@@ -174,8 +176,8 @@ public class MuteService extends IntentService {
 				{
 					int resNum =
 						(wantedRinger == AudioManager.RINGER_MODE_VIBRATE)
-										 ? R.string.mode_sonnerie_change_vibreur_apres
-										 : R.string.mode_sonnerie_change_normale_apres;
+						? R.string.mode_sonnerie_change_vibreur_apres
+						: R.string.mode_sonnerie_change_normale_apres;
 					emitNotification(resNum, endEvent);
 					new MyLog(this, "Restoring ringer to "
 						.concat(MyLog.rm(wantedRinger))
@@ -200,20 +202,25 @@ public class MuteService extends IntentService {
 			AlarmManager alarmManager = (AlarmManager)
 				getSystemService(Context.ALARM_SERVICE);
 			// Remove previous alarms
-			if (lastAlarm != Long.MAX_VALUE) { alarmManager.cancel(pIntent); }
+			if (lastAlarm != Long.MAX_VALUE)
+			{
+				alarmManager.cancel(pIntent);
+			}
 
 			if (nextAlarmTime != Long.MAX_VALUE)
 			{
 				// Add new alarm
-					alarmManager.setExact(
-						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-					DateFormat df = DateFormat.getDateTimeInstance();
-					new MyLog(this, "Alarm time set to "
-									.concat(df.format(nextAlarmTime)));
-				}
+				alarmManager.setExact(
+					AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				DateFormat df = DateFormat.getDateTimeInstance();
+				new MyLog(this, "Alarm time set to "
+					.concat(df.format(nextAlarmTime)));
 			}
-			PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		}
+		PrefsManager.setLastAlarmTime(this, nextAlarmTime);
+		PrefsManager.setLastInvocationTime(this,currentTime);
+	}
+
 
 	@Override
 	public void onHandleIntent(Intent intent) {

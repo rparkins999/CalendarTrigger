@@ -142,11 +142,11 @@ public class CalendarProvider {
 		}
 		switch (PrefsManager.getWhetherBusy(context, classNum))
 		{
-			case 1:
+			case PrefsManager.ONLY_BUSY:
 				selClause.append(" AND ").append(Instances.AVAILABILITY)
 						 .append("=").append(Instances.AVAILABILITY_BUSY);
 				break;
-			case 2:
+			case PrefsManager.ONLY_NOT_BUSY:
 				selClause.append(" AND ").append(Instances.AVAILABILITY)
 						 .append("=").append(Instances.AVAILABILITY_FREE);
 				break;
@@ -155,11 +155,11 @@ public class CalendarProvider {
 		switch (PrefsManager.getWhetherRecurrent(context, classNum))
 		{
 			// check if missing entry is null or ""
-			case 1:
+			case PrefsManager.ONLY_RECURRENT:
 				selClause.append(" AND ").append(Instances.RRULE)
 						 .append(" IS NOT NULL");
 				break;
-			case 2:
+			case PrefsManager.ONLY_NOT_RECURRENT:
 				selClause.append(" AND ").append(Instances.RRULE)
 						 .append(" IS NULL");
 				break;
@@ -167,11 +167,11 @@ public class CalendarProvider {
 		}
 		switch (PrefsManager.getWhetherOrganiser(context, classNum))
 		{
-			case 1:
+			case PrefsManager.ONLY_ORGANISER:
 				selClause.append(" AND ").append(Instances.IS_ORGANIZER)
 						 .append(" = 1");
 				break;
-			case 2:
+			case PrefsManager.ONLY_NOT_ORGANISER:
 				selClause.append(" AND ").append(Instances.IS_ORGANIZER)
 						 .append(" != 1");
 				break;
@@ -179,11 +179,11 @@ public class CalendarProvider {
 		}
 		switch (PrefsManager.getWhetherPublic(context, classNum))
 		{
-			case 1:
+			case PrefsManager.ONLY_PUBLIC:
 				selClause.append(" AND ").append(Instances.ACCESS_LEVEL)
 						 .append(" != ").append(Instances.ACCESS_PRIVATE);
 				break;
-			case 2:
+			case PrefsManager.ONLY_PRIVATE:
 				selClause.append(" AND ").append(Instances.ACCESS_LEVEL)
 						 .append(" = ").append(Instances.ACCESS_PRIVATE);
 				break;
@@ -191,11 +191,11 @@ public class CalendarProvider {
 		}
 		switch (PrefsManager.getWhetherAttendees(context, classNum))
 		{
-			case 1:
+			case PrefsManager.ONLY_WITH_ATTENDEES:
 				selClause.append(" AND ").append(Instances.HAS_ATTENDEE_DATA)
 						 .append(" = 1");
 				break;
-			case 2:
+			case PrefsManager.ONLY_WITHOUT_ATTENDEES:
 				selClause.append(" AND ").append(Instances.HAS_ATTENDEE_DATA)
 						 .append(" = 0");
 				break;
