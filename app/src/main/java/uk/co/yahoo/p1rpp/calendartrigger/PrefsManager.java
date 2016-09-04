@@ -455,6 +455,22 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
+	// steps target after end time event of this class to take actions
+	private static final String TARGET_STEPS = "targetSteps";
+
+	public static void setTargetSteps(
+		Context context, int classNum, int afterSteps) {
+		String prefName = TARGET_STEPS.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterSteps).commit();
+	}
+
+	public static int getTargetSteps(Context context, int classNum) {
+		String prefName = TARGET_STEPS.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
 	// metres moved after end time event of this class to take actions
 	private static final String AFTER_METRES = "afterMetres";
 
@@ -490,7 +506,8 @@ public class PrefsManager {
 	// whether to display notification after end of event
 	private static final String NOTIFY_END = "notifyEnd";
 
-	public static void setNotifyEnd(Context context, int classNum, boolean notifyEnd) {
+	public static void setNotifyEnd(Context context, int classNum,
+		boolean notifyEnd) {
 		String prefName = NOTIFY_END.concat(String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, notifyEnd).commit();
@@ -537,6 +554,9 @@ public class PrefsManager {
 			 .putBoolean(RESTORE_RINGER.concat(num), false)
 			 .putInt(BEFORE_MINUTES.concat(num), 0)
 			 .putInt(AFTER_MINUTES.concat(num), 0)
+			 .putInt(AFTER_STEPS.concat(num), 0)
+			 .putInt(TARGET_STEPS.concat(num), 0)
+			 .putInt(AFTER_METRES.concat(num), 0)
 			 .putBoolean(NOTIFY_START.concat(num), false)
 			 .putBoolean(NOTIFY_END.concat(num), false)
 			 .putBoolean(IS_ACTIVE.concat(num), false)

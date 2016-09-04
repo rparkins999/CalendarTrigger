@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Calendar Mute</string>
-    <string name="settings">Settings</string>
+    <string name="app_name">Calendar Trigger</string>
+    <string name="settings">Paramètres</string>
     <string name="lastcalldetail">Dernier appel à %s</string>
     <string name="lastCallHelp">Ceci est l\'heure quand CalendarTrigger a été
         invoqué le plus récemment, soit par l\'usager, soit par une alarme
@@ -15,52 +15,36 @@
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
     <string name="edit_event_class">Changer classe %s</string>
-    <string name="prochains_evenements">Prochains évènements</string>
     <string name="erreur_listing_agendas">Erreur de listing de vos agendas ; Google Calendar est-il installé ?</string>
-    <string name="agendas">Agendas</string>
-    <string name="actions">Actions</string>
     <string name="chargement">Chargement&#8230;</string>
     <string name="synchronise">Synchronisé</string>
     <string name="non_synchronise">Non synchronisé</string>
     <string name="rafraichir_calendriers">Rafraîchir les calendriers</string>
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
-    <string name="lors_evenement_agenda">Lors d\'un évènement</string>
-    <string name="ne_rien_faire">Ne rien faire</string>
-    <string name="mettre_silencieux">Mettre en silencieux</string>
-    <string name="mettre_vibreur">Mettre en vibreur</string>
-    <string name="restaurer_etat_precedent">Restaurer le mode précédent</string>
-    <string name="une_fois_even_termine">Une fois l\'évènement terminé</string>
     <string name="afficher_notification">Afficher une notification</string>
 	<string name="mode_sonnerie_change">Mode de sonnerie changé</string>
 	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement</string>
 	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement</string>
     <string name="mode_sonnerie_change_silencieux_apres">Restauration mode vibreur apres l\'évènement</string>
     <string name="mode_sonnerie_change_normale_apres">Restauration mode sonnerie apres l\'évènement</string>
-	<string name="seulement_evenement_occupe">Seulement pour évènements \"occupé\"</string>
-	<string name="avec_delai_x_minutes_pre">Avec un délai de</string>
-	<string name="avec_delai_x_minutes_suf">minutes</string>
-	<string name="avec_avance_x_minutes_pre">Avec</string>
-	<string name="avec_avance_x_minutes_suf">minutes d\'avance</string>
     <string name="Logging">Écrire journal sur fichier %s</string>
     <string name="LoggingOn">Oui</string>
     <string name="LoggingOff">Non</string>
 	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
 	<string name="logfilename">Fichier </string>
     <string name="name">nom</string>
-    <string name="action_settings">Settings</string>
-    <string name="backgroundLabel">Ici vous pouvez définir les propriétés
-        d\'une classe ou la détruire. Quand vous avez fini, touchez \'fin\'.
-        Une longue presse d\'un bouton montrera un message d\'assistance.
-        </string>
-    <string name="defineclassLabel">Longue toucher ici pour un message
+    <string name="longpresslabel">Longue toucher ici pour un message
         d\'assistance.</string>
-    <string name="defineclassspopup">Ici vous pouvez définir quand un
-        évènement calendrier appartient à une classe. Tous les
-        conditions doivent être réalisé afin que l\'évènement
-        appartient à la classe, mais pour chaque condition il y a une valeur
-        par défaut qui est réalisé par tous évènements. Quand vous avez fini,
-        touchez \'fin\'. Une longue presse d\'une commande montrera un
-        message d\'assistance.</string>
+    <string name="editclassHelp">Ici vous pouvez définir les propriétés
+        de la classe %s ou la détruire. Quand vous avez fini, touchez \'fin\'.
+        Une longue touche d\'un bouton montrera un message d\'assistance.
+        </string>
+    <string name="defineclasspopup">Définir quand un évènement calendrier
+        appartient à une classe. Tous les conditions doivent être réalisé afin
+        que l\'évènement appartient à la classe, mais pour chaque condition il
+        y a une valeur par défaut qui est réalisé par tous évènements. Quand
+        vous avez fini, touchez \'fin\'. Une longue touche d\'une commande
+        montrera un message d\'assistance.</string>
     <string name="defineclasslist">Un évènement appartient à classe %s
         si:-</string>
     <string name="ifanycalendar">l\'évènement appartient à quelconque
@@ -99,10 +83,10 @@
     <string name="recurrentandnot">n\'importe</string>
     <string name="organiserhelp">Choisir évènements qui sont organisés par vous,
         par autres (ou sans organisateur), ou n\'importe lequel.</string>
-    <string name="organiserlabel">et l\'organisateur de l\'évènement est:
-    </string>
-    <string name="onlyorganiser">vous</string>
-    <string name="onlynotorganiser">non vous</string>
+    <string name="organiserlabel">et l\'organisateur de l\'évènement:
+    </string>                       Paramètres
+    <string name="onlyorganiser">est vous</string>
+    <string name="onlynotorganiser">n\'est pas vous</string>
     <string name="organiserandnot">n\'importe</string>
     <string name="privatehelp">Choisir évènements qui sont privés, publiciques,
         ou n\'importe lequel.</string>
@@ -110,9 +94,8 @@
     <string name="onlyprivate">privé</string>
     <string name="onlynotprivate">publicique</string>
     <string name="privateandnot">n\'importe</string>
-    <string name="attendeeshelp">Determine whether events which have attendees,
-        or do not have attendees, or either (the default), are in this class.
-        </string>
+    <string name="attendeeshelp">Choisir évènements qui ont participants, ou
+        n\'ont pas participants, ou n\'importe lequel.</string>
     <string name="attendeeslabel">et l\'évènement:</string>
     <string name="onlyattendees">a participants</string>
     <string name="onlynoattendees">n\'a pas participants</string>
@@ -128,16 +111,118 @@
         d\'appartenir à la classe. Un évènement peut appartenir à plus q\'une
         classe. En ce cas les actions seront déclenchées pour toutes les classes
         auxquelles l\'évènement appartient.</string>
-    <string name="defineStartLabel">Définition début d\'un évènement pour classe %s</string>
+    <string name="defineStartLabel">Définition début d\'un évènement de la
+        classe %s</string>
     <string name="defineStartHelp">Définir conditions requises pour déclencher
-        les actions à ou en avant du début d\'un évènement de la classe.</string>
-    <string name="actionStartLabel">Action au début d\'un évènement pour classe %s</string>
+        les actions à ou en avant du début d\'un évènement de la classe.
+    </string>
+    <string name="definestartpopup">Ici vous pouvez définir les conditions
+        requises pour déclencher les actions du début d\'un évènement de la
+        classe %s. Ceci peut être un certain nombre de minutes (défaut zéro) en
+        avant du début, soit retardé jusqu\'à ce que l\'appareil arrive à un
+        état spécifié. Quand vous avez fini, touchez \'fin\'. Une longue touche
+        d\'un bouton montrera un message d\'assistance.</string>
+    <string name="definestartlist">Déclencher les actions du début d\'un
+        évènement de la classe %s:-</string>
+    <string name="startminuteslabel">minutes avant début de l\'évènement
+    </string>
+    <string name="startminuteshelp">Ceci précise le nombre de minutes
+        (zéro permis) en avant du début d\'un évènement quand CalendarTrigger
+        commencera de considérer déclenchant les actions du début de
+        l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
+        conditions ci-dessous.</string>
+    <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
+    <string name="startnotuntilhelp">Cette section est reservée pour retarder
+        les actions du début jusqu\'à ce que l\'appareil arrive à un état
+        spécifié. Au moment il n\'y a aucun contrôle d\'état mis en oeuvre.
+    </string>
+    <string name="actionStartLabel">Action au début d\'un évènement de la classe
+        %s</string>
     <string name="actionStartHelp">Définir action(s) déclenchées à ou en
         avant du début d\'un évènement de la classe.</string>
-    <string name="defineStopLabel">Définition fin d\'un évènement pour classe %s</string>
+    <string name="actionstartpopup">Ici vous pouvez définir les actions
+        déclenchées au début d\'un évènement de la classe %s. Une longue
+        touche d\'un bouton montrera un message d\'assistance.</string>
+    <string name="actionstartlist">Au début d\'un évènement de la classe %s:-
+    </string>
+    <string name="setRinger">Fixer mode de sonnerie au plus</string>
+    <string name="setRingerHelp">Ceci fixe la mode de la sonnerie pendant
+        l\'évènement. CalendarTrigger fixera la mode de la sonnerie
+        seulement \"moins\" que la mode précédente fixée par l\'usager ou par
+        un évènement chevauchant. Silencieux est moins que vibreur qui est moins
+        que normale.</string>
+    <string name="normal">normale</string>
+    <string name="vibrate">vibreur</string>
+    <string name="silent">silencieux</string>
+    <string name="startNotifyHelp">Si coché, CalendarTrigger montrera une
+        notification au début d\'un évènement. La présentation d\'une
+        notification est déterminée par les paramètres notification fixés par
+        l\'usager.</string>
+    <string name="defineStopLabel">Définition fin d\'un évènement de la classe
+        %s</string>
     <string name="defineStopHelp">Définir conditions requises pour déclencher
         les actions à ou après la fin d\'un évènement de la classe.</string>
-    <string name="actionStopLabel">Action à la fin d\'un évènement pour classe %s</string>
+    <string name="definestoppopup">Ici vous pouvez définir les conditions
+        requises pour déclencher les actions à la fin d\'un évènement de la
+        classe %s. Ceci peut être un certain nombre de minutes (défaut zéro)
+        après la fin, soit retardé jusqu\'à ce que l\'appareil bouge par une
+        distance spécifiée ou arrive à un état spécifié. Quand vous avez fini,
+        touchez \'fin\'. Une longue touche d\'un bouton montrera un message
+        d\'assistance.</string>
+    <string name="definestoplist">Déclencher les actions pour la fin d\'un
+        évènement de la classe %s:- </string>
+    <string name="stopminuteslabel">minutes après la fin de l\'évènement
+    </string>
+    <string name="stopminuteshelp">Ceci précise le nombre de minutes
+        (zéro permis) après la fin d\'un évènement quand CalendarTrigger
+        commencera de considérer déclenchant les actions de la fin de
+        l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
+        conditions ci-dessous.</string>
+    <string name="stopnotuntillabel">mais pas jusqu\'à ce que:-</string>
+    <string name="stopnotuntilhelp">Définir conditions requises après la fin
+        de l\'évènement.</string>
+    <string name="stepcounteryes">Retarder les actions de la fin de
+        l\'évènement jusqu\'à ce que l\'usager qui tient l\'appareil a pris un
+        certain nombre de pas. Ceci peut être utilisé quand l\'évènement est
+        une rencontre et vous ne voulez pas restaurer la sonnerie jusqu\'à ce
+        que la rencontre est finie et vous avez quitté la salle.</string>
+    <string name="stepcounterno">Cette option est désactivée parce que
+        l\'appareil n\'a pas de compteur de pas.</string>
+    <string name="firststepslabel">L\'appareil a bougé par</string>
+    <string name="laststepslabel">pas.</string>
+    <string name="locationyes">Retarder les actions de la fin de
+        l\'évènement jusqu\'à ce que l\'appareil a bougé par un certain nombre
+        de mètres. Ceci peut être utilisé quand l\'évènement se déroule dans
+        un bâtiment et vous ne voulez pas restaurer la sonnerie jusqu\'à ce que
+        vouz avez quitté le bâtiment. La précision de position est plus ou
+        moins 100 mètres (mieux si le bâtiment est muni de Wi-Fi ou
+        l\'appareil est muni de GPS), donc il ne faut pas choisir un nombre
+        trop petit. Si le nombre est zéro, il n\'y a aucun contrôle de
+        position.</string>
+    <string name="locationno">Cette option est désactivée parce que
+        CalendarTrigger n\'a pas la permission ACCESS_FINE_LOCATION nécessaire
+        pour créer un Geofence. Vous pouvez activer cette permission en
+        employant l\'outil \'Paramètres\' par sélectionner \'Applications\'.
+    </string>
+    <string name="firstlocationlabel">L\'appareil a bougé par</string>
+    <string name="lastlocationlabel">mètres.</string>
+    <string name="actionStopLabel">Action à la fin d\'un évènement de la classe
+        %s</string>
     <string name="actionStopHelp">Définir action(s) déclenchées à ou après la
         fin d\'un évènement de la classe.</string>
+    <string name="actionstoppopup">Ici vous pouvez définir les actions
+        déclenchées à la fin d\'un évènement de la classe %s. Une longue
+        touche d\'un bouton montrera un message d\'assistance.</string>
+    <string name="actionstoplist">À la fin d\'un évènement de la classe %s:-
+    </string>
+    <string name="restaurer_etat_precedent">Restaurer la mode sonnerie
+        précédente</string>
+    <string name="restoreRingerHelp">Si coché, CalendarTrigger restaurera
+        la mode précédente de la sonnerie, à condition que l\'usager n\'a pas
+        changé la mode pendant l\'évènement et qu\'il n\'y a pas d\'autre
+        évènement chevauchant qui demande un mode sonnerie \'moins\'.</string>
+    <string name="endNotifyHelp">Si coché, CalendarTrigger montrera une
+        notification à la fin d\'un évènement. La présentation d\'une
+        notification est déterminée par les paramètres notification fixés par
+        l\'usager.</string>
 </resources>

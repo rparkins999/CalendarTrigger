@@ -123,10 +123,8 @@ public class DefineStopFragment extends Fragment {
         PackageManager packageManager = ac.getPackageManager();
         final boolean haveStepCounter =
             currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
-            && (   packageManager.hasSystemFeature(
-                       PackageManager.FEATURE_SENSOR_STEP_COUNTER)
-                || packageManager.hasSystemFeature(
-                       PackageManager.FEATURE_SENSOR_STEP_DETECTOR));
+            && packageManager.hasSystemFeature(
+                   PackageManager.FEATURE_SENSOR_STEP_COUNTER);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);

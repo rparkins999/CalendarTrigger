@@ -50,19 +50,29 @@ public class EditActivity extends Activity {
 
     @Override
     protected void onResume() {
-        final EditActivity me = this;
+        final EditActivity ac = this;
         super.onResume();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
         italicName = "<i>" + htmlEncode(className) + "</i>";
         TextView tv = (TextView)findViewById (R.id.backgroundtext);
-        tv.setText(fromHtml(getString(R.string.backgroundLabel, italicName)));
+        tv.setText(R.string.longpresslabel);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                               fromHtml(getString(R.string.editclassHelp,
+                                                  className)),
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         Button b = (Button)findViewById(R.id.deleteclassbutton);
         b.setText(fromHtml(getString(
             R.string.deleteButtonLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                PrefsManager.removeClass(me, className);
+                PrefsManager.removeClass(ac, className);
                 // we can't edit once the class has gone
                 finish();
             }
@@ -70,7 +80,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.deleteButtonHelp,
+                Toast.makeText(ac, R.string.deleteButtonHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -91,7 +101,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.defineButtonHelp,
+                Toast.makeText(ac, R.string.defineButtonHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -112,7 +122,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.defineStartHelp,
+                Toast.makeText(ac, R.string.defineStartHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -133,7 +143,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.actionStartHelp,
+                Toast.makeText(ac, R.string.actionStartHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -154,7 +164,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.defineStopHelp,
+                Toast.makeText(ac, R.string.defineStopHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -175,7 +185,7 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.actionStopHelp,
+                Toast.makeText(ac, R.string.actionStopHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }

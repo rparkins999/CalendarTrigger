@@ -1,15 +1,29 @@
 package uk.co.yahoo.p1rpp.calendartrigger.service;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
+import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
 import java.text.DateFormat;
 
@@ -19,7 +33,10 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 
 
-public class MuteService extends IntentService {
+public class MuteService extends IntentService
+	implements SensorEventListener,
+	GoogleApiClient.ConnectionCallbacks,
+	GoogleApiClient.OnConnectionFailedListener {
 
 	public MuteService() {
 		super("CalendarTriggerService");
@@ -28,11 +45,43 @@ public class MuteService extends IntentService {
 	public int wantedRinger;
 	public boolean canRestoreRinger;
 	public boolean wantRestoreRinger;
+	public boolean anyStepCountActive;
 	public String startEvent;
 	public String endEvent;
+	public static int lastCounterSteps = -2;
 
 	public static final String EXTRA_WAKE_TIME = "wakeTime";
 	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
+
+	// We don't know anything sensible to do here
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int i) {
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent sensorEvent) {
+		int newCounterSteps = (int)sensorEvent.values[0];
+		if (newCounterSteps != lastCounterSteps)
+		{
+			lastCounterSteps = newCounterSteps;
+			startIfNecessary(this, "Step counter changed");
+		}
+	}
+
+	@Override
+	public void onConnected(Bundle bundle) {
+
+	}
+
+	@Override
+	public void onConnectionSuspended(int i) {
+
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+
+	}
 
 	public static class StartServiceReceiver
 		extends WakefulBroadcastReceiver {
@@ -102,11 +151,53 @@ public class MuteService extends IntentService {
 		notifManager.notify(NOTIFY_ID, builder.build());
 	}
 
+
+	private boolean handleStepWait(int classNum, String eventName) {
+		int target = PrefsManager.getTargetSteps(this, classNum);
+		if (target == 0)
+		{
+			if (lastCounterSteps == -2)
+			{
+				// need to startup the sensor
+		        SensorManager sensorManager =
+                	(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
+				Sensor sensor =
+					sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+				if (sensor == null) { return false; }
+				if (!sensorManager.registerListener(
+						this, sensor, SensorManager.SENSOR_DELAY_NORMAL))
+				{ return false; }
+				lastCounterSteps = -1;
+			}
+			else if (lastCounterSteps >= 0)
+			{
+				target = lastCounterSteps
+						 + PrefsManager.getAfterSteps(this, classNum);
+				PrefsManager.setTargetSteps(this, classNum, target);
+			}
+		}
+		else if (lastCounterSteps >= target)
+		{
+			return false;
+		}
+		anyStepCountActive = true;
+		return true;
+	}
+
+	private boolean handleLocationWait(int classNum, String eventName) {
+		GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
+			.addConnectionCallbacks(this)
+			.addOnConnectionFailedListener(this)
+			.addApi(LocationServices.API)
+			.build();
+	}
+
 	// Determine which event classes have become active
 	// and which event classes have become inactive
 	// and consequently what we need to do.
-	// Incidentally we compute the next alarm time
-	public void updateState() {
+	// Incidentally we compute the next alarm time.
+	// Returns true if we don't need to keep our wake lock.
+	public boolean updateState() {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
 		AudioManager audio
@@ -118,6 +209,17 @@ public class MuteService extends IntentService {
 		long nextAlarmTime = Long.MAX_VALUE;
 		startEvent = "";
 		endEvent = "";
+		anyStepCountActive = false;
+		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
+		PackageManager packageManager = getPackageManager();
+		final boolean haveStepCounter =
+			currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
+			&& packageManager.hasSystemFeature(
+				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
+		final boolean havelocation =
+			PackageManager.PERMISSION_GRANTED ==
+			ActivityCompat.checkSelfPermission(this,
+				Manifest.permission.ACCESS_FINE_LOCATION);
 		int n = PrefsManager.getNumClasses(this);
 		for (int classNum = 0; classNum < n; ++classNum)
 		{
@@ -136,11 +238,28 @@ public class MuteService extends IntentService {
 					{
 						nextAlarmTime = result.endTime;
 					}
-				} else
+				}
+				else
 				{
 					if (PrefsManager.isClassActive(this, classNum))
 					{
-						deactivateClass(classNum, result.eventName);
+						boolean done = true;
+						if (haveStepCounter
+							&& PrefsManager.getAfterSteps(this, classNum) > 0
+							&& handleStepWait(classNum, result.eventName))
+						{
+							done = false;
+						}
+						if (havelocation
+							     && PrefsManager.getAfterMetres(this, classNum) > 0
+							     && handleLocationWait(classNum, result.eventName))
+						{
+							done = false;
+						}
+						if (done)
+						{
+							deactivateClass(classNum, result.eventName);
+						}
 					}
 					if (result.startTime < nextAlarmTime)
 					{
@@ -219,6 +338,23 @@ public class MuteService extends IntentService {
 		}
 		PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		PrefsManager.setLastInvocationTime(this,currentTime);
+		if (anyStepCountActive)
+		{
+			// Step counter is a non wake up sensor so we need to hold
+			// our wake lock.
+			return false;
+		}
+		else
+		{
+			if (lastCounterSteps >= 0)
+			{
+				lastCounterSteps = -2;
+				SensorManager sensorManager =
+					(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
+				sensorManager.unregisterListener(this);
+			}
+			return true;
+		}
 	}
 
 
@@ -248,10 +384,11 @@ public class MuteService extends IntentService {
 						.concat(cause).concat(" at ")
 						.concat(wake));
 
-		updateState();
-
-		// Release the wake lock if we were called from WakefulBroadcastReceiver
-		WakefulBroadcastReceiver.completeWakefulIntent(intent);
+		if (updateState()) {
+			// Release the wake lock
+			// if we were called from WakefulBroadcastReceiver
+			WakefulBroadcastReceiver.completeWakefulIntent(intent);
+		}
 	}
 	
 	public static void startIfNecessary(Context c, String caller) {

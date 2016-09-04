@@ -120,10 +120,10 @@ public class DefineClassFragment extends Fragment {
                 return true;
             }
         });
-        ll.addView(tv, lp);
+        ll.addView(tv, ww);
         tv = new TextView(ac);
         tv.setText(fromHtml(getString(R.string.defineclasslist, className)));
-        ll.addView(tv, lp);
+        ll.addView(tv, ww);
         ArrayList<Long> checkedCalendarIds
             = PrefsManager.getCalendars(ac, classNum);
         ContentResolver cr = ac.getContentResolver();
@@ -142,7 +142,7 @@ public class DefineClassFragment extends Fragment {
                     return true;
                 }
             });
-            ll.addView(tv, lp);
+            ll.addView(tv, ww);
             first = false;
             LinearLayout lll = new LinearLayout(ac);
             lll.setOrientation(LinearLayout.VERTICAL);
@@ -154,10 +154,10 @@ public class DefineClassFragment extends Fragment {
                 calendarCheck cc = new calendarCheck(ac, calId);
                 cc.setText(calName);
                 cc.setChecked(checkedCalendarIds.contains(calId));
-                lll.addView(cc, lp);
+                lll.addView(cc, ww);
                 calChecks.add(cc);
             }
-            ll.addView(lll, lp);
+            ll.addView(lll, ww);
         }
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
@@ -182,7 +182,7 @@ public class DefineClassFragment extends Fragment {
         nameEditor.setText(PrefsManager.getEventName(ac, classNum),
                    TextView.BufferType.EDITABLE);
         lll.addView(nameEditor, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
@@ -206,7 +206,7 @@ public class DefineClassFragment extends Fragment {
         locationEditor.setText(PrefsManager.getEventLocation(ac, classNum),
                    TextView.BufferType.EDITABLE);
         lll.addView(locationEditor, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
@@ -226,7 +226,7 @@ public class DefineClassFragment extends Fragment {
             PrefsManager.getEventDescription(ac, classNum),
             TextView.BufferType.EDITABLE);
         lll.addView(descriptionEditor, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -266,7 +266,7 @@ public class DefineClassFragment extends Fragment {
         if (index == PrefsManager.BUSY_AND_NOT) { id = rb.getId(); }
         busyState.check(id);
         lll.addView(busyState, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -306,7 +306,7 @@ public class DefineClassFragment extends Fragment {
         if (index == PrefsManager.RECURRENT_AND_NOT) { id = rb.getId(); }
         recurrentState.check(id);
         lll.addView(recurrentState, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -346,7 +346,7 @@ public class DefineClassFragment extends Fragment {
         if (index == PrefsManager.ORGANISER_AND_NOT) { id = rb.getId(); }
         organiserState.check(id);
         lll.addView(organiserState, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -386,7 +386,7 @@ public class DefineClassFragment extends Fragment {
         if (index == PrefsManager.PUBLIC_AND_PRIVATE) { id = rb.getId(); }
         publicState.check(id);
         lll.addView(publicState, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -399,17 +399,18 @@ public class DefineClassFragment extends Fragment {
                 return true;
             }
         });
+        attendeeState = new RadioGroup(ac);
         if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            attendeeState.setOrientation(LinearLayout.HORIZONTAL);
             lll.setPadding((int)(scale * 25.0), 0, 0, 0);
             tv.setPadding(0, (int)(scale * 7.0), 0, 0);
             lll.addView(tv, ww);
         } else {
+            attendeeState.setOrientation(LinearLayout.VERTICAL);
             lll.setPadding((int)(scale * 50.0), 0, 0, 0);
             tv.setPadding((int)(scale * 25.0), 0, 0, 0);
             ll.addView(tv, ww);
         }
-        attendeeState = new RadioGroup(ac);
-        attendeeState.setOrientation(LinearLayout.HORIZONTAL);
         index = PrefsManager.getWhetherAttendees(ac, classNum);
         id = -1;
         rb = new RadioButton(ac);
@@ -426,7 +427,7 @@ public class DefineClassFragment extends Fragment {
         if (index == PrefsManager.ATTENDEES_AND_NOT) { id = rb.getId(); }
         attendeeState.check(id);
         lll.addView(attendeeState, ww);
-        ll.addView(lll, lp);
+        ll.addView(lll, ww);
     }
 
     @Override

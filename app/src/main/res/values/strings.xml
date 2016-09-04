@@ -16,44 +16,29 @@
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
     <string name="edit_event_class">Edit class %s</string>
-    <string name="prochains_evenements">Next events</string>
     <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
-    <string name="agendas">Agendas</string>
-    <string name="actions">Actions</string>
     <string name="chargement">Loading&#8230;</string>
     <string name="synchronise">Synchronized</string>
     <string name="non_synchronise">Not synchronized</string>
     <string name="rafraichir_calendriers">Refresh calendars</string>
     <string name="rafraichir_calendriers_short">Refresh calendars</string>
-    <string name="lors_evenement_agenda">During an event</string>
-    <string name="ne_rien_faire">Do nothing</string>
-    <string name="mettre_silencieux">Switch to silent</string>
-    <string name="mettre_vibreur">Switch to vibrate</string>
-    <string name="une_fois_even_termine">When the event ends</string>
     <string name="afficher_notification">Show a notification</string>
     <string name="mode_sonnerie_change">Ringer mode changed</string>
     <string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event </string>
     <string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event </string>
     <string name="mode_sonnerie_change_vibreur_apres">Restored to vibrate after the event </string>
     <string name="mode_sonnerie_change_normale_apres">Restored to sound after the event </string>
-    <string name="seulement_evenement_occupe">Only for \"busy\" events</string>
-    <string name="avec_delai_x_minutes_pre">With a</string>
-    <string name="avec_delai_x_minutes_suf">minutes delay</string>
-    <string name="avec_avance_x_minutes_pre">Start</string>
-    <string name="avec_avance_x_minutes_suf">minutes early</string>
     <string name="Logging">Logging to file %s</string>
     <string name="LoggingOn">On</string>
     <string name="LoggingOff">Off</string>
     <string name="logfail">Cannot open log file</string>
     <string name="logfilename">File </string>
     <string name="name">name</string>
-    <string name="title_activity_edit">EditActivity</string>
-    <string name="action_settings">Settings</string>
-    <string name="backgroundLabel">This screen allows you to define the
+    <string name="longpresslabel">Long press here for help information.</string>
+    <string name="editclassHelp">This screen allows you to define the
         characteristics of class %s or delete it. When you have done, press
         the back button. A long press on any of the buttons below will bring up
         some help information about it.</string>
-    <string name="longpresslabel">Long press here for help information.</string>
     <string name="defineclasspopup">This screen allows you to specify the
         conditions for a calendar event to be in class %s. All conditions
         must be satisfied for the event to be in the class, but each condition
@@ -126,28 +111,29 @@
     <string name="defineStartHelp">Define the conditions for the event start
         action(s) to be triggered for an event in this class.</string>
     <string name="definestartpopup">This screen allows you to define when
-        the start action for an event in class %s will be triggered. This can
+        the start action(s) for an event in class %s will be triggered. This can
         be a set number of minutes (defaulting to zero) before the start time
         of the event, possibly delayed until the device is in some particular
         state. When you have done, press the back button. A long press on any
         of the controls below will bring up some help information about it.
     </string>
-    <string name="definestartlist">Do start action for an event in class %s:-
+    <string name="definestartlist">Do start action(s) for an event in class %s:-
     </string>
     <string name="startminuteslabel">minutes before event start time</string>
     <string name="startminuteshelp">This defines the number of minutes (which
         may be zero) before the start time of the event at which
         CalendarTrigger will begin to consider triggering the event\'s start
-        action. It may however be delayed by other conditions below.</string>
+        action(s). This may however be delayed by other conditions below
+		</string>
     <string name="startnotuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">This section is reserved for delaying the
-        start action until the device is in some particular state. No state
+        start actio(s) until the device is in some particular state. No state
         tests are implemented yet.</string>
-    <string name="actionStartLabel">Event start action for class %s</string>
+    <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in this class.</string>
     <string name="actionstartpopup">This screen allows you to define what
-        actions are performed for the start of an event in class %s. A long
+        action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help
         information about it.</string>
     <string name="actionstartlist">At start of an event in class %s:-</string>
@@ -168,7 +154,7 @@
     <string name="defineStopHelp">Define the conditions for the event end
         action(s) to be triggered for an event in this class.</string>
     <string name="definestoppopup">This screen allows you to define when
-        the end action for an event in class %s will be triggered. This can
+        the end action(s) for an event in class %s will be triggered. This can
         be a set number of minutes (defaulting to zero) after the end time
         of the event, possibly delayed until the device has moved by some
         distance or is in some particular state. When you have done, press the

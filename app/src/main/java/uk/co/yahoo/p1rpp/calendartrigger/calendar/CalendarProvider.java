@@ -134,6 +134,7 @@ public class CalendarProvider {
 			selClause.append(" AND ").append(Instances.DESCRIPTION)
 					 .append(likeQuote(s));
 		}
+		// Event colour is not currently selectable from the UI
 		s = PrefsManager.getEventColour(context, classNum);
 		if (!s.isEmpty())
 		{
