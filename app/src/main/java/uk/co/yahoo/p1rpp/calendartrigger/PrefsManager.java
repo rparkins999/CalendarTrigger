@@ -487,6 +487,40 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
+	// Location from which we're waiting to be getAfterMetres(...)
+	// Impossible latitude of 360 means we aren't waiting
+	private static final String LATITUDE = "latitude";
+
+	public static void setLatitude(
+		Context context, int classNum, double x) {
+		String prefName = LATITUDE.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, String.valueOf(x)).commit();
+	}
+
+
+	public static Double getLatitude(Context context, int classNum) {
+		String prefName = LATITUDE.concat(String.valueOf(classNum));
+		String s = context.getSharedPreferences(
+			PREFS_NAME, Context .MODE_PRIVATE) .getString(prefName, "360.0");
+		return new Double(s);
+	}
+
+	private static final String LONGITUDE = "longitude";
+
+	public static void setLongitude(
+		Context context, int classNum, double x) {
+		String prefName = LONGITUDE.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putFloat(prefName, (float)x).commit();
+	}
+
+	public static double getLongitude(Context context, int classNum) {
+		String prefName = LONGITUDE.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getFloat(prefName, 0);
+	}
+
 	// whether to display notification before start of event
 	private static final String NOTIFY_START = "notifyStart";
 
@@ -536,6 +570,40 @@ public class PrefsManager {
 					  .getBoolean(prefName, false);
 	}
 
+	// is an event of this class currently waiting after becoming inactive?
+	private static final String IS_WAITING = "isWaiting";
+
+	public static void setClassWaiting(
+		Context context, int classNum, boolean isWaiting)
+	{
+		String prefName = IS_WAITING.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, isWaiting).commit();
+	}
+
+	public static boolean isClassWaiting(Context context, int classNum) {
+		String prefName = IS_WAITING.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// name of last active event for this class
+	private static final String LAST_ACTIVE_EVENT = "lastActiveEvent";
+
+	public static void setLastActive(
+		Context context, int classNum, String name)
+	{
+		String prefName = LAST_ACTIVE_EVENT.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, name).commit();
+	}
+
+	public static String getLastActive(Context context, int classNum) {
+		String prefName = LAST_ACTIVE_EVENT.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
+	}
+
 	private static void removeClass(SharedPreferences prefs, int classNum) {
 		String num = String.valueOf(classNum);
 		prefs.edit().putBoolean(IS_CLASS_USED.concat(num), false)
@@ -557,6 +625,8 @@ public class PrefsManager {
 			 .putInt(AFTER_STEPS.concat(num), 0)
 			 .putInt(TARGET_STEPS.concat(num), 0)
 			 .putInt(AFTER_METRES.concat(num), 0)
+			 .putString(LATITUDE.concat(num), "360.0")
+			 .putString(LONGITUDE.concat(num), "360.0")
 			 .putBoolean(NOTIFY_START.concat(num), false)
 			 .putBoolean(NOTIFY_END.concat(num), false)
 			 .putBoolean(IS_ACTIVE.concat(num), false)

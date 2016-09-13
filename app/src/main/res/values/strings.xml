@@ -12,6 +12,16 @@
     <string name="lastAlarmHelp">This is the time of the alarm set by
         CalendarTrigger the last time it was called. This information is mainly
         for debugging.</string>
+    <string name="clearLog">Clear Log</string>
+    <string name="clearLogHelp">This button deletes the log file. The next
+        attempt to write to the log will automatically recreate it, so this
+        effectively clears the log.</string>
+    <string name="logCleared">Log cleared</string>
+    <string name="showLog">Show Log</string>
+    <string name="showLogHelp">This button displays the log file: Android will
+        choose a suitable application to do this.</string>
+    <string name="notexteditor">Cannot find a text editor to display log
+        file</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
@@ -23,11 +33,15 @@
     <string name="rafraichir_calendriers">Refresh calendars</string>
     <string name="rafraichir_calendriers_short">Refresh calendars</string>
     <string name="afficher_notification">Show a notification</string>
-    <string name="mode_sonnerie_change">Ringer mode changed</string>
-    <string name="mode_sonnerie_change_silencieux_pour">Switched to silent for the event </string>
-    <string name="mode_sonnerie_change_vibreur_pour">Switched to vibrate for the event </string>
-    <string name="mode_sonnerie_change_vibreur_apres">Restored to vibrate after the event </string>
-    <string name="mode_sonnerie_change_normale_apres">Restored to sound after the event </string>
+    <string name="mode_sonnerie_change">Ringer mode </string>
+    <string name="mode_sonnerie_pas_de_change_pour">unchanged at start of event
+    </string>
+    <string name="mode_sonnerie_change_silencieux_pour">switched to silent for the event </string>
+    <string name="mode_sonnerie_change_vibreur_pour">switched to vibrate for the event </string>
+    <string name="mode_sonnerie_pas_de_change_apres">unchanged at end of event
+    </string>
+    <string name="mode_sonnerie_change_vibreur_apres">restored to vibrate after the event </string>
+    <string name="mode_sonnerie_change_normale_apres">restored to sound after the event </string>
     <string name="Logging">Logging to file %s</string>
     <string name="LoggingOn">On</string>
     <string name="LoggingOff">Off</string>
@@ -158,8 +172,10 @@
         be a set number of minutes (defaulting to zero) after the end time
         of the event, possibly delayed until the device has moved by some
         distance or is in some particular state. When you have done, press the
-        back button. A long press on any of the controls below will bring up
-        some help information about it.</string>
+        back button. You can only use the step counter or the metres counter,
+        not both. Setting either one to a nonzero value will disable the other.
+        A long press on any of the controls below will bring up some help
+        information about it.</string>
     <string name="definestoplist">Do end action for an event in class %s:-
     </string>
     <string name="stopminuteslabel">minutes after event end time</string>
@@ -187,7 +203,8 @@
         left the building. The position resolution is of the order of 100
         metres (better if the building has Wi-Fi or the device uses GPS) so you
         should not make this number too small. If it is zero there is no
-        movement test.</string>
+        movement test. A nonzero number will increase battery drain because the
+        device has to monitor its position.</string>
     <string name="locationno">This option is disabled because CalendarTrigger
         does not have permission ACCESS_FINE_LOCATION to create a Geofence.
         You can enable this permission from the device\'s Settings tool by

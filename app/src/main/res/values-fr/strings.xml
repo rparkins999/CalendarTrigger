@@ -11,6 +11,14 @@
     <string name="lastAlarmHelp">Ceci est l\'heure de l\'alarme le plus récent
         installé par CalendarTrigger. Cet information est principalement pour
         débogage.</string>
+    <string name="clearLog">Faire vider fichier journal</string>
+    <string name="clearLogHelp">Ce bouton détruit le fichier journal. Le
+        prochain écriture recréera le fichier, alors en effet ce bouton le
+        fait vider.</string>
+    <string name="logCleared">Fichier journal vidé</string>
+    <string name="showLog">Exposer fichier journal</string>
+    <string name="showLogHelp">Ce bouton expose le fichier journal: Android
+        trouvera une application convenable.</string>
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>

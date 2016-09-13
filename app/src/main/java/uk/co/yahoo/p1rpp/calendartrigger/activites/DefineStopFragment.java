@@ -9,6 +9,8 @@ import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,9 +31,16 @@ import static android.text.TextUtils.htmlEncode;
 public class DefineStopFragment extends Fragment {
     private static final String ARG_CLASS_NAME = "class name";
     private float scale;
+    private boolean haveStepCounter;
+    private boolean havelocation;
     private EditText minutesEditor;
+    private TextView firstStepsLabel;
     private EditText stepCountEditor;
+    private TextView lastStepsLabel;
+    private TextView firstMetresLabel;
     private EditText metresEditor;
+    private TextView lastMetresLabel;
+    private boolean noRecursion;
 
     public DefineStopFragment() {
     }
@@ -39,9 +48,52 @@ public class DefineStopFragment extends Fragment {
     public static DefineStopFragment newInstance(String className ) {
         DefineStopFragment fragment = new DefineStopFragment();
         Bundle args = new Bundle();
+        fragment.noRecursion = false;
         args.putString(ARG_CLASS_NAME, className);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    private void enableStepCountEditor() {
+        String s = metresEditor.getText().toString();
+        if (haveStepCounter && (s.isEmpty() || s.equals("0")))
+        {
+            firstStepsLabel.setTextColor(0xFF000000);
+            stepCountEditor.setTextColor(0xFF000000);
+            stepCountEditor.setText(stepCountEditor.getText(),
+                                    TextView.BufferType.EDITABLE);
+            stepCountEditor.setEnabled(true);
+            lastStepsLabel.setTextColor(0xFF000000);
+        }
+        else
+        {
+            firstStepsLabel.setTextColor(0xFF777777);
+            stepCountEditor.setTextColor(0xFF777777);
+            stepCountEditor.setText("0", TextView.BufferType.NORMAL);
+            stepCountEditor.setEnabled(false);
+            lastStepsLabel.setTextColor(0xFF777777);
+        }
+    }
+
+    private void enableMetresEditor() {
+        String s = stepCountEditor.getText().toString();
+        if (havelocation && (s.isEmpty() || s.equals("0")))
+        {
+            firstMetresLabel.setTextColor(0xFF000000);
+            metresEditor.setTextColor(0xFF000000);
+            metresEditor.setText(metresEditor.getText(),
+                                    TextView.BufferType.EDITABLE);
+            metresEditor.setEnabled(true);
+            lastMetresLabel.setTextColor(0xFF000000);
+        }
+        else
+        {
+            firstMetresLabel.setTextColor(0xFF777777);
+            metresEditor.setTextColor(0xFF777777);
+            metresEditor.setText("0", TextView.BufferType.NORMAL);
+            metresEditor.setEnabled(false);
+            lastMetresLabel.setTextColor(0xFF777777);
+        }
     }
 
     @Override
@@ -119,9 +171,9 @@ public class DefineStopFragment extends Fragment {
         });
         ll.addView(tv, ww);
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-        // Check that the device supports the step counter and detector sensors
+        // Check that the device supports the step counter sensor
         PackageManager packageManager = ac.getPackageManager();
-        final boolean haveStepCounter =
+        haveStepCounter =
             currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
             && packageManager.hasSystemFeature(
                    PackageManager.FEATURE_SENSOR_STEP_COUNTER);
@@ -139,30 +191,40 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        tv = new TextView(ac);
-        tv.setText(R.string.firststepslabel);
-        if (!haveStepCounter) {
-            tv.setTextColor(0xFF777777);
-        }
-        lll.addView(tv, ww);
+        firstStepsLabel = new TextView(ac);
+        firstStepsLabel.setText(R.string.firststepslabel);
         stepCountEditor = new EditText(ac);
         stepCountEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
         i = new Integer(PrefsManager.getAfterSteps(ac, classNum));
         stepCountEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
-        stepCountEditor.setEnabled(haveStepCounter);
-        if (!haveStepCounter) {
-            stepCountEditor.setTextColor(0xFF777777);
-        }
-        lll.addView(stepCountEditor);
-        tv = new TextView(ac);
-        tv.setText(R.string.laststepslabel);
-        if (!haveStepCounter) {
-            tv.setTextColor(0xFF777777);
-        }
-        lll.addView(tv, ww);
+        lastStepsLabel = new TextView(ac);
+        lastStepsLabel.setText(R.string.laststepslabel);
+        stepCountEditor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence,
+                int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence,
+                int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (!noRecursion)
+                {
+                    noRecursion = true;
+                    enableMetresEditor();
+                    noRecursion = false;
+                }
+            }
+        });
+        lll.addView(firstStepsLabel, ww);
+        lll.addView(stepCountEditor, ww);
+        lll.addView(lastStepsLabel, ww);
         ll.addView(lll, ww);
-        final boolean havelocation = PackageManager.PERMISSION_GRANTED ==
+        havelocation = PackageManager.PERMISSION_GRANTED ==
                 ActivityCompat.checkSelfPermission(
                 ac, Manifest.permission.ACCESS_FINE_LOCATION);
         lll = new LinearLayout(ac);
@@ -179,29 +241,41 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        tv = new TextView(ac);
-        tv.setText(R.string.firstlocationlabel);
-        if (!havelocation) {
-            tv.setTextColor(0xFF777777);
-        }
-        lll.addView(tv, ww);
+        firstMetresLabel = new TextView(ac);
+        firstMetresLabel.setText(R.string.firstlocationlabel);
         metresEditor = new EditText(ac);
         metresEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
         i = new Integer(PrefsManager.getAfterMetres(ac, classNum));
         metresEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
-        metresEditor.setEnabled(havelocation);
-        if (!havelocation) {
-            metresEditor.setTextColor(0xFF777777);
-        }
+        lastMetresLabel = new TextView(ac);
+        lastMetresLabel.setText(R.string.lastlocationlabel);
+        metresEditor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence,
+                int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence,
+                int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (!noRecursion)
+                {
+                    noRecursion = true;
+                    enableStepCountEditor();
+                    noRecursion = false;
+                }
+            }
+        });
+        lll.addView(firstMetresLabel, ww);
         lll.addView(metresEditor);
-        tv = new TextView(ac);
-        tv.setText(R.string.lastlocationlabel);
-        if (!havelocation) {
-            tv.setTextColor(0xFF777777);
-        }
-        lll.addView(tv, ww);
+        lll.addView(lastMetresLabel, ww);
         ll.addView(lll, ww);
+        enableStepCountEditor();
+        enableMetresEditor();
     }
 
     @Override

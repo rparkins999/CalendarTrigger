@@ -84,10 +84,10 @@ public class CalendarProvider {
 	}
 
 	private String likeQuote(String s) {
-		StringBuilder result = new StringBuilder(" LIKE \"%");
+		StringBuilder result = new StringBuilder(" LIKE '%");
 		String es = s.replace("*", "**").replace("%", "*%")
-					 .replace("_", "*_").replace("\"", "\"\"");
-		result.append(es).append("%\" ESCAPE \"*\"");
+					 .replace("_", "*_").replace("'", "''");
+		result.append(es).append("%' ESCAPE '*'");
 		return result.toString();
 	}
 
@@ -208,8 +208,9 @@ public class CalendarProvider {
 	// get next action times for event class
 	public class startAndEnd {
 		public long startTime;
+		public String startEventName;
 		public long endTime;
-		public String eventName;
+		public String endEventName;
 	}
 
 	private static final String[] INSTANCE_PROJECTION = new String[] {
@@ -227,18 +228,16 @@ public class CalendarProvider {
 		startAndEnd result = new startAndEnd();
 		result.startTime = Long.MAX_VALUE;
 		result.endTime = currentTime;
-		result.eventName = "";
+		result.startEventName = "";
+		result.endEventName = "";
 		ContentResolver cr = context.getContentResolver();
 		StringBuilder selClause = selection(context, classNum);
-		selClause.append(" AND ( ").append(Instances.BEGIN)
-				 .append(" > ? OR ").append(Instances.END)
+		selClause.append(" AND ( ").append(Instances.END)
 				 .append(" > ? )");
-		int before = PrefsManager.getBeforeMinutes(context, classNum);
-		int after = PrefsManager.getAfterMinutes(context, classNum);
+		int before = PrefsManager.getBeforeMinutes(context, classNum) * 60000;
+		int after = PrefsManager.getAfterMinutes(context, classNum) * 60000;
 		String[] selectionArgs = new String[] {
-			String.valueOf(currentTime + before),
-			String.valueOf(currentTime - after)
-		};
+			String.valueOf(currentTime - after)};
 		// Do query sorted by start time
 		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION,
 							  selClause.toString(), selectionArgs,
@@ -247,30 +246,34 @@ public class CalendarProvider {
 		{
 			long start = cur.getLong(INSTANCE_PROJECTION_BEGIN_INDEX) - before;
 			long end = cur.getLong(INSTANCE_PROJECTION_END_INDEX) + after;
-			if (start <= result.endTime)
+			if (start < result.startTime)
 			{
+				// This can only happen once, because we sort the
+				// query on ascending start time
+				result.startTime = start;
+				result.endTime = end;
+				result.startEventName =
+					cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+				result.endEventName = result.startEventName;
+
+			}
+			else if (start <= result.endTime)
+			{
+				// This event starts or started before our current end
 				if (end > result.endTime)
 				{
 					// extend end time for overlapping event
 					result.endTime = end;
-					if (result.startTime < Long.MAX_VALUE)
-					{
-						result.eventName =
-							cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
-					}
-				}
-			}
-			else if (currentTime == result.endTime)
-			{
-				if (start < result.startTime)
-				{
-					// This can only happen once, because we sort the
-					// query on ascending start time
-					result.startTime = start;
-					result.endTime = end;
-					result.eventName =
+					result.endEventName =
 						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
 				}
+			}
+			if (start > currentTime)
+			{
+				// This event starts in the future
+				// We need not consider any later ones, because we will
+				// set an alarm for its start time or earlier and look again
+				break;
 			}
 		}
 		cur.close();

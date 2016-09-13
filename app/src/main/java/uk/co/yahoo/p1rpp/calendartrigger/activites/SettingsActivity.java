@@ -5,12 +5,16 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.text.DateFormat;
 
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
@@ -70,6 +74,52 @@ public class SettingsActivity extends Activity {
                 PrefsManager.setLoggingMode(me, false);
             }
         });
+        b = (Button)findViewById(R.id.clear_log);
+        b.setText(R.string.clearLog);
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                (new File(MyLog.LogFileName())).delete();
+                Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
+                     .show();
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.clearLogHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        b = (Button)findViewById(R.id.show_log);
+        b.setText(R.string.showLog);
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Uri u = (new Uri.Builder())
+                        .scheme("file")
+                        .appendEncodedPath(MyLog.LogFileName())
+                        .build();
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setDataAndType(u, "text/plain");
+                ComponentName c = i.resolveActivity(getPackageManager());
+                if (c != null)
+                {
+                    startActivity(i);
+                }
+                else
+                {
+                    Toast.makeText(me, R.string.notexteditor,
+                                   Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.showLogHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
     }
-
 }
