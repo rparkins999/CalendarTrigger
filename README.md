@@ -5,13 +5,19 @@ Trigger actions on your Android device based on calendar events
 
 This is initially a clone of RemiNV/CalendarMute.
 
-However my intention is to create a version which can trigger different actions on different types of calendar
-event, and which handles overlapping events wanting different states in a sensible way (the "strongest" state
-wins). This will require a preferences format incompatible with the original calendar mute, hence the need for a
+However my intention is to create a version which can trigger different actions on different types of calendar event, and which handles overlapping events wanting different ringer states in a sensible way (the "quietest" state
+wins). Also the start and end actions for an event can be delayed until the device is in some particular state. This will require a preferences format incompatible with the original calendar mute, hence the need for a
 new repo.
+
+This version is definitely a Beta, but it does seem to work, and you are welcome to play with it. It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file.
+
+This version supports classes of events. The only event start actions currently available are to set the ringer to mute or vibrate, and optionally to show a notification if it changes the ringer state: I intend to add others. There are currently no event start delay options. The event end actions currently supported are to do nothing or to restore the original ringer state, and optionally to show a notification if it changes the ringer state: again I intend to add others. The event end action can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter). This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the room or leave the building.
+
+The UI is available in English and French: the French version could probably be improved as I am not a native speaker.
+
+Help with the French translations would be welcome, as would UI translations for other languages.
 
 #### What can I legally do with this app ?
 This application is released under the GNU GPL v2, do make sure you abide by the license terms when using it.
-Read the license terms for more details, but to make it very (too) simple: you can do everything 
-you want with the application, as long as you provide your source code with any version you release, and 
+Read the license terms for more details, but to make it very (too) simple: you can do everything you want with the application, as long as you provide your source code with any version you release, and 
 release it under the same license.
