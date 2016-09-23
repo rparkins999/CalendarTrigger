@@ -553,6 +553,23 @@ public class PrefsManager {
 					  .getBoolean(prefName, false);
 	}
 
+	// is an immediate event of this class currently requested?
+	private static final String IS_TRIGGERED = "isTriggered";
+
+	public static void setClassTriggered(
+		Context context, int classNum, boolean isTriggered)
+	{
+		String prefName = IS_TRIGGERED.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, isTriggered).commit();
+	}
+
+	public static boolean isClassTriggered(Context context, int classNum) {
+		String prefName = IS_TRIGGERED.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
 	// is an event of this class currently active?
 	private static final String IS_ACTIVE = "isActive";
 

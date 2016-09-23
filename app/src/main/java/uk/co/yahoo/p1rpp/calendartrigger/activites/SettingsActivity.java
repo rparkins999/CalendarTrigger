@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +75,9 @@ public class SettingsActivity extends Activity {
                 PrefsManager.setLoggingMode(me, false);
             }
         });
+        RadioGroup rg = (RadioGroup)findViewById(R.id.radioGroupLogging);
+        rg.check(PrefsManager.getLoggingMode(me)
+                 ? R.id.radioLoggingOn : R.id.radioLoggingOff);
         b = (Button)findViewById(R.id.clear_log);
         b.setText(R.string.clearLog);
         b.setOnClickListener(new View.OnClickListener() {

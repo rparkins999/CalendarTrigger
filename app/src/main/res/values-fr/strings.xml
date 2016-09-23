@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Calendar Trigger</string>
-    <string name="settings">Paramètres</string>
+    <string name="settings">Débogage</string>
     <string name="lastcalldetail">Dernier appel à %s</string>
     <string name="lastCallHelp">Ceci est l\'heure quand CalendarTrigger a été
         invoqué le plus récemment, soit par l\'usager, soit par une alarme
-        provoqué par CalendarTrigger soi-même. Cet information est
-        principalement pour débogage.</string>
+        provoqué par CalendarTrigger soi-même.</string>
     <string name="lastalarmdetail">Dernière alarme à %s</string>
     <string name="lastAlarmHelp">Ceci est l\'heure de l\'alarme le plus récent
-        installé par CalendarTrigger. Cet information est principalement pour
-        débogage.</string>
+        installé par CalendarTrigger.</string>
     <string name="clearLog">Faire vider fichier journal</string>
     <string name="clearLogHelp">Ce bouton détruit le fichier journal. Le
         prochain écriture recréera le fichier, alors en effet ce bouton le
@@ -19,6 +17,8 @@
     <string name="showLog">Exposer fichier journal</string>
     <string name="showLogHelp">Ce bouton expose le fichier journal: Android
         trouvera une application convenable.</string>
+    <string name="notexteditor">Android a failli de trouver une application
+        convenable pour exposer le fichier journal.</string>
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
@@ -31,10 +31,14 @@
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
     <string name="afficher_notification">Afficher une notification</string>
 	<string name="mode_sonnerie_change">Mode de sonnerie changé</string>
-	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement</string>
-	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement</string>
-    <string name="mode_sonnerie_change_silencieux_apres">Restauration mode vibreur apres l\'évènement</string>
-    <string name="mode_sonnerie_change_normale_apres">Restauration mode sonnerie apres l\'évènement</string>
+    <string name="mode_sonnerie_pas_de_change_pour">Non changé pour
+    l\'évènement </string>
+	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement </string>
+	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement </string>
+    <string name="mode_sonnerie_pas_de_change_apres">Non changé après
+    l\'évènement </string>
+    <string name="mode_sonnerie_change_vibreur_apres">Restauration mode vibreur après l\'évènement </string>
+    <string name="mode_sonnerie_change_normale_apres">Restauration mode sonnerie après l\'évènement </string>
     <string name="Logging">Écrire journal sur fichier %s</string>
     <string name="LoggingOn">Oui</string>
     <string name="LoggingOff">Non</string>
@@ -218,6 +222,13 @@
         %s</string>
     <string name="actionStopHelp">Définir action(s) déclenchées à ou après la
         fin d\'un évènement de la classe.</string>
+    <string name="eventNowLabel">Évènement instantané de classe %s</string>
+    <string name="eventNowHelp">Ce bouton crée un évènement temporaire de la
+        classe qui commence tout de suite et puis finit tout de suite. Ceci
+        peut être utile quand la classe contient un delai de mouvement après
+        la fin de l\'évènement, par example si vous entrez dans une chambre
+        \'silence\' et vous voulez bloquer votre sonnerie jusq\'a ce que vouz
+        êtes sorti(e).</string>
     <string name="actionstoppopup">Ici vous pouvez définir les actions
         déclenchées à la fin d\'un évènement de la classe %s. Une longue
         touche d\'un bouton montrera un message d\'assistance.</string>

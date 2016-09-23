@@ -20,6 +20,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
@@ -30,6 +31,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 
+import static android.location.LocationManager.KEY_LOCATION_CHANGED;
 
 public class MuteService extends IntentService
 	implements SensorEventListener {
@@ -49,12 +51,21 @@ public class MuteService extends IntentService
 	// -2 means the step counter is not active
 	// -1 means  we've registered our listener but it hasn't been called yet
 	// zero or positive is a real step count
+	// -1 or greater means we're holding a wake lock because the step counter
+	// isn't a wakeup sensor
 	private static int lastCounterSteps = -2;
+	private static PowerManager.WakeLock wakelock = null;
+
+	// -2 means the location watcher is not active
+	// -1 means  we've requested the initial location
+	// zero means we're waiting for the next location update
+	private static int locationState = -2;
 
 	private static int notifyId = 1400;
 
 	public static final String EXTRA_WAKE_TIME = "wakeTime";
 	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
+	public static final String EXTRA_PROXIMITY = "wakeEntered";
 
 	// We don't know anything sensible to do here
 	@Override
@@ -81,6 +92,11 @@ public class MuteService extends IntentService
 			Intent mute = new Intent(context, MuteService.class);
 			mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
 			mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
+			if (intent.hasExtra(KEY_LOCATION_CHANGED))
+			{
+				mute.putExtra(KEY_LOCATION_CHANGED,
+							  intent.getParcelableExtra(KEY_LOCATION_CHANGED));
+			}
 			startWakefulService(context, mute);
 		}
 	}
@@ -111,9 +127,21 @@ public class MuteService extends IntentService
 				(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
 			Sensor sensor =
 				sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-			return ((sensor != null)
-					&& (sensorManager.registerListener(this, sensor,
-						   SensorManager.SENSOR_DELAY_NORMAL)));
+			if (   (sensor != null)
+				&& (sensorManager.registerListener(this, sensor,
+						   SensorManager.SENSOR_DELAY_NORMAL)))
+			{
+				PowerManager powerManager
+					= (PowerManager) getSystemService(POWER_SERVICE);
+				wakelock = powerManager.newWakeLock(
+					PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
+				wakelock.acquire();
+				return true;
+			}
+			else
+			{
+				return false; // could not activate step counter
+			}
 		}
 		else
 		{
@@ -122,19 +150,15 @@ public class MuteService extends IntentService
 		}
 	}
 
-	// return true if geofence successfully set up
-	private boolean startLocationWait(int classNum) {
-		LocationManager lm =
-			(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		Criteria cr = new Criteria();
-		cr.setAccuracy(Criteria.ACCURACY_FINE);
-		cr.setCostAllowed(false);
-		cr.setPowerRequirement(Criteria.POWER_LOW);
-		String provider = lm.getBestProvider(cr, true);
-		Location here = lm.getLastKnownLocation(provider);
-		float meters = (float)PrefsManager.getAfterMetres(this, classNum);
-		if (here != null)
+	private void startLocationWait(int classNum, Intent intent) {
+		Location here = intent.getParcelableExtra(KEY_LOCATION_CHANGED);
+		if (locationState == -2)
 		{
+			locationState = -1;
+			LocationManager lm =
+				(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+			Criteria cr = new Criteria();
+			cr.setAccuracy(Criteria.ACCURACY_FINE);
 			String s = "CalendarTrigger.Location_"
 				.concat(String.valueOf(classNum))
 				.concat("_")
@@ -143,81 +167,126 @@ public class MuteService extends IntentService
 				this, 0 /*requestCode*/,
 				new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
 				PendingIntent.FLAG_UPDATE_CURRENT);
-			// Invalid value means we aren't waiting, so wait
-			lm.addProximityAlert(
-				here.getLatitude(), here.getLongitude(),
-				meters, -1, pi);
+			PrefsManager.setLatitude(this, classNum, 300.0);
+			lm.requestSingleUpdate(cr, pi);
 			new MyLog(this,
-					  "Proximity alert activated for class"
+					  "Starting location wait for class "
 					  .concat(PrefsManager.getClassName(this, classNum)));
+		}
+		else if (here != null)
+		{
+			float meters = (float)PrefsManager.getAfterMetres(this, classNum);
 			PrefsManager.setLatitude(this, classNum, here.getLatitude());
 			PrefsManager.setLongitude(this, classNum, here.getLongitude());
-			return true;
+			new MyLog(this,
+					  "Set up geofence for class "
+						  .concat(PrefsManager.getClassName(this, classNum))
+						  .concat(" at location ")
+						  .concat(((Double)here.getLatitude()).toString())
+						  .concat(", ")
+						  .concat(((Double)here.getLongitude()).toString()));
+			if (locationState == -1)
+			{
+				locationState = 0;
+				LocationManager lm =
+					(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+				Criteria cr = new Criteria();
+				cr.setAccuracy(Criteria.ACCURACY_FINE);
+				String s = "CalendarTrigger.Location";
+				PendingIntent pi = PendingIntent.getBroadcast(
+					this, 0 /*requestCode*/,
+					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
+					PendingIntent.FLAG_UPDATE_CURRENT);
+				lm.requestLocationUpdates(
+					5 * 60 * 1000, (float)(meters * 0.7), cr, pi);
+				new MyLog(this,
+						  "Requesting location updates for class "
+						  .concat(PrefsManager.getClassName(this, classNum)));
+			}
 		}
-		else
-		{
-			new MyLog(this, "getLastKnownLocation("
-					  .concat(provider)
-					  .concat(") returns null"));
-		}
-		return false;
 	}
 
 	// return true if not left geofence yet
-	private boolean checkLocationWait(int classNum, double latitude) {
-		LocationManager lm =
-			(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-		Criteria cr = new Criteria();
-		cr.setAccuracy(Criteria.ACCURACY_FINE);
-		cr.setCostAllowed(false);
-		cr.setPowerRequirement(Criteria.POWER_LOW);
-		String provider = lm.getBestProvider(cr, true);
-		Location here = lm.getLastKnownLocation(provider);
-		float meters = (float)PrefsManager.getAfterMetres(this, classNum);
+	private boolean checkLocationWait(
+		int classNum, double latitude, Intent intent) {
+		Location here = intent.getParcelableExtra(KEY_LOCATION_CHANGED);
 		if (here != null)
 		{
-			String s = "CalendarTrigger.Location_"
-				.concat(String.valueOf(classNum))
-				.concat("_")
-				.concat(PrefsManager.getClassName(this, classNum));
-			PendingIntent pi = PendingIntent.getBroadcast(
-				this, 0 /*requestCode*/,
-				new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
-				PendingIntent.FLAG_UPDATE_CURRENT);
-			double longitude = PrefsManager.getLongitude(this, classNum);
-			float[] results =  new float[1];
-			Location.distanceBetween(latitude, longitude,
-									 here.getLatitude(),
-									 here.getLongitude(),
-									 results);
-			// the factor 0.7 here is to allow for proximity alerts
-			// being a bit approximate
-			if (results[0] > meters * 0.7)
+			float meters = (float)PrefsManager.getAfterMetres(this, classNum);
+			if (locationState == -1)
 			{
-				lm.removeProximityAlert(pi);
+				locationState = 0;
+				LocationManager lm =
+					(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+				Criteria cr = new Criteria();
+				cr.setAccuracy(Criteria.ACCURACY_FINE);
+				String s = "CalendarTrigger.Location";
+				PendingIntent pi = PendingIntent.getBroadcast(
+					this, 0 /*requestCode*/,
+					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
+					PendingIntent.FLAG_UPDATE_CURRENT);
+				lm.requestLocationUpdates(
+					5 * 60 * 1000, (float)(meters * 0.7), cr, pi);
 				new MyLog(this,
-						  "Proximity alert deactivated for class"
+						  "Requesting location updates for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
+			}
+			if (latitude == 300.0)
+			{
+				// waiting for current location, and got it
+				PrefsManager.setLatitude(this, classNum, here.getLatitude());
+				PrefsManager.setLongitude(this, classNum, here.getLongitude());
+				new MyLog(this,
+						  "Set up geofence for class "
+						  .concat(PrefsManager.getClassName(this, classNum))
+						  .concat(" at location ")
+						  .concat(((Double)here.getLatitude()).toString())
+						  .concat(", ")
+						  .concat(((Double)here.getLongitude()).toString()));
+				return true;
+			}
+			// waiting for geofence exit
+			{
+				float[] results = new float[1];
+				double longitude = PrefsManager.getLongitude(this, classNum);
+				Location.distanceBetween(latitude, longitude,
+										 here.getLatitude(),
+										 here.getLongitude(),
+										 results);
+				if (results[0] < meters)
+				{
+					new MyLog(this,
+							  "Still within geofence for class "
+							  .concat(PrefsManager.getClassName(this, classNum))
+							  .concat(" at location ")
+							  .concat(((Double)here.getLatitude()).toString())
+							  .concat(", ")
+							  .concat(
+								  ((Double)here.getLongitude()).toString()));
+					return true;
+				}
+				// else we've exited the geofence
 				PrefsManager.setLatitude(this, classNum, 360.0);
+				new MyLog(this,
+						  "Exited geofence for class "
+						  .concat(PrefsManager.getClassName(this, classNum))
+						  .concat(" at location ")
+						  .concat(((Double)here.getLatitude()).toString())
+						  .concat(", ")
+						  .concat(((Double)here.getLongitude()).toString()));
 				return false;
 			}
-			return true;
 		}
-		else
-		{
-			new MyLog(this, "getLastKnownLocation("
-				.concat(provider)
-				.concat(") returns null"));
-		}
-		return false;
+		// location wait active, but no new location
+		return true;
 	}
+
 
 	// Determine which event classes have become active
 	// and which event classes have become inactive
 	// and consequently what we need to do.
 	// Incidentally we compute the next alarm time.
-	// Returns true if we don't need to keep our wake lock.
-	public boolean updateState() {
+	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
 		AudioManager audio
@@ -235,6 +304,7 @@ public class MuteService extends IntentService
 		String endClassName = "";
 		String alarmReason = "";
 		anyStepCountActive = false;
+		boolean anyLocationActive = false;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		PackageManager packageManager = getPackageManager();
 		final boolean haveStepCounter =
@@ -243,8 +313,12 @@ public class MuteService extends IntentService
 				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
 		final boolean havelocation =
 			PackageManager.PERMISSION_GRANTED ==
-			ActivityCompat.checkSelfPermission(this,
-				Manifest.permission.ACCESS_FINE_LOCATION);
+			ActivityCompat.checkSelfPermission(
+				this, Manifest.permission.ACCESS_FINE_LOCATION);
+		if (lastCounterSteps >= 0)
+		{
+			new MyLog(this, "Step counter running");
+		}
 		int n = PrefsManager.getNumClasses(this);
 		CalendarProvider provider = new CalendarProvider(this);
 		for (classNum = 0; classNum < n; ++classNum)
@@ -255,8 +329,15 @@ public class MuteService extends IntentService
 				int ringerAction = PrefsManager.getRingerAction(this, classNum);
 				CalendarProvider.startAndEnd result
 					= provider.nextActionTimes(this, currentTime, classNum);
-				if (   (result.startTime <= currentTime)
-					&& (result.endTime > currentTime))
+				boolean triggered
+					= PrefsManager.isClassTriggered(this, classNum);
+				if (triggered)
+				{
+					PrefsManager.setClassTriggered(this, classNum, false);
+				}
+				boolean active =   (result.startTime <= currentTime)
+					            && (result.endTime > currentTime);
+				if (triggered || active)
 				{
 					// class should be currently active
 					int resNum = R.string.mode_sonnerie_pas_de_change_pour;
@@ -302,7 +383,7 @@ public class MuteService extends IntentService
 					PrefsManager.setLastActive(
 						this, classNum, result.endEventName);
 				}
-				else
+				if (triggered || !active)
 				{
 					// class should not be currently active
 					boolean done = false;
@@ -338,11 +419,13 @@ public class MuteService extends IntentService
 								done = false;
 							}
 						}
-						if (havelocation
-							&& (PrefsManager.getAfterMetres(this, classNum) > 0)
-							&& startLocationWait(classNum))
+						if (   havelocation
+							&& (PrefsManager.getAfterMetres(
+									this, classNum) > 0))
 						{
 							// keep it active while waiting for location
+							startLocationWait(classNum, intent);
+							anyLocationActive = true;
 							waiting = true;
 							done = false;
 						}
@@ -380,8 +463,9 @@ public class MuteService extends IntentService
 						double latitude
 							= PrefsManager.getLatitude(this, classNum);
 						if (   (latitude != 360.0)
-							&& checkLocationWait(classNum, latitude))
+							&& checkLocationWait(classNum, latitude, intent))
 						{
+							anyLocationActive = true;
 							waiting = true;
 							done = false;
 						}
@@ -503,7 +587,8 @@ public class MuteService extends IntentService
 		}
 
 		long lastAlarm = PrefsManager.getLastAlarmTime(this);
-		if (nextAlarmTime != lastAlarm)
+		// Try always setting alarm to see if it works better
+		if (true/*nextAlarmTime != lastAlarm*/)
 		{
 			int flags = 0;
 			PendingIntent pIntent = PendingIntent.getBroadcast(
@@ -539,13 +624,7 @@ public class MuteService extends IntentService
 		}
 		PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		PrefsManager.setLastInvocationTime(this,currentTime);
-		if (anyStepCountActive)
-		{
-			// Step counter is a non wake up sensor so we need to hold
-			// our wake lock.
-			return false;
-		}
-		else
+		if (!anyStepCountActive)
 		{
 			if (lastCounterSteps >= 0)
 			{
@@ -554,15 +633,36 @@ public class MuteService extends IntentService
 					(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
 				sensorManager.unregisterListener(this);
 				new MyLog(this, "Step counter deactivated");
+				wakelock.release();
 			}
-			return true;
+		}
+		if (!anyLocationActive)
+		{
+			if (locationState == 0)
+			{
+				String s = "CalendarTrigger.Location";
+				PendingIntent pi = PendingIntent.getBroadcast(
+					this, 0 /*requestCode*/,
+					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
+					PendingIntent.FLAG_UPDATE_CURRENT);
+				LocationManager lm = (LocationManager)getSystemService(
+					Context.LOCATION_SERVICE);
+				lm.removeUpdates(pi);
+			}
+			locationState = -2;
 		}
 	}
 
 
 	@Override
 	public void onHandleIntent(Intent intent) {
+		String action = intent.getAction();
+		if (action == null)
+		{
+			action = "";
+		}
 		String wake;
+		String proximity;
 		DateFormat df = DateFormat.getDateTimeInstance();
 		if (intent.hasExtra(EXTRA_WAKE_TIME))
 		{
@@ -582,15 +682,24 @@ public class MuteService extends IntentService
 		{
 			cause = "null action";
 		}
-		new MyLog(this, "onReceive() from "
-						.concat(cause)
-						.concat(wake));
-
-		if (updateState()) {
-			// Release the wake lock
-			// if we were called from WakefulBroadcastReceiver
-			WakefulBroadcastReceiver.completeWakefulIntent(intent);
+		if (intent.hasExtra(EXTRA_PROXIMITY))
+		{
+			proximity = intent.getBooleanExtra(EXTRA_PROXIMITY, false)
+						? " entering" : " leaving";
 		}
+		else
+		{
+			proximity = "";
+		}
+		new MyLog(this, "onReceive("
+				        .concat(action)
+				  		.concat(") from ")
+						.concat(cause)
+						.concat(wake)
+						.concat(proximity));
+
+		updateState(intent);
+		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}
 	
 	public static void startIfNecessary(Context c, String caller) {

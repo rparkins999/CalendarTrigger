@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
@@ -45,6 +46,8 @@ public class EditActivity extends Activity {
         b = (Button)findViewById(R.id.definestopbutton);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.actionstopbutton);
+        b.setVisibility(visibility);
+        b = (Button)findViewById(R.id.eventnowbutton);
         b.setVisibility(visibility);
     }
 
@@ -186,6 +189,25 @@ public class EditActivity extends Activity {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac, R.string.actionStopHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        b = (Button)findViewById(R.id.eventnowbutton);
+        b.setText(fromHtml(getString(
+            R.string.eventNowLabel, italicName)));
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                PrefsManager.getClassNum(ac, className);
+                PrefsManager.setClassTriggered(
+                    ac, PrefsManager.getClassNum(ac, className), true);
+                MuteService.startIfNecessary(ac, "Immediate Event");
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.eventNowHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }

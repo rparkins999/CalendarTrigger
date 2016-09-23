@@ -2,16 +2,14 @@
 <resources>
 
     <string name="app_name">Calendar Trigger</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Debugging</string>
     <string name="lastcalldetail">Last called at %s</string>
     <string name="lastCallHelp">This is the time at which CalendarTrigger was
         most recently called, either directly by the user, or as a result of an
-        alarm set by CalendarTrigger itself. This information is mainly for
-        debugging.</string>
+        alarm set by CalendarTrigger itself.</string>
     <string name="lastalarmdetail">Last alarm set for %s</string>
     <string name="lastAlarmHelp">This is the time of the alarm set by
-        CalendarTrigger the last time it was called. This information is mainly
-        for debugging.</string>
+        CalendarTrigger the last time it was called.</string>
     <string name="clearLog">Clear Log</string>
     <string name="clearLogHelp">This button deletes the log file. The next
         attempt to write to the log will automatically recreate it, so this
@@ -141,11 +139,17 @@
 		</string>
     <string name="startnotuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">This section is reserved for delaying the
-        start actio(s) until the device is in some particular state. No state
+        start action(s) until the device is in some particular state. No state
         tests are implemented yet.</string>
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in this class.</string>
+    <string name="eventNowLabel">Immediate event of class %s</string>
+    <string name="eventNowHelp">This button triggers a temporary event of this
+        class which starts immediately and then ends immediately. It can be
+        useful when the class provides a movement delay on its end action, if
+        for example you walk into a quiet room and want to mute your ringer
+        until you leave the room again.</string>
     <string name="actionstartpopup">This screen allows you to define what
         action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help

@@ -216,7 +216,7 @@ public class CalendarProvider {
 	private static final String[] INSTANCE_PROJECTION = new String[] {
 		Instances.BEGIN,
 		Instances.END,
-		Instances.TITLE
+		Instances.TITLE,
 	};
 
 	private static final int INSTANCE_PROJECTION_BEGIN_INDEX = 0;
@@ -255,7 +255,6 @@ public class CalendarProvider {
 				result.startEventName =
 					cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
 				result.endEventName = result.startEventName;
-
 			}
 			else if (start <= result.endTime)
 			{
