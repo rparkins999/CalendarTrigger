@@ -9,8 +9,6 @@ import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,48 +50,6 @@ public class DefineStopFragment extends Fragment {
         args.putString(ARG_CLASS_NAME, className);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    private void enableStepCountEditor() {
-        String s = metresEditor.getText().toString();
-        if (haveStepCounter && (s.isEmpty() || s.equals("0")))
-        {
-            firstStepsLabel.setTextColor(0xFF000000);
-            stepCountEditor.setTextColor(0xFF000000);
-            stepCountEditor.setText(stepCountEditor.getText(),
-                                    TextView.BufferType.EDITABLE);
-            stepCountEditor.setEnabled(true);
-            lastStepsLabel.setTextColor(0xFF000000);
-        }
-        else
-        {
-            firstStepsLabel.setTextColor(0xFF777777);
-            stepCountEditor.setTextColor(0xFF777777);
-            stepCountEditor.setText("0", TextView.BufferType.NORMAL);
-            stepCountEditor.setEnabled(false);
-            lastStepsLabel.setTextColor(0xFF777777);
-        }
-    }
-
-    private void enableMetresEditor() {
-        String s = stepCountEditor.getText().toString();
-        if (havelocation && (s.isEmpty() || s.equals("0")))
-        {
-            firstMetresLabel.setTextColor(0xFF000000);
-            metresEditor.setTextColor(0xFF000000);
-            metresEditor.setText(metresEditor.getText(),
-                                    TextView.BufferType.EDITABLE);
-            metresEditor.setEnabled(true);
-            lastMetresLabel.setTextColor(0xFF000000);
-        }
-        else
-        {
-            firstMetresLabel.setTextColor(0xFF777777);
-            metresEditor.setTextColor(0xFF777777);
-            metresEditor.setText("0", TextView.BufferType.NORMAL);
-            metresEditor.setEnabled(false);
-            lastMetresLabel.setTextColor(0xFF777777);
-        }
     }
 
     @Override
@@ -198,28 +154,9 @@ public class DefineStopFragment extends Fragment {
             android.text.InputType.TYPE_CLASS_NUMBER);
         i = new Integer(PrefsManager.getAfterSteps(ac, classNum));
         stepCountEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
+        stepCountEditor.setEnabled(true);
         lastStepsLabel = new TextView(ac);
         lastStepsLabel.setText(R.string.laststepslabel);
-        stepCountEditor.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence,
-                int i, int i1, int i2) {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence,
-                int i, int i1, int i2) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (!noRecursion)
-                {
-                    noRecursion = true;
-                    enableMetresEditor();
-                    noRecursion = false;
-                }
-            }
-        });
         lll.addView(firstStepsLabel, ww);
         lll.addView(stepCountEditor, ww);
         lll.addView(lastStepsLabel, ww);
@@ -248,34 +185,13 @@ public class DefineStopFragment extends Fragment {
             android.text.InputType.TYPE_CLASS_NUMBER);
         i = new Integer(PrefsManager.getAfterMetres(ac, classNum));
         metresEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
+        metresEditor.setEnabled(true);
         lastMetresLabel = new TextView(ac);
         lastMetresLabel.setText(R.string.lastlocationlabel);
-        metresEditor.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence,
-                int i, int i1, int i2) {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence,
-                int i, int i1, int i2) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (!noRecursion)
-                {
-                    noRecursion = true;
-                    enableStepCountEditor();
-                    noRecursion = false;
-                }
-            }
-        });
         lll.addView(firstMetresLabel, ww);
         lll.addView(metresEditor);
         lll.addView(lastMetresLabel, ww);
         ll.addView(lll, ww);
-        enableStepCountEditor();
-        enableMetresEditor();
     }
 
     @Override

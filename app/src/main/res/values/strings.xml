@@ -176,10 +176,8 @@
         be a set number of minutes (defaulting to zero) after the end time
         of the event, possibly delayed until the device has moved by some
         distance or is in some particular state. When you have done, press the
-        back button. You can only use the step counter or the metres counter,
-        not both. Setting either one to a nonzero value will disable the other.
-        A long press on any of the controls below will bring up some help
-        information about it.</string>
+        back button. A long press on any of the controls below will bring up
+        some help information about it.</string>
     <string name="definestoplist">Do end action for an event in class %s:-
     </string>
     <string name="stopminuteslabel">minutes after event end time</string>
@@ -194,8 +192,9 @@
     <string name="stepcounteryes">Delay the end action until the user holding
         the device has taken a specified number of steps. This can be useful if
         the event is a meeting and you do not want to re-enable the ringer until
-        the meeting has ended and you have walked out of the meeting room.
-    </string>
+        the meeting has ended and you have walked out of the meeting room. A
+        nonzero number will increase battery drain because the device has to
+        monitor the step counter.</string>
     <string name="stepcounterno">This option is disabled because the device does
         not support a step sensor.</string>
     <string name="firststepslabel">The device has moved by the user taking

@@ -63,8 +63,6 @@ public class MuteService extends IntentService
 
 	private static int notifyId = 1400;
 
-	public static final String EXTRA_WAKE_TIME = "wakeTime";
-	public static final String EXTRA_WAKE_CAUSE = "wakeCause";
 	public static final String EXTRA_PROXIMITY = "wakeEntered";
 
 	// We don't know anything sensible to do here
@@ -87,17 +85,8 @@ public class MuteService extends IntentService
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			long wakeTime = System.currentTimeMillis();
-			String wakeCause = intent.toString();
-			Intent mute = new Intent(context, MuteService.class);
-			mute.putExtra(EXTRA_WAKE_TIME, wakeTime);
-			mute.putExtra(EXTRA_WAKE_CAUSE, wakeCause);
-			if (intent.hasExtra(KEY_LOCATION_CHANGED))
-			{
-				mute.putExtra(KEY_LOCATION_CHANGED,
-							  intent.getParcelableExtra(KEY_LOCATION_CHANGED));
-			}
-			startWakefulService(context, mute);
+			intent.setClass(context, MuteService.class);
+			startWakefulService(context, intent);
 		}
 	}
 
@@ -226,7 +215,7 @@ public class MuteService extends IntentService
 					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
 					PendingIntent.FLAG_UPDATE_CURRENT);
 				lm.requestLocationUpdates(
-					5 * 60 * 1000, (float)(meters * 0.7), cr, pi);
+					5 * 60 * 1000, (float)(meters * 0.55), cr, pi);
 				new MyLog(this,
 						  "Requesting location updates for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
@@ -656,48 +645,9 @@ public class MuteService extends IntentService
 
 	@Override
 	public void onHandleIntent(Intent intent) {
-		String action = intent.getAction();
-		if (action == null)
-		{
-			action = "";
-		}
-		String wake;
-		String proximity;
-		DateFormat df = DateFormat.getDateTimeInstance();
-		if (intent.hasExtra(EXTRA_WAKE_TIME))
-		{
-			wake = " received at "
-				.concat(df.format(intent.getLongExtra(EXTRA_WAKE_TIME, 0)));
-		}
-		else
-		{
-			wake = "";
-		}
-		String cause;
-		if (intent.hasExtra(EXTRA_WAKE_CAUSE))
-		{
-			cause = intent.getStringExtra(EXTRA_WAKE_CAUSE);
-		}
-		else
-		{
-			cause = "null action";
-		}
-		if (intent.hasExtra(EXTRA_PROXIMITY))
-		{
-			proximity = intent.getBooleanExtra(EXTRA_PROXIMITY, false)
-						? " entering" : " leaving";
-		}
-		else
-		{
-			proximity = "";
-		}
-		new MyLog(this, "onReceive("
-				        .concat(action)
-				  		.concat(") from ")
-						.concat(cause)
-						.concat(wake)
-						.concat(proximity));
-
+		new MyLog(this, "onHandleIntent("
+				  .concat(intent.toString())
+				  .concat(")"));
 		updateState(intent);
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}
