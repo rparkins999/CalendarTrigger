@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -28,6 +29,9 @@ public class DefineStartFragment extends Fragment {
     private float scale;
 
     private EditText minutesEditor;
+    private CheckBox faceUp;
+    private CheckBox faceDown;
+    private CheckBox anyPosition;
 
     public DefineStartFragment() {
     }
@@ -115,6 +119,61 @@ public class DefineStartFragment extends Fragment {
             }
         });
         ll.addView(tv, ww);
+        tv = new TextView(ac);
+        tv.setPadding((int)(scale * 25.0), 0, 0, 0);
+        tv.setText(R.string.devicepositionlabel);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.devicepositionhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        ll.addView(tv, ww);
+        int orientations = PrefsManager.getBeforeOrientation(ac, classNum);
+        lll = new LinearLayout(ac);
+        lll.setOrientation(LinearLayout.VERTICAL);
+        lll.setPadding((int)(scale * 50.0), 0, 0, 0);
+        faceUp = new CheckBox(ac);
+        faceUp.setText(R.string.devicefaceuplabel);
+        faceUp.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.devicefaceuphelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        faceUp.setChecked((orientations & PrefsManager.BEFORE_FACE_UP) != 0);
+        lll.addView(faceUp, ww);
+        faceDown = new CheckBox(ac);
+        faceDown.setText(R.string.devicefacedownlabel);
+        faceDown.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.devicefacedownhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        faceDown.setChecked(
+            (orientations & PrefsManager.BEFORE_FACE_DOWN) !=0);
+        lll.addView(faceDown, ww);
+        anyPosition = new CheckBox(ac);
+        anyPosition.setText(R.string.deviceanypositionlabel);
+        anyPosition.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.deviceanypositionhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        anyPosition.setChecked(
+            (orientations & PrefsManager.BEFORE_OTHER_POSITION) !=0);
+        lll.addView(anyPosition, ww);
+        ll.addView(lll, ww);
     }
 
     @Override
@@ -126,6 +185,20 @@ public class DefineStartFragment extends Fragment {
         String s = new String(minutesEditor.getText().toString());
         if (s.isEmpty()) { s = "0"; }
         PrefsManager.setBeforeMinutes(ac, classNum, new Integer(s));
+        int orientations = 0;
+        if (faceUp.isChecked())
+        {
+            orientations |= PrefsManager.BEFORE_FACE_UP;
+        }
+        if (faceDown.isChecked())
+        {
+            orientations |= PrefsManager.BEFORE_FACE_DOWN;
+        }
+        if (anyPosition.isChecked())
+        {
+            orientations |= PrefsManager.BEFORE_OTHER_POSITION;
+        }
+        PrefsManager.setBeforeOrientation(ac, classNum, orientations);
         ac.setButtonVisibility(View.VISIBLE);
     }
 }

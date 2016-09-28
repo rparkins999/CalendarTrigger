@@ -31,6 +31,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 
+import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import static android.location.LocationManager.KEY_LOCATION_CHANGED;
 
 public class MuteService extends IntentService
@@ -48,12 +49,27 @@ public class MuteService extends IntentService
 	public String startEvent;
 	public String endEvent;
 
+	// FIXME can we use a similar power saving trick as accelerometer?
 	// -2 means the step counter is not active
 	// -1 means  we've registered our listener but it hasn't been called yet
 	// zero or positive is a real step count
 	// -1 or greater means we're holding a wake lock because the step counter
 	// isn't a wakeup sensor
 	private static int lastCounterSteps = -2;
+
+	// -2 means the orientation listener is not active
+	// -1 means we've registered our listener but it hasn't been called yet
+	//     we hold a wake lock while it's -1
+	// zero means we just got a value
+	//     if we're not there yet we reset to -2
+	//     and set an alarm to check again 5 minutes from now
+	private static int orientationState = -2;
+
+	private static float accelerometerX;
+	private static float accelerometerY;
+	private static float accelerometerZ;
+	private long nextAccelTime;
+
 	private static PowerManager.WakeLock wakelock = null;
 
 	// -2 means the location watcher is not active
@@ -63,8 +79,6 @@ public class MuteService extends IntentService
 
 	private static int notifyId = 1400;
 
-	public static final String EXTRA_PROXIMITY = "wakeEntered";
-
 	// We don't know anything sensible to do here
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int i) {
@@ -72,11 +86,27 @@ public class MuteService extends IntentService
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
-		int newCounterSteps = (int)sensorEvent.values[0];
-		if (newCounterSteps != lastCounterSteps)
+		switch(sensorEvent.sensor.getType())
 		{
-			lastCounterSteps = newCounterSteps;
-			startIfNecessary(this, "Step counter changed");
+			case Sensor.TYPE_STEP_COUNTER:
+				int newCounterSteps = (int)sensorEvent.values[0];
+				if (newCounterSteps != lastCounterSteps)
+				{
+					lastCounterSteps = newCounterSteps;
+					startIfNecessary(this, "Step counter changed");
+				}
+				break;
+			case Sensor.TYPE_ACCELEROMETER:
+				SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+				sm.unregisterListener(this);
+				accelerometerX = sensorEvent.values[0];
+				accelerometerY = sensorEvent.values[1];
+				accelerometerZ = sensorEvent.values[2];
+				orientationState = 0;
+				startIfNecessary(this, "Accelerometer event");
+				break;
+			default:
+				// do nothing, should never happen
 		}
 	}
 
@@ -110,7 +140,7 @@ public class MuteService extends IntentService
 		{
 			lastCounterSteps = -1;
 			new MyLog(this,
-					  "Step counter activated for class"
+					  "Step counter activated for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
 			SensorManager sensorManager =
 				(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
@@ -120,11 +150,14 @@ public class MuteService extends IntentService
 				&& (sensorManager.registerListener(this, sensor,
 						   SensorManager.SENSOR_DELAY_NORMAL)))
 			{
-				PowerManager powerManager
-					= (PowerManager) getSystemService(POWER_SERVICE);
-				wakelock = powerManager.newWakeLock(
-					PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
-				wakelock.acquire();
+				if (wakelock == null)
+				{
+					PowerManager powerManager
+						= (PowerManager)getSystemService(POWER_SERVICE);
+					wakelock = powerManager.newWakeLock(
+						PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
+					wakelock.acquire();
+				}
 				return true;
 			}
 			else
@@ -270,6 +303,92 @@ public class MuteService extends IntentService
 		return true;
 	}
 
+	/*
+IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+Intent batteryStatus = context.registerReceiver(null, ifilter);
+// Are we charging / charged?
+int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                     status == BatteryManager.BATTERY_STATUS_FULL;
+
+// How are we charging?
+int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
+boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+boolean wirelessCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+	 */
+
+	// return true if still waiting for correct orientation
+	private boolean checkOrientationWait(int classNum)
+	{
+		int wanted = PrefsManager.getBeforeOrientation(this, classNum);
+		if (   (wanted == 0)
+			|| (wanted == PrefsManager.BEFORE_ANY_POSITION))
+		{
+			return false;
+		}
+		switch (orientationState)
+		{
+			case -2: // sensor currently not active
+				SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+				Sensor ams = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+				if (ams == null) { return false; }
+				if (wakelock == null)
+				{
+					PowerManager powerManager
+						= (PowerManager) getSystemService(POWER_SERVICE);
+					wakelock = powerManager.newWakeLock(
+						PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
+					wakelock.acquire();
+				}
+				orientationState = -1;
+				sm.registerListener(this, ams, SENSOR_DELAY_FASTEST);
+				new MyLog(this,
+						  "Requested accelerometer value for class "
+						  .concat(PrefsManager.getClassName(this, classNum)));
+				//FALLTHRU
+			case -1: // waiting for value
+				return true;
+			case 0: // just got a value
+				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
+				if (   (accelerometerX >= -0.3)
+					&& (accelerometerX <= 0.3)
+					&& (accelerometerY >= -0.3)
+					&& (accelerometerY <= 0.3)
+					&& (accelerometerZ >= 9.6)
+					&& (accelerometerZ <= 10.0))
+				{
+					if ((wanted & PrefsManager.BEFORE_FACE_UP) != 0)
+					{
+						return false;
+					}
+				}
+				else if (   (accelerometerX >= -0.3)
+						 && (accelerometerX <= 0.3)
+						 && (accelerometerY >= -0.3)
+						 && (accelerometerY <= 0.3)
+						 && (accelerometerZ >= -10.0)
+						 && (accelerometerZ <= -9.6))
+				{
+					if ((wanted & PrefsManager.BEFORE_FACE_DOWN) != 0)
+					{
+						return false;
+					}
+				}
+				else if ((wanted & PrefsManager.BEFORE_OTHER_POSITION) != 0)
+				{
+					return false;
+				}
+				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
+				orientationState = -2;
+				new MyLog(this,
+						  "Still waiting for orientation for class "
+						  .concat(PrefsManager.getClassName(this, classNum)));
+				return true;
+			default:
+				return false;
+		}
+	}
 
 	// Determine which event classes have become active
 	// and which event classes have become inactive
@@ -286,6 +405,7 @@ public class MuteService extends IntentService
 		muteRequested = false;
 		vibrateRequested = false;
 		long nextAlarmTime = Long.MAX_VALUE;
+		nextAccelTime = Long.MAX_VALUE;
 		startEvent = "";
 		int classNum;
 		String startClassName = "";
@@ -320,12 +440,32 @@ public class MuteService extends IntentService
 					= provider.nextActionTimes(this, currentTime, classNum);
 				boolean triggered
 					= PrefsManager.isClassTriggered(this, classNum);
+				if (triggered) {
+					result.startEventName = "<immediate>";
+					result.endEventName = "<immediate>";
+				}
+				boolean active =    (result.startTime <= currentTime)
+								 && (result.endTime > currentTime);
+				if (   (triggered || active)
+					&& (!PrefsManager.isClassActive(this, classNum))
+					&& checkOrientationWait(classNum))
+				{
+					triggered = false;
+					active = false;
+					if (   (nextAccelTime < nextAlarmTime)
+						   && (nextAccelTime > currentTime))
+					{
+						nextAlarmTime = nextAccelTime;
+						alarmReason = " for next orientation check for event "
+							.concat(result.endEventName)
+							.concat(" of class ")
+							.concat(className);
+					}
+				}
 				if (triggered)
 				{
 					PrefsManager.setClassTriggered(this, classNum, false);
 				}
-				boolean active =   (result.startTime <= currentTime)
-					            && (result.endTime > currentTime);
 				if (triggered || active)
 				{
 					// class should be currently active
@@ -399,11 +539,19 @@ public class MuteService extends IntentService
 							}
 							else if (lastCounterSteps >= 0)
 							{
+								int aftersteps =
+									 PrefsManager.getAfterSteps(this, classNum);
 								PrefsManager.setTargetSteps(
 									this, classNum,
-									lastCounterSteps +
-									PrefsManager.getAfterSteps(this, classNum));
+									lastCounterSteps + aftersteps);
 								anyStepCountActive = true;
+								new MyLog(this,
+										  "Setting target steps for class "
+										  + className
+										  + " to "
+										  + String.valueOf(lastCounterSteps)
+										  + " + "
+										  + String.valueOf(aftersteps));
 								waiting = true;
 								done = false;
 							}
@@ -426,19 +574,28 @@ public class MuteService extends IntentService
 					else if (PrefsManager.isClassWaiting(this, classNum))
 					{
 						done = true;
-						int steps = PrefsManager.getAfterSteps(this, classNum);
-						if ((lastCounterSteps > -2) && (steps > 0))
+						int aftersteps
+							= PrefsManager.getAfterSteps(this, classNum);
+						if ((lastCounterSteps > -2) && (aftersteps > 0))
 						{
-							steps = PrefsManager.getTargetSteps(this, classNum);
+							int steps
+								= PrefsManager.getTargetSteps(this, classNum);
 							if (steps == 0)
 							{
 								if (lastCounterSteps >= 0)
 								{
 									PrefsManager.setTargetSteps(
 										this, classNum,
-										lastCounterSteps + steps);
+										lastCounterSteps + aftersteps);
 								}
 								anyStepCountActive = true;
+								new MyLog(this,
+										  "Setting target steps for class "
+										  + className
+										  + " to "
+										  + String.valueOf(lastCounterSteps)
+										  + " + "
+										  + String.valueOf(aftersteps));
 								waiting = true;
 								done = false;
 							}
@@ -507,7 +664,8 @@ public class MuteService extends IntentService
 							}
 						}
 					}
-					if (result.startTime < nextAlarmTime)
+					if (   (result.startTime < nextAlarmTime)
+					    && (result.startTime > currentTime))
 					{
 						nextAlarmTime = result.startTime;
 						alarmReason = " for start of event "
@@ -622,7 +780,6 @@ public class MuteService extends IntentService
 					(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
 				sensorManager.unregisterListener(this);
 				new MyLog(this, "Step counter deactivated");
-				wakelock.release();
 			}
 		}
 		if (!anyLocationActive)
@@ -639,6 +796,13 @@ public class MuteService extends IntentService
 				lm.removeUpdates(pi);
 			}
 			locationState = -2;
+		}
+		if (   (wakelock != null)
+			&& (lastCounterSteps == -2)
+			&& (orientationState != -1))
+		{
+			wakelock.release();
+			wakelock = null;
 		}
 	}
 

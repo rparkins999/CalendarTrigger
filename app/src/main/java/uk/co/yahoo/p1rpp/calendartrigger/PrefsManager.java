@@ -423,6 +423,28 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
+	// required orientation for event of this class to start
+	private static final String BEFORE_ORIENTATION = "beforeOrientation";
+	public static final int BEFORE_FACE_UP = 1;
+	public static final int BEFORE_FACE_DOWN = 2;
+	public static final int BEFORE_OTHER_POSITION = 4;
+	public static final int BEFORE_ANY_POSITION =   BEFORE_FACE_UP
+												  | BEFORE_FACE_DOWN
+												  | BEFORE_OTHER_POSITION;
+
+	public static void setBeforeOrientation(
+		Context context, int classNum, int beforeOrientation) {
+		String prefName = BEFORE_ORIENTATION.concat(String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, beforeOrientation).commit();
+	}
+
+	public static int getBeforeOrientation(Context context, int classNum) {
+		String prefName = BEFORE_ORIENTATION.concat(String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
 	// minutes after end time event of this class to take actions
 	private static final String AFTER_MINUTES = "afterMinutes";
 
@@ -487,7 +509,7 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
-	// Location from which we're waiting to be getAfterMetres(...)
+	// Location from which we're waiting to be getAfterMetres(...)faceup
 	// Impossible latitude of 360 means we aren't waiting
 	private static final String LATITUDE = "latitude";
 
@@ -638,6 +660,7 @@ public class PrefsManager {
 			 .putInt(RINGER_ACTION.concat(num), RINGER_MODE_NONE)
 			 .putBoolean(RESTORE_RINGER.concat(num), false)
 			 .putInt(BEFORE_MINUTES.concat(num), 0)
+			 .putInt(BEFORE_ORIENTATION.concat(num), 0)
 			 .putInt(AFTER_MINUTES.concat(num), 0)
 			 .putInt(AFTER_STEPS.concat(num), 0)
 			 .putInt(TARGET_STEPS.concat(num), 0)

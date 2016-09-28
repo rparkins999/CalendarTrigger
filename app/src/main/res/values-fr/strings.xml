@@ -244,4 +244,12 @@
         notification à la fin d\'un évènement. La présentation d\'une
         notification est déterminée par les paramètres notification fixés par
         l\'usager.</string>
+    <string name="devicefaceuplabel">vers le haut</string>
+    <string name="devicefacedownlabel">vers le bas</string>
+    <string name="devicepositionhelp">Ici vous pouvez retarder les actions à la commencemnt de l\\\'évènement jusqu\\\'a ce que l\'appareil soit orienté comme spécifié.</string>
+    <string name="devicepositionlabel">L\\\'écran est:-</string>
+    <string name="deviceanypositionlabel">orienté en tout autre direction</string>
+    <string name="devicefacedownhelp">L\\\'appareil se trouve sur une surface horizontale avec l\\\'écran en bas.</string>
+    <string name="devicefaceuphelp">L\\\'appareil se trouve sur une surface horizontale avec l\\\'écran en haut.</string>
+    <string name="deviceanypositionhelp">L\\\'appareil ne se trouve pas sur une surface horizontale.</string>
 </resources>

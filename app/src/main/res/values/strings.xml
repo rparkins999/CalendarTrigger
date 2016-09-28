@@ -138,9 +138,23 @@
         action(s). This may however be delayed by other conditions below
 		</string>
     <string name="startnotuntillabel">but not until:-</string>
-    <string name="startnotuntilhelp">This section is reserved for delaying the
-        start action(s) until the device is in some particular state. No state
-        tests are implemented yet.</string>
+    <string name="startnotuntilhelp">Here you can delay the start action(s)
+        until the device is in some particular state.
+    </string>
+    <string name="devicepositionlabel">the device is any of:-</string>
+    <string name="devicepositionhelp">Here you can delay the start action(s)
+        until the device is in some particular orientation. If no box is
+        checked, no orientation check is performed. The orientation check is
+        performed every five minutes until it is satisfied. This can drain the
+        battery if it has to wait for a long time.</string>
+    <string name="devicefaceuplabel">facing up</string>
+    <string name="devicefaceuphelp">Device is lying on a horizontal surface
+        with the display facing upwards.</string>
+    <string name="devicefacedownlabel">facing down</string>
+    <string name="devicefacedownhelp">Device is lying on a horizontal surface
+        with the display facing downwards.</string>
+    <string name="deviceanypositionlabel">in any other position</string>
+    <string name="deviceanypositionhelp">Device is not horizontal.</string>
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in this class.</string>
