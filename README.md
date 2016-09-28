@@ -19,6 +19,6 @@ The UI is available in English and French: the French version could probably be 
 Help with the French translations would be welcome, as would UI translations for other languages.
 
 #### What can I legally do with this app ?
-This application is released under the GNU GPL v2, do make sure you abide by the license terms when using it.
+This application is released under the GNU GPL v3 or later, do make sure you abide by the license terms when using it.
 Read the license terms for more details, but to make it very (too) simple: you can do everything you want with the application, as long as you provide your source code with any version you release, and 
 release it under the same license.

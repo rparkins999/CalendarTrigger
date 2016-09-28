@@ -1,3 +1,7 @@
+/*
+ * Released under GPL V3 or later
+ */
+
 package uk.co.yahoo.p1rpp.calendartrigger.models;
 
 public class Calendar {
