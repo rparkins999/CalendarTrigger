@@ -146,11 +146,7 @@
         until the device is in some particular state.
     </string>
     <string name="devicepositionlabel">the device is any of:-</string>
-    <string name="devicepositionhelp">Here you can delay the start action(s)
-        until the device is in some particular orientation. If no box is
-        checked, no orientation check is performed. The orientation check is
-        performed every five minutes until it is satisfied. This can drain the
-        battery if it has to wait for a long time.</string>
+    <string name="devicepositionhelp">Here you can delay the start action(s) until the device is in some particular orientation. If no box is checked, no orientation check is performed. The orientation check is performed every five minutes until it is satisfied. This can drain the battery if it has to wait for a long time.</string>
     <string name="devicefaceuplabel">facing up</string>
     <string name="devicefaceuphelp">Device is lying on a horizontal surface
         with the display facing upwards.</string>
@@ -159,6 +155,29 @@
         with the display facing downwards.</string>
     <string name="deviceanypositionlabel">in any other position</string>
     <string name="deviceanypositionhelp">Device is not horizontal.</string>
+    <string name="deviceUSBlabel">and the device is connected to any of</string>
+    <string name="deviceUSBhelp">Here you can delay the start action(s) until
+        the device is connected to (or not connected to) a particular kind of
+        charger or a USB perpheral via a USB on-the-go cable. If no box is
+		checked, there is no connection test.</string>
+    <string name="wirelesschargerlabel">a wireless charger</string>
+    <string name="wirelesschargerhelp">The device is on a wireless charger.
+    </string>
+    <string name="fastchargerlabel">an adaptive fast charger</string>
+    <string name="fastchargerhelp">The device is connected to an adaptive
+        fast charger: this is a special type of USB charger which adjusts it
+        charging voltage depending on the state of the device\'s battery.
+    </string>
+    <string name="plainchargerlabel">a plain USB charger</string>
+    <string name="plainchargerhelp">The device is connected to a plain USB
+        charger, or to a computer which can supply charging power as well as
+        possibly supporting a USB data connection.</string>
+    <string name="usbotglabel">a USB peripheral</string>
+    <string name="usbotghelp">Device is connected to a USB peripheral such as
+        a mouse or a memory stick via a USB on-the-go cable.</string>
+    <string name="usbnothinglabel">nothing</string>
+    <string name="usbnothinghelp">Device is not connected to anything via its
+        USB port and is not on a wireless charger either.</string>
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in this class.</string>
@@ -250,4 +269,10 @@
         show a notification at the end of the event. The way in which the
         notification is presented depends on the user\'s notification settings.
     </string>
+    <string name="reset">Reset</string>
+    <string name="resethelp">This button forces all classes to be inactive and
+        stops all temporary waits. It is for use if the application gets stuck.
+        Note that if you are between the start and finish times of a calendar
+        event, any class(es) to which that event belongs will immediately
+        become active again.</string>
 </resources>

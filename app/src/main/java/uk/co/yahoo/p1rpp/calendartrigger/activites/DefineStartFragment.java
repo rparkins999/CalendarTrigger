@@ -33,6 +33,11 @@ public class DefineStartFragment extends Fragment {
     private CheckBox faceUp;
     private CheckBox faceDown;
     private CheckBox anyPosition;
+    private CheckBox wirelessCharger;
+    private CheckBox fastCharger;
+    private CheckBox slowchcarger;
+    private CheckBox peripheral;
+    private CheckBox nothing;
 
     public DefineStartFragment() {
     }
@@ -175,6 +180,95 @@ public class DefineStartFragment extends Fragment {
             (orientations & PrefsManager.BEFORE_OTHER_POSITION) !=0);
         lll.addView(anyPosition, ww);
         ll.addView(lll, ww);
+        tv = new TextView(ac);
+        tv.setPadding((int)(scale * 25.0), 0, 0, 0);
+        tv.setText(R.string.deviceUSBlabel);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.deviceUSBhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        ll.addView(tv, ww);
+        int connections = PrefsManager.getBeforeConnection(ac, classNum);
+        lll = new LinearLayout(ac);
+        lll.setOrientation(LinearLayout.VERTICAL);
+        lll.setPadding((int)(scale * 50.0), 0, 0, 0);
+        wirelessCharger = new CheckBox(ac);
+        wirelessCharger.setText(R.string.wirelesschargerlabel);
+
+        wirelessCharger.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.wirelesschargerhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        wirelessCharger.setChecked(
+            (connections & PrefsManager.BEFORE_WIRELESS_CHARGER) != 0);
+        lll.addView(wirelessCharger, ww);
+        fastCharger = new CheckBox(ac);
+        fastCharger.setText(R.string.fastchargerlabel);
+
+        fastCharger.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.fastchargerhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        fastCharger.setChecked(
+            (connections & PrefsManager.BEFORE_FAST_CHARGER) != 0);
+        lll.addView(fastCharger, ww);
+        slowchcarger = new CheckBox(ac);
+        slowchcarger.setText(R.string.plainchargerlabel);
+
+        slowchcarger.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.plainchargerhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        slowchcarger.setChecked(
+            (connections & PrefsManager.BEFORE_PLAIN_CHARGER) != 0);
+        lll.addView(slowchcarger, ww);
+        peripheral = new CheckBox(ac);
+        peripheral = new CheckBox(ac);
+        peripheral.setText(R.string.usbotglabel);
+
+        peripheral.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.usbotghelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        peripheral.setChecked(
+            (connections & PrefsManager.BEFORE_PERIPHERAL) != 0);
+        lll.addView(peripheral, ww);
+        nothing = new CheckBox(ac);
+        nothing = new CheckBox(ac);
+        nothing.setText(R.string.usbnothinglabel);
+
+        nothing.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.usbnothinghelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        nothing.setChecked(
+            (connections & PrefsManager.BEFORE_UNCONNECTED) != 0);
+        lll.addView(nothing, ww);
+        ll.addView(lll, ww);
     }
 
     @Override
@@ -200,6 +294,28 @@ public class DefineStartFragment extends Fragment {
             orientations |= PrefsManager.BEFORE_OTHER_POSITION;
         }
         PrefsManager.setBeforeOrientation(ac, classNum, orientations);
+        int connections = 0;
+        if (wirelessCharger.isChecked())
+        {
+            connections |= PrefsManager.BEFORE_WIRELESS_CHARGER;
+        }
+        if (fastCharger.isChecked())
+        {
+            connections |= PrefsManager.BEFORE_FAST_CHARGER;
+        }
+        if (slowchcarger.isChecked())
+        {
+            connections |= PrefsManager.BEFORE_PLAIN_CHARGER;
+        }
+        if (peripheral.isChecked())
+        {
+            connections |= PrefsManager.BEFORE_PERIPHERAL;
+        }
+        if (nothing.isChecked())
+        {
+            connections |= PrefsManager.BEFORE_UNCONNECTED;
+        }
+        PrefsManager.setBeforeConnection(ac, classNum, connections);
         ac.setButtonVisibility(View.VISIBLE);
     }
 }

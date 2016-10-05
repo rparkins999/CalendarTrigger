@@ -100,7 +100,7 @@
     <string name="organiserhelp">Choisir évènements qui sont organisés par vous,
         par autres (ou sans organisateur), ou n\'importe lequel.</string>
     <string name="organiserlabel">et l\'organisateur de l\'évènement:
-    </string>                       Paramètres
+    </string>
     <string name="onlyorganiser">est vous</string>
     <string name="onlynotorganiser">n\'est pas vous</string>
     <string name="organiserandnot">n\'importe</string>
@@ -148,10 +148,6 @@
         l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
         conditions ci-dessous.</string>
     <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
-    <string name="startnotuntilhelp">Cette section est reservée pour retarder
-        les actions du début jusqu\'à ce que l\'appareil arrive à un état
-        spécifié. Au moment il n\'y a aucun contrôle d\'état mis en oeuvre.
-    </string>
     <string name="actionStartLabel">Action au début d\'un évènement de la classe
         %s</string>
     <string name="actionStartHelp">Définir action(s) déclenchées à ou en
@@ -250,10 +246,28 @@
         l\'usager.</string>
     <string name="devicefaceuplabel">vers le haut</string>
     <string name="devicefacedownlabel">vers le bas</string>
-    <string name="devicepositionhelp">Ici vous pouvez retarder les actions à la commencemnt de l\\\'évènement jusqu\\\'a ce que l\'appareil soit orienté comme spécifié.</string>
-    <string name="devicepositionlabel">L\\\'écran est:-</string>
+    <string name="devicepositionhelp">Ici vous pouvez retarder les actions à la commencement de l\'évènement jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>
+    <string name="devicepositionlabel">L\'écran est:-</string>
     <string name="deviceanypositionlabel">orienté en tout autre direction</string>
-    <string name="devicefacedownhelp">L\\\'appareil se trouve sur une surface horizontale avec l\\\'écran en bas.</string>
-    <string name="devicefaceuphelp">L\\\'appareil se trouve sur une surface horizontale avec l\\\'écran en haut.</string>
-    <string name="deviceanypositionhelp">L\\\'appareil ne se trouve pas sur une surface horizontale.</string>
+    <string name="devicefacedownhelp">L\'appareil se trouve sur une surface
+        horizontale avec l\'écran en bas.</string>
+    <string name="devicefaceuphelp">L\'appareil se trouve sur une surface
+        horizontale avec l\'écran en haut.</string>
+    <string name="deviceanypositionhelp">L\'appareil ne se trouve pas sur
+        une surface horizontale.</string>
+    <string name="reset">Réinitialiser</string>
+    <string name="deviceUSBhelp">Retarder les actions de la fin de l\'évènement jusqu\'à ce que l\'appareil se trouve branché sur une certaine source de courant ou rien.</string>
+    <string name="deviceUSBlabel">et l\'appareil est branché sur l\'un de</string>
+    <string name="fastchargerhelp">L\'appareil est branché sur un chargeur rapide qui régle sa tension selon l\'état de la pile de l\'appareil.</string>
+    <string name="fastchargerlabel">un chargeur rapide</string>
+    <string name="resethelp">Ce bouton contraint tous les classes de devenir inactives et termine tous les delais temporaires. Il faut le toucher si Calendar Trigger devient bloqué. Remarquer que si vous êtes entre le temps du début et le temps de la fin d\'un évènement, tous les classes auxquels l\'évènement appartient redevinendront immédiatement actives.</string>
+    <string name="startnotuntilhelp">Retarder les actions du commencement de l\'évènement jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
+    <string name="usbnothinghelp">L\'appareil n\'est pas branché ni sur une chargeur ni sur un périphérique.</string>
+    <string name="usbnothinglabel">rien</string>
+    <string name="usbotghelp">L\'appareil est branché sur un périphérique USB comme une souris ou clé par un câble \'on-the-go\'.</string>
+    <string name="usbotglabel">un périphérique USB</string>
+    <string name="wirelesschargerhelp">L\'appareil est branché sur un chargeur sans fil.</string>
+    <string name="wirelesschargerlabel">un chargeur sans fil</string>
+    <string name="plainchargerhelp">L\'appareil est branché sur un chargeur normale ou un ordinateur qui peut fournir énergie et aussi peut-être une connexion de données.</string>
+    <string name="plainchargerlabel">un chargeur USB simple</string>
 </resources>

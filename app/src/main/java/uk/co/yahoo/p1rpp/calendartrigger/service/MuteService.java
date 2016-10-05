@@ -14,22 +14,27 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
 import java.text.DateFormat;
+import java.util.HashMap;
 
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
@@ -60,7 +65,7 @@ public class MuteService extends IntentService
 	// zero or positive is a real step count
 	// -1 or greater means we're holding a wake lock because the step counter
 	// isn't a wakeup sensor
-	private static int lastCounterSteps = -2;
+	public static int lastCounterSteps = -2;
 
 	// -2 means the orientation listener is not active
 	// -1 means we've registered our listener but it hasn't been called yet
@@ -83,6 +88,21 @@ public class MuteService extends IntentService
 	private static int locationState = -2;
 
 	private static int notifyId = 1400;
+
+    // 0 USB not connected or connected to dumb charger
+    // 1 device is USB host to some peripheral
+    // 2 device is USB slave and receiving power from a USB host
+    private static int usbState;
+
+	public static void doReset() {
+		orientationState = -2;
+		if (wakelock != null)
+		{
+			wakelock.release();
+			wakelock = null;
+		}
+		locationState = -2;
+	}
 
 	// We don't know anything sensible to do here
 	@Override
@@ -225,7 +245,7 @@ public class MuteService extends IntentService
 					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
 					PendingIntent.FLAG_UPDATE_CURRENT);
 				lm.requestLocationUpdates(
-					5 * 60 * 1000, (float)(meters * 0.7), cr, pi);
+					5 * 60 * 1000, (float)(meters), cr, pi);
 				new MyLog(this,
 						  "Requesting location updates for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
@@ -253,7 +273,7 @@ public class MuteService extends IntentService
 					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
 					PendingIntent.FLAG_UPDATE_CURRENT);
 				lm.requestLocationUpdates(
-					5 * 60 * 1000, (float)(meters * 0.55), cr, pi);
+					5 * 60 * 1000, (float)(meters), cr, pi);
 				new MyLog(this,
 						  "Requesting location updates for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
@@ -280,7 +300,7 @@ public class MuteService extends IntentService
 										 here.getLatitude(),
 										 here.getLongitude(),
 										 results);
-				if (results[0] < meters)
+				if (results[0] < meters * 0.9)
 				{
 					new MyLog(this,
 							  "Still within geofence for class "
@@ -307,21 +327,6 @@ public class MuteService extends IntentService
 		// location wait active, but no new location
 		return true;
 	}
-
-	/*
-IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-Intent batteryStatus = context.registerReceiver(null, ifilter);
-// Are we charging / charged?
-int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                     status == BatteryManager.BATTERY_STATUS_FULL;
-
-// How are we charging?
-int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
-boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
-boolean wirelessCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
-	 */
 
 	// return true if still waiting for correct orientation
 	private boolean checkOrientationWait(int classNum)
@@ -395,6 +400,52 @@ boolean wirelessCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
 		}
 	}
 
+	// return true if still waiting for correct connection
+	private boolean checkConnectionWait(int classNum)
+	{
+		int wanted = PrefsManager.getBeforeConnection(this, classNum);
+		if (   (wanted == 0)
+			|| (wanted == PrefsManager.BEFORE_ANY_CONNECTION))
+		{
+			return false;
+		}
+		int charge
+			= registerReceiver(
+				null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+			.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+		UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		HashMap<String, UsbDevice> map = manager.getDeviceList();
+		if (   ((wanted & PrefsManager.BEFORE_WIRELESS_CHARGER) != 0)
+			&& (charge == BatteryManager.BATTERY_PLUGGED_WIRELESS))
+		{
+			return false;
+		}
+		if (   ((wanted & PrefsManager.BEFORE_FAST_CHARGER) != 0)
+			   && (charge == BatteryManager.BATTERY_PLUGGED_AC))
+		{
+			return false;
+		}
+		if (   ((wanted & PrefsManager.BEFORE_PLAIN_CHARGER) != 0)
+			   && (charge == BatteryManager.BATTERY_PLUGGED_USB))
+		{
+			return false;
+		}
+		if ((wanted & PrefsManager.BEFORE_PERIPHERAL) != 0)
+		{
+			if (!map.isEmpty())
+			{
+				return false;
+			}
+		}
+		if (   ((wanted & PrefsManager.BEFORE_UNCONNECTED) != 0)
+			&& (charge == -1)
+			&& map.isEmpty())
+		{
+			return false;
+		}
+		return true;
+	}
+
 	// Determine which event classes have become active
 	// and which event classes have become inactive
 	// and consequently what we need to do.
@@ -452,19 +503,27 @@ boolean wirelessCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS;
 				boolean active =    (result.startTime <= currentTime)
 								 && (result.endTime > currentTime);
 				if (   (triggered || active)
-					&& (!PrefsManager.isClassActive(this, classNum))
-					&& checkOrientationWait(classNum))
+					&& (!PrefsManager.isClassActive(this, classNum)))
 				{
-					triggered = false;
-					active = false;
-					if (   (nextAccelTime < nextAlarmTime)
-						   && (nextAccelTime > currentTime))
+					if (checkOrientationWait(classNum))
 					{
-						nextAlarmTime = nextAccelTime;
-						alarmReason = " for next orientation check for event "
-							.concat(result.endEventName)
-							.concat(" of class ")
-							.concat(className);
+						triggered = false;
+						active = false;
+						if ((nextAccelTime < nextAlarmTime)
+							&& (nextAccelTime > currentTime))
+						{
+							nextAlarmTime = nextAccelTime;
+							alarmReason =
+								" for next orientation check for event "
+									.concat(result.endEventName)
+									.concat(" of class ")
+									.concat(className);
+						}
+					}
+					if (checkConnectionWait(classNum))
+					{
+						triggered = false;
+						active = false;
 					}
 				}
 				if (triggered)

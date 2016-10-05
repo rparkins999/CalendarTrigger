@@ -24,6 +24,7 @@
             android:textAppearance="@android:style/TextAppearance.Medium"
             android:textColor="@android:color/holo_blue_dark"
             android:text="@string/settings" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -82,6 +83,12 @@
                 android:clickable="true"
                 android:enabled="true"/>
         </LinearLayout>
+
+        <Button
+            android:text="Reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/resetbutton"/>
 
     </LinearLayout>
 

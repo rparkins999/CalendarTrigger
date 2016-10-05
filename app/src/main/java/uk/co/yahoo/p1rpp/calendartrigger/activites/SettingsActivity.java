@@ -6,8 +6,11 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +25,7 @@ import java.text.DateFormat;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 
 /**
  * Created by rparkins on 29/08/16.
@@ -32,6 +36,29 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+    }
+
+    private void doReset() {
+		int n = PrefsManager.getNumClasses(this);
+		int classNum;
+		for (classNum = 0; classNum < n; ++classNum)
+        {
+            if (PrefsManager.isClassUsed(this, classNum))
+            {
+				PrefsManager.setClassTriggered(this, classNum, false);
+                PrefsManager.setClassActive(this, classNum, false);
+				PrefsManager.setClassWaiting(this, classNum, false);
+            }
+        }
+        String s = "CalendarTrigger.Location";
+        PendingIntent pi = PendingIntent.getBroadcast(
+            this, 0 /*requestCode*/,
+            new Intent(s, Uri.EMPTY, this, MuteService.StartServiceReceiver.class),
+            PendingIntent.FLAG_UPDATE_CURRENT);
+        LocationManager lm = (LocationManager)getSystemService(
+            Context.LOCATION_SERVICE);
+        lm.removeUpdates(pi);
+        MuteService.doReset();
     }
 
     @Override
@@ -122,6 +149,21 @@ public class SettingsActivity extends Activity {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(me, R.string.showLogHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        b = (Button)findViewById(R.id.resetbutton);
+        b.setText(R.string.reset);
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                doReset();
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.resethelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }

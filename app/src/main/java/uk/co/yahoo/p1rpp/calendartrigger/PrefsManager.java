@@ -48,7 +48,7 @@ public class PrefsManager {
 	private static final String IS_CLASS_USED = "isClassUsed";
 
 	private static boolean isClassUsed(SharedPreferences prefs, int classNum) {
-		String prefName = IS_CLASS_USED.concat(String.valueOf(classNum));
+		String prefName = IS_CLASS_USED + String.valueOf(classNum);
 		return prefs.getBoolean(prefName, false);
 	}
 
@@ -107,18 +107,18 @@ public class PrefsManager {
 
 	public static void setClassName(
 		Context context, int classNum, String className) {
-		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		String prefName = CLASS_NAME + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, className).commit();
 	}
 
 	private static String getClassName(SharedPreferences prefs, int classNum) {
-		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		String prefName = CLASS_NAME + String.valueOf(classNum) ;
 		return prefs.getString(prefName, ((Integer)classNum).toString());
 	}
 
 	public static String getClassName(Context context, int classNum) {
-		String prefName = CLASS_NAME.concat(String.valueOf(classNum));
+		String prefName = CLASS_NAME + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, ((Integer)classNum).toString());
 	}
@@ -144,13 +144,13 @@ public class PrefsManager {
 	private static final String EVENT_NAME = "eventName";
 
 	public static void setEventName(Context context, int classNum, String eventName) {
-		String prefName = EVENT_NAME.concat(String.valueOf(classNum));
+		String prefName = EVENT_NAME + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, eventName).commit();
 	}
 
 	public static String getEventName(Context context, int classNum) {
-		String prefName = EVENT_NAME.concat(String.valueOf(classNum));
+		String prefName = EVENT_NAME + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
 	}
@@ -160,13 +160,13 @@ public class PrefsManager {
 
 	public static void setEventLocation(
 		Context context, int classNum, String eventLocation) {
-		String prefName = EVENT_LOCATION.concat(String.valueOf(classNum));
+		String prefName = EVENT_LOCATION + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, eventLocation).commit();
 	}
 
 	public static String getEventLocation(Context context, int classNum) {
-		String prefName = EVENT_LOCATION.concat(String.valueOf(classNum));
+		String prefName = EVENT_LOCATION + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
 	}
@@ -176,13 +176,13 @@ public class PrefsManager {
 
 	public static void setEventDescription(
 		Context context, int classNum, String eventDescription) {
-		String prefName = EVENT_DESCRIPTION.concat(String.valueOf(classNum));
+		String prefName = EVENT_DESCRIPTION + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, eventDescription).commit();
 	}
 
 	public static String getEventDescription(Context context, int classNum) {
-		String prefName = EVENT_DESCRIPTION.concat(String.valueOf(classNum));
+		String prefName = EVENT_DESCRIPTION + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
 	}
@@ -193,13 +193,13 @@ public class PrefsManager {
 	public static void setEventColour(
 		Context context, int classNum, String eventColour)
 	{
-		String prefName = EVENT_COLOUR.concat(String.valueOf(classNum));
+		String prefName = EVENT_COLOUR + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, eventColour).commit();
 	}
 
 	public static String getEventColour(Context context, int classNum) {
-		String prefName = EVENT_COLOUR.concat(String.valueOf(classNum));
+		String prefName = EVENT_COLOUR + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
 	}
@@ -211,7 +211,7 @@ public class PrefsManager {
 	public static void putCalendars(
 		Context context, int classNum, ArrayList<Long> calendarIds)
 	{
-		String prefName = AGENDAS.concat(String.valueOf(classNum));
+		String prefName = AGENDAS + String.valueOf(classNum) ;
 		// Create the string to save
 		StringBuilder agendaList = new StringBuilder();
 		boolean first = true;
@@ -230,7 +230,7 @@ public class PrefsManager {
 	}
 
 	public static ArrayList<Long> getCalendars(Context context, int classNum) {
-		String prefName = AGENDAS.concat(String.valueOf(classNum));
+		String prefName = AGENDAS + String.valueOf(classNum) ;
 		// Create the string to save
 		StringTokenizer tokenizer
 			= new StringTokenizer(
@@ -254,13 +254,13 @@ public class PrefsManager {
 	private static final String WHETHER_BUSY = "whetherBusy";
 
 	public static void setWhetherBusy(Context context, int classNum, int whetherBusy) {
-		String prefName = WHETHER_BUSY.concat(String.valueOf(classNum));
+		String prefName = WHETHER_BUSY + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, whetherBusy).commit();
 	}
 
 	public static int getWhetherBusy(Context context, int classNum) {
-		String prefName = WHETHER_BUSY.concat(String.valueOf(classNum));
+		String prefName = WHETHER_BUSY + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, BUSY_AND_NOT);
 	}
@@ -275,13 +275,13 @@ public class PrefsManager {
 
 	public static void setWhetherRecurrent(
 		Context context, int classNum, int whetherRecurrent) {
-		String prefName = WHETHER_RECURRENT.concat(String.valueOf(classNum));
+		String prefName = WHETHER_RECURRENT + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, whetherRecurrent).commit();
 	}
 
 	public static int getWhetherRecurrent(Context context, int classNum) {
-		String prefName = WHETHER_RECURRENT.concat(String.valueOf(classNum));
+		String prefName = WHETHER_RECURRENT + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName.toString(), RECURRENT_AND_NOT);
 	}
@@ -296,13 +296,13 @@ public class PrefsManager {
 
 	public static void setWhetherOrganiser(
 		Context context, int classNum, int whetherOrganiser) {
-		String prefName = WHETHER_ORGANISER.concat(String.valueOf(classNum));
+		String prefName = WHETHER_ORGANISER + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, whetherOrganiser).commit();
 	}
 
 	public static int getWhetherOrganiser(Context context, int classNum) {
-		String prefName = WHETHER_ORGANISER.concat(String.valueOf(classNum));
+		String prefName = WHETHER_ORGANISER + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, ORGANISER_AND_NOT);
 	}
@@ -317,13 +317,13 @@ public class PrefsManager {
 
 	public static void setWhetherPublic(
 		Context context, int classNum, int whetherPublic) {
-		String prefName = WHETHER_PUBLIC.concat(String.valueOf(classNum));
+		String prefName = WHETHER_PUBLIC + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, whetherPublic).commit();
 	}
 
 	public static int getWhetherPublic(Context context, int classNum) {
-		String prefName = WHETHER_PUBLIC.concat(String.valueOf(classNum));
+		String prefName = WHETHER_PUBLIC + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, PUBLIC_AND_PRIVATE);
 	}
@@ -339,13 +339,13 @@ public class PrefsManager {
 	public
 	static void setWhetherAttendees(
 		Context context, int classNum, int whetherAttendees) {
-		String prefName = WHETHER_ATTENDEES.concat(String.valueOf(classNum));
+		String prefName = WHETHER_ATTENDEES + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, whetherAttendees).commit();
 	}
 
 	public static int getWhetherAttendees(Context context, int classNum) {
-		String prefName = WHETHER_ATTENDEES.concat(String.valueOf(classNum));
+		String prefName = WHETHER_ATTENDEES + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, ATTENDEES_AND_NOT);
 	}
@@ -383,14 +383,14 @@ public class PrefsManager {
 	private static final String RINGER_ACTION = "ringerAction";
 
 	public static void setRingerAction(Context context, int classNum, int action) {
-		String prefName = RINGER_ACTION.concat(String.valueOf(classNum));
+		String prefName = RINGER_ACTION + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, action).commit();
 	}
 
 	public static int getRingerAction(Context context, int classNum)
 	{
-		String prefName = RINGER_ACTION.concat(String.valueOf(classNum));
+		String prefName = RINGER_ACTION + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, RINGER_MODE_NONE);
 	}
@@ -401,13 +401,13 @@ public class PrefsManager {
 	public static void setRestoreRinger(
 		Context context, int classNum, boolean restore)
 	{
-		String prefName = RESTORE_RINGER.concat(String.valueOf(classNum));
+		String prefName = RESTORE_RINGER + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, restore).commit();
 	}
 
 	public static boolean getRestoreRinger(Context context, int classNum) {
-		String prefName = RESTORE_RINGER.concat(String.valueOf(classNum));
+		String prefName = RESTORE_RINGER + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -417,13 +417,13 @@ public class PrefsManager {
 
 	public static void setBeforeMinutes(
 		Context context, int classNum, int beforeMinutes) {
-		String prefName = BEFORE_MINUTES.concat(String.valueOf(classNum));
+		String prefName = BEFORE_MINUTES + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, beforeMinutes).commit();
 	}
 
 	public static int getBeforeMinutes(Context context, int classNum) {
-		String prefName = BEFORE_MINUTES.concat(String.valueOf(classNum));
+		String prefName = BEFORE_MINUTES + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -439,13 +439,38 @@ public class PrefsManager {
 
 	public static void setBeforeOrientation(
 		Context context, int classNum, int beforeOrientation) {
-		String prefName = BEFORE_ORIENTATION.concat(String.valueOf(classNum));
+		String prefName = BEFORE_ORIENTATION + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, beforeOrientation).commit();
 	}
 
 	public static int getBeforeOrientation(Context context, int classNum) {
-		String prefName = BEFORE_ORIENTATION.concat(String.valueOf(classNum));
+		String prefName = BEFORE_ORIENTATION + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, 0);
+	}
+
+	// required connection state for event of this class to start
+	private static final String BEFORE_CONNECTION = "beforeconnection";
+	public static final int BEFORE_WIRELESS_CHARGER = 1;
+	public static final int BEFORE_FAST_CHARGER = 2;
+	public static final int BEFORE_PLAIN_CHARGER = 4;
+	public static final int BEFORE_PERIPHERAL = 8;
+	public static final int BEFORE_UNCONNECTED = 16;
+	public static final int BEFORE_ANY_CONNECTION
+		=   BEFORE_WIRELESS_CHARGER | BEFORE_FAST_CHARGER
+		  | BEFORE_PLAIN_CHARGER |  BEFORE_PERIPHERAL
+		  | BEFORE_UNCONNECTED;
+
+	public static void setBeforeConnection(
+		Context context, int classNum, int beforeConnection) {
+		String prefName = BEFORE_CONNECTION + String.valueOf(classNum);
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, beforeConnection).commit();
+	}
+
+	public static int getBeforeConnection(Context context, int classNum) {
+		String prefName = BEFORE_CONNECTION + String.valueOf(classNum);
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -455,13 +480,13 @@ public class PrefsManager {
 
 	public static void setAfterMinutes(
 		Context context, int classNum, int afterMinutes) {
-		String prefName = AFTER_MINUTES.concat(String.valueOf(classNum));
+		String prefName = AFTER_MINUTES + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, afterMinutes).commit();
 	}
 
 	public static int getAfterMinutes(Context context, int classNum) {
-		String prefName = AFTER_MINUTES.concat(String.valueOf(classNum));
+		String prefName = AFTER_MINUTES + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -471,13 +496,13 @@ public class PrefsManager {
 
 	public static void setAfterSteps(
 		Context context, int classNum, int afterSteps) {
-		String prefName = AFTER_STEPS.concat(String.valueOf(classNum));
+		String prefName = AFTER_STEPS + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, afterSteps).commit();
 	}
 
 	public static int getAfterSteps(Context context, int classNum) {
-		String prefName = AFTER_STEPS.concat(String.valueOf(classNum));
+		String prefName = AFTER_STEPS + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -487,13 +512,13 @@ public class PrefsManager {
 
 	public static void setTargetSteps(
 		Context context, int classNum, int afterSteps) {
-		String prefName = TARGET_STEPS.concat(String.valueOf(classNum));
+		String prefName = TARGET_STEPS + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, afterSteps).commit();
 	}
 
 	public static int getTargetSteps(Context context, int classNum) {
-		String prefName = TARGET_STEPS.concat(String.valueOf(classNum));
+		String prefName = TARGET_STEPS + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -503,13 +528,13 @@ public class PrefsManager {
 
 	public static void setAfterMetres(
 		Context context, int classNum, int afterSteps) {
-		String prefName = AFTER_METRES.concat(String.valueOf(classNum));
+		String prefName = AFTER_METRES + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putInt(prefName, afterSteps).commit();
 	}
 
 	public static int getAfterMetres(Context context, int classNum) {
-		String prefName = AFTER_METRES.concat(String.valueOf(classNum));
+		String prefName = AFTER_METRES + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getInt(prefName, 0);
 	}
@@ -520,14 +545,14 @@ public class PrefsManager {
 
 	public static void setLatitude(
 		Context context, int classNum, double x) {
-		String prefName = LATITUDE.concat(String.valueOf(classNum));
+		String prefName = LATITUDE + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, String.valueOf(x)).commit();
 	}
 
 
 	public static Double getLatitude(Context context, int classNum) {
-		String prefName = LATITUDE.concat(String.valueOf(classNum));
+		String prefName = LATITUDE + (String.valueOf(classNum));
 		String s = context.getSharedPreferences(
 			PREFS_NAME, Context .MODE_PRIVATE) .getString(prefName, "360.0");
 		return new Double(s);
@@ -537,13 +562,13 @@ public class PrefsManager {
 
 	public static void setLongitude(
 		Context context, int classNum, double x) {
-		String prefName = LONGITUDE.concat(String.valueOf(classNum));
+		String prefName = LONGITUDE + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putFloat(prefName, (float)x).commit();
 	}
 
 	public static double getLongitude(Context context, int classNum) {
-		String prefName = LONGITUDE.concat(String.valueOf(classNum));
+		String prefName = LONGITUDE + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getFloat(prefName, 0);
 	}
@@ -553,13 +578,13 @@ public class PrefsManager {
 
 	public static void setNotifyStart(
 		Context context, int classNum, boolean notifyStart) {
-		String prefName = NOTIFY_START.concat(String.valueOf(classNum));
+		String prefName = NOTIFY_START + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, notifyStart).commit();
 	}
 
 	public static boolean getNotifyStart(Context context, int classNum) {
-		String prefName = NOTIFY_START.concat(String.valueOf(classNum));
+		String prefName = NOTIFY_START + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -569,13 +594,13 @@ public class PrefsManager {
 
 	public static void setNotifyEnd(Context context, int classNum,
 		boolean notifyEnd) {
-		String prefName = NOTIFY_END.concat(String.valueOf(classNum));
+		String prefName = NOTIFY_END + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, notifyEnd).commit();
 	}
 
 	public static boolean getNotifyEnd(Context context, int classNum) {
-		String prefName = NOTIFY_END.concat(String.valueOf(classNum));
+		String prefName = NOTIFY_END + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -586,13 +611,13 @@ public class PrefsManager {
 	public static void setClassTriggered(
 		Context context, int classNum, boolean isTriggered)
 	{
-		String prefName = IS_TRIGGERED.concat(String.valueOf(classNum));
+		String prefName = IS_TRIGGERED + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, isTriggered).commit();
 	}
 
 	public static boolean isClassTriggered(Context context, int classNum) {
-		String prefName = IS_TRIGGERED.concat(String.valueOf(classNum));
+		String prefName = IS_TRIGGERED + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -603,13 +628,13 @@ public class PrefsManager {
 	public static void setClassActive(
 		Context context, int classNum, boolean isActive)
 	{
-		String prefName = IS_ACTIVE.concat(String.valueOf(classNum));
+		String prefName = IS_ACTIVE + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, isActive).commit();
 	}
 
 	public static boolean isClassActive(Context context, int classNum) {
-		String prefName = IS_ACTIVE.concat(String.valueOf(classNum));
+		String prefName = IS_ACTIVE + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -620,13 +645,13 @@ public class PrefsManager {
 	public static void setClassWaiting(
 		Context context, int classNum, boolean isWaiting)
 	{
-		String prefName = IS_WAITING.concat(String.valueOf(classNum));
+		String prefName = IS_WAITING + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putBoolean(prefName, isWaiting).commit();
 	}
 
 	public static boolean isClassWaiting(Context context, int classNum) {
-		String prefName = IS_WAITING.concat(String.valueOf(classNum));
+		String prefName = IS_WAITING + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
 	}
@@ -637,44 +662,45 @@ public class PrefsManager {
 	public static void setLastActive(
 		Context context, int classNum, String name)
 	{
-		String prefName = LAST_ACTIVE_EVENT.concat(String.valueOf(classNum));
+		String prefName = LAST_ACTIVE_EVENT + (String.valueOf(classNum));
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, name).commit();
 	}
 
 	public static String getLastActive(Context context, int classNum) {
-		String prefName = LAST_ACTIVE_EVENT.concat(String.valueOf(classNum));
+		String prefName = LAST_ACTIVE_EVENT + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
 	}
 
 	private static void removeClass(SharedPreferences prefs, int classNum) {
 		String num = String.valueOf(classNum);
-		prefs.edit().putBoolean(IS_CLASS_USED.concat(num), false)
-			 .putString(CLASS_NAME.concat(num), "")
-			 .putString(EVENT_NAME.concat(num), "")
-			 .putString(EVENT_LOCATION.concat(num), "")
-			 .putString(EVENT_DESCRIPTION.concat(num), "")
-			 .putString(EVENT_COLOUR.concat(num), "")
-			 .putString(AGENDAS.concat(num), "")
-			 .putInt(WHETHER_BUSY.concat(num), BUSY_AND_NOT)
-			 .putInt(WHETHER_RECURRENT.concat(num), RECURRENT_AND_NOT)
-			 .putInt(WHETHER_ORGANISER.concat(num), ORGANISER_AND_NOT)
-			 .putInt(WHETHER_PUBLIC.concat(num), PUBLIC_AND_PRIVATE)
-			 .putInt(WHETHER_ATTENDEES.concat(num), ATTENDEES_AND_NOT)
-			 .putInt(RINGER_ACTION.concat(num), RINGER_MODE_NONE)
-			 .putBoolean(RESTORE_RINGER.concat(num), false)
-			 .putInt(BEFORE_MINUTES.concat(num), 0)
-			 .putInt(BEFORE_ORIENTATION.concat(num), 0)
-			 .putInt(AFTER_MINUTES.concat(num), 0)
-			 .putInt(AFTER_STEPS.concat(num), 0)
-			 .putInt(TARGET_STEPS.concat(num), 0)
-			 .putInt(AFTER_METRES.concat(num), 0)
-			 .putString(LATITUDE.concat(num), "360.0")
-			 .putString(LONGITUDE.concat(num), "360.0")
-			 .putBoolean(NOTIFY_START.concat(num), false)
-			 .putBoolean(NOTIFY_END.concat(num), false)
-			 .putBoolean(IS_ACTIVE.concat(num), false)
+		prefs.edit().putBoolean(IS_CLASS_USED + (num), false)
+			 .putString(CLASS_NAME + (num), "")
+			 .putString(EVENT_NAME + (num), "")
+			 .putString(EVENT_LOCATION + (num), "")
+			 .putString(EVENT_DESCRIPTION + (num), "")
+			 .putString(EVENT_COLOUR + (num), "")
+			 .putString(AGENDAS + (num), "")
+			 .putInt(WHETHER_BUSY + (num), BUSY_AND_NOT)
+			 .putInt(WHETHER_RECURRENT + (num), RECURRENT_AND_NOT)
+			 .putInt(WHETHER_ORGANISER + (num), ORGANISER_AND_NOT)
+			 .putInt(WHETHER_PUBLIC + (num), PUBLIC_AND_PRIVATE)
+			 .putInt(WHETHER_ATTENDEES + (num), ATTENDEES_AND_NOT)
+			 .putInt(RINGER_ACTION + (num), RINGER_MODE_NONE)
+			 .putBoolean(RESTORE_RINGER + (num), false)
+			 .putInt(BEFORE_MINUTES + (num), 0)
+			 .putInt(BEFORE_ORIENTATION + (num), 0)
+			 .putInt(BEFORE_CONNECTION + (num), 0)
+			 .putInt(AFTER_MINUTES + (num), 0)
+			 .putInt(AFTER_STEPS + (num), 0)
+			 .putInt(TARGET_STEPS + (num), 0)
+			 .putInt(AFTER_METRES + (num), 0)
+			 .putString(LATITUDE + (num), "360.0")
+			 .putString(LONGITUDE + (num), "360.0")
+			 .putBoolean(NOTIFY_START + (num), false)
+			 .putBoolean(NOTIFY_END + (num), false)
+			 .putBoolean(IS_ACTIVE + (num), false)
 			 .commit();
 	}
 
