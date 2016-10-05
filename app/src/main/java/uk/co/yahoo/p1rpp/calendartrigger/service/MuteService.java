@@ -361,6 +361,12 @@ public class MuteService extends IntentService
 				return true;
 			case 0: // just got a value
 				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
+				new MyLog(this, "accelerometerX = "
+						        + String.valueOf(accelerometerX)
+						  		+ ", accelerometerY = "
+						        + String.valueOf(accelerometerY)
+						  		+ ", accelerometerZ = "
+						        + String.valueOf(accelerometerZ));
 				if (   (accelerometerX >= -0.3)
 					&& (accelerometerX <= 0.3)
 					&& (accelerometerY >= -0.3)
@@ -438,7 +444,7 @@ public class MuteService extends IntentService
 			}
 		}
 		if (   ((wanted & PrefsManager.BEFORE_UNCONNECTED) != 0)
-			&& (charge == -1)
+			&& (charge == 0)
 			&& map.isEmpty())
 		{
 			return false;
@@ -505,7 +511,12 @@ public class MuteService extends IntentService
 				if (   (triggered || active)
 					&& (!PrefsManager.isClassActive(this, classNum)))
 				{
-					if (checkOrientationWait(classNum))
+					boolean dbg = checkOrientationWait(classNum);
+					new MyLog(this, "checkOrientationWait("
+							  		+ className
+							  		+ ") returns "
+							        + (dbg ? "true" : "false"));
+					if (dbg)
 					{
 						triggered = false;
 						active = false;
@@ -520,7 +531,12 @@ public class MuteService extends IntentService
 									.concat(className);
 						}
 					}
-					if (checkConnectionWait(classNum))
+					dbg = checkConnectionWait(classNum);
+					new MyLog(this, "checkConnectionWait("
+									+ className
+									+ ") returns "
+									+ (dbg ? "true" : "false"));
+					if (dbg)
 					{
 						triggered = false;
 						active = false;
@@ -858,6 +874,7 @@ public class MuteService extends IntentService
 				LocationManager lm = (LocationManager)getSystemService(
 					Context.LOCATION_SERVICE);
 				lm.removeUpdates(pi);
+				new MyLog(this, "Called lm.removeUpdates()");
 			}
 			locationState = -2;
 		}
