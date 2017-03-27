@@ -58,7 +58,6 @@ public class MuteService extends IntentService
 	// need to stash these persistent state variables somewhere
 	// (Preferences?) since Android doesn't
 	// keep even static variables for a shut-down service
-	private static boolean notifiedCannotReadPhoneState = false;
 
 	// FIXME can we use a similar power saving trick as accelerometer?
 	// -2 means the step counter is not active
@@ -214,6 +213,7 @@ public class MuteService extends IntentService
 					}
 					break;
 			}
+			PrefsManager.setNotifiedCannotReadPhoneState(this, false);
 		}
 		else
 		{
@@ -223,7 +223,7 @@ public class MuteService extends IntentService
 					this, Manifest.permission.READ_PHONE_STATE);
 			if (!canCheckCallState)
 			{
-				if (!notifiedCannotReadPhoneState)
+				if (!PrefsManager.getNotifiedCannotReadPhoneState(this))
 				{
 					Notification.Builder builder
 						= new Notification.Builder(this)
@@ -237,12 +237,8 @@ public class MuteService extends IntentService
 					notifManager.notify(notifyId++, builder.build());
 					new MyLog(this, "CalendarTrigger no longer has permission "
 									+ "READ_PHONE_STATE.");
-					notifiedCannotReadPhoneState = true;
+					PrefsManager.setNotifiedCannotReadPhoneState(this, true);
 				}
-			}
-			else
-			{
-				notifiedCannotReadPhoneState = false;
 			}
 		}
 		return phoneState;
@@ -364,7 +360,6 @@ public class MuteService extends IntentService
 		}
 		else if (here != null)
 		{
-			LocationUpdates(classNum, 0.0);
 			PrefsManager.setLatitude(this, classNum, here.getLatitude());
 			PrefsManager.setLongitude(this, classNum, here.getLongitude());
 			new MyLog(this,
@@ -374,6 +369,11 @@ public class MuteService extends IntentService
 						  .concat(((Double)here.getLatitude()).toString())
 						  .concat(", ")
 						  .concat(((Double)here.getLongitude()).toString()));
+		}
+		else
+		{
+			PrefsManager.setLatitude(
+				this, classNum, PrefsManager.LATITUDE_FIRST);
 		}
 	}
 

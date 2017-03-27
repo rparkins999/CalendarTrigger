@@ -49,6 +49,21 @@ public class PrefsManager {
 					  .getInt(PREF_PHONE_STATE, PHONE_IDLE);
 	}
 
+	private static final String PREF_PHONE_WARNED =
+		"notifiedCannotReadPhoneState";
+
+	public static void setNotifiedCannotReadPhoneState(
+		Context context, boolean state) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			.putBoolean(PREF_PHONE_WARNED, state).commit();
+
+	}
+
+	public static boolean getNotifiedCannotReadPhoneState(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_PHONE_WARNED, false);
+	}
+
 	private static final String PREF_LOCATION_ACTIVE = "locationActive";
 
 	public static void setLocationState(Context context, boolean state) {
