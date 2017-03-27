@@ -39,6 +39,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
+            android:id="@+id/laststatetext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/currentstatetext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/wakelocktext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
             android:id="@+id/logfiletext"/>
         <RadioGroup
             android:id="@+id/radioGroupLogging"

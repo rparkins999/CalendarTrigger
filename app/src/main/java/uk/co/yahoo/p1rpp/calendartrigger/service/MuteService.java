@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2016. Richard P. Parkins, M. A.
+ * Copyright (c) 2017, Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.service;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
@@ -29,35 +30,35 @@ import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.telephony.TelephonyManager;
 
 import java.text.DateFormat;
 import java.util.HashMap;
+import java.util.List;
 
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 
-import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
-import static android.location.LocationManager.KEY_LOCATION_CHANGED;
-
 public class MuteService extends IntentService
 	implements SensorEventListener {
+
+	public static final String MUTESERVICE_RESET =
+		"CalendarTrigger.MuteService.Reset";
 
 	public MuteService() {
 		super("CalendarTriggerService");
 	}
 
-	public boolean muteRequested;
-	public boolean vibrateRequested;
-	public boolean canRestoreRinger;
-	public boolean wantRestoreRinger;
-	public boolean anyStepCountActive;
-	public String startEvent;
-	public String endEvent;
+	// need to stash these persistent state variables somewhere
+	// (Preferences?) since Android doesn't
+	// keep even static variables for a shut-down service
+	private static boolean notifiedCannotReadPhoneState = false;
 
 	// FIXME can we use a similar power saving trick as accelerometer?
 	// -2 means the step counter is not active
@@ -80,12 +81,7 @@ public class MuteService extends IntentService
 	private static float accelerometerZ;
 	private long nextAccelTime;
 
-	private static PowerManager.WakeLock wakelock = null;
-
-	// -2 means the location watcher is not active
-	// -1 means  we've requested the initial location
-	// zero means we're waiting for the next location update
-	private static int locationState = -2;
+	public static PowerManager.WakeLock wakelock = null;
 
 	private static int notifyId = 1400;
 
@@ -94,14 +90,25 @@ public class MuteService extends IntentService
     // 2 device is USB slave and receiving power from a USB host
     private static int usbState;
 
-	public static void doReset() {
+	private void doReset() {
+		int n = PrefsManager.getNumClasses(this);
+		int classNum;
+		for (classNum = 0; classNum < n; ++classNum)
+		{
+			if (PrefsManager.isClassUsed(this, classNum))
+			{
+				PrefsManager.setClassTriggered(this, classNum, false);
+				PrefsManager.setClassActive(this, classNum, false);
+				PrefsManager.setClassWaiting(this, classNum, false);
+			}
+		}
 		orientationState = -2;
 		if (wakelock != null)
 		{
 			wakelock.release();
 			wakelock = null;
 		}
-		locationState = -2;
+		LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 	}
 
 	// We don't know anything sensible to do here
@@ -145,18 +152,100 @@ public class MuteService extends IntentService
 		}
 	}
 
-	private void emitNotification(int resNum, String event) {
+	//FIXME add sound here?
+	private void emitNotification(String text, String bigText) {
 		Resources res = getResources();
 		Notification.Builder builder
 			= new Notification.Builder(this)
 			.setSmallIcon(R.drawable.notif_icon)
 			.setContentTitle(res.getString(R.string.mode_sonnerie_change))
-			.setContentText(res.getString(resNum) + " " + event)
-			.setAutoCancel(true);
+			.setContentText(text)
+			.setStyle(new Notification.BigTextStyle().bigText(bigText));
 		// Show notification
 		NotificationManager notifManager = (NotificationManager)
 			getSystemService(Context.NOTIFICATION_SERVICE);
 		notifManager.notify(notifyId++, builder.build());
+	}
+
+	private void PermissionFail(int mode)
+	{
+		Notification.Builder builder
+			= new Notification.Builder(this)
+			.setSmallIcon(R.drawable.notif_icon)
+			.setContentText(getString(R.string.permissionfail))
+			.setStyle(new Notification.BigTextStyle()
+                .bigText(getString(R.string.permissionfailbig)));
+		// Show notification
+		NotificationManager notifManager = (NotificationManager)
+			getSystemService(Context.NOTIFICATION_SERVICE);
+		notifManager.notify(notifyId++, builder.build());
+		new MyLog(this, "Cannot set mode "
+						+ PrefsManager.getRingerStateName(this, mode)
+				  		+ " because CalendarTrigger no longer has permission "
+				  		+ "ACCESS_NOTIFICATION_POLICY.");
+	}
+
+	// Check if there is a current call (not a ringing call).
+	// If so we don't want to mute even if an event starts.
+	int UpdatePhoneState(Intent intent) {
+		// 0 idle
+		// 1 incoming call ringing (but no active call)
+		// 2 call active
+		int phoneState = PrefsManager.getPhoneState(this);
+		if (intent.getAction() == TelephonyManager.ACTION_PHONE_STATE_CHANGED)
+		{
+			String event = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+			switch (event)
+			{
+				case "IDLE":
+					phoneState = PrefsManager.PHONE_IDLE;
+					PrefsManager.setPhoneState(this, phoneState);
+					break;
+				case "OFFHOOK":
+					phoneState = PrefsManager.PHONE_CALL_ACTIVE;
+					PrefsManager.setPhoneState(this, phoneState);
+					break;
+				case "RINGING":
+					// Tricky case - can be ringing when already in a call
+					if (phoneState == PrefsManager.PHONE_IDLE)
+					{
+						phoneState = PrefsManager.PHONE_RINGING;
+						PrefsManager.setPhoneState(this, phoneState);
+					}
+					break;
+			}
+		}
+		else
+		{
+			boolean canCheckCallState =
+				PackageManager.PERMISSION_GRANTED ==
+				ActivityCompat.checkSelfPermission(
+					this, Manifest.permission.READ_PHONE_STATE);
+			if (!canCheckCallState)
+			{
+				if (!notifiedCannotReadPhoneState)
+				{
+					Notification.Builder builder
+						= new Notification.Builder(this)
+						.setSmallIcon(R.drawable.notif_icon)
+						.setContentText(getString(R.string.readphonefail))
+						.setStyle(new Notification.BigTextStyle()
+									  .bigText(getString(R.string.readphonefailbig)));
+					// Show notification
+					NotificationManager notifManager = (NotificationManager)
+						getSystemService(Context.NOTIFICATION_SERVICE);
+					notifManager.notify(notifyId++, builder.build());
+					new MyLog(this, "CalendarTrigger no longer has permission "
+									+ "READ_PHONE_STATE.");
+					notifiedCannotReadPhoneState = true;
+				}
+			}
+			else
+			{
+				notifiedCannotReadPhoneState = false;
+			}
+		}
+		return phoneState;
 	}
 
 	// return true if step counter is now running
@@ -197,32 +286,85 @@ public class MuteService extends IntentService
 		}
 	}
 
-	private void startLocationWait(int classNum, Intent intent) {
-		Location here = intent.getParcelableExtra(KEY_LOCATION_CHANGED);
-		if (locationState == -2)
+	public void LocationUpdates(int classNum, double which) {
+		LocationManager lm =
+			(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		String s = "CalendarTrigger.Location";
+		PendingIntent pi = PendingIntent.getBroadcast(
+			this, 0 /*requestCode*/,
+			new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
+			PendingIntent.FLAG_UPDATE_CURRENT);
+		if (which == PrefsManager.LATITUDE_IDLE)
 		{
-			locationState = -1;
-			LocationManager lm =
-				(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-			Criteria cr = new Criteria();
-			cr.setAccuracy(Criteria.ACCURACY_FINE);
-			String s = "CalendarTrigger.Location_"
-				.concat(String.valueOf(classNum))
-				.concat("_")
-				.concat(PrefsManager.getClassName(this, classNum));
-			PendingIntent pi = PendingIntent.getBroadcast(
-				this, 0 /*requestCode*/,
-				new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
-				PendingIntent.FLAG_UPDATE_CURRENT);
-			PrefsManager.setLatitude(this, classNum, 300.0);
-			lm.requestSingleUpdate(cr, pi);
-			new MyLog(this,
-					  "Starting location wait for class "
-					  .concat(PrefsManager.getClassName(this, classNum)));
+			lm.removeUpdates(pi);
+			PrefsManager.setLocationState(this, false);
+			new MyLog(this, "Removing location updates");
+		}
+		else
+		{
+			List<String> ls = lm.getProviders(true);
+			if (which == PrefsManager.LATITUDE_FIRST)
+			{
+				if (ls.contains("gps"))
+				{
+					// The first update may take a long time if we are inside a
+					// building, but this is OK because we won't want to restore
+					// the state until we've left the building. If we don't
+					// force the use of GPS here, we may get a cellular network
+					// fix which can be some distance from our real position and
+					// if we then get a GPS fix while we are still in the
+					// building we can think that we have moved when in fact we
+					// haven't.
+					lm.requestSingleUpdate("gps", pi);
+					new MyLog(this,
+							  "Requesting first gps location for class "
+							  .concat(PrefsManager.getClassName(
+								  this, classNum)));
+				}
+				else
+				{
+					// If we don't have GPS, we use whatever the device can give
+					// us.
+					Criteria cr = new Criteria();
+					cr.setAccuracy(Criteria.ACCURACY_FINE);
+					lm.requestSingleUpdate(cr, pi);
+					new MyLog(this,
+							  "Requesting first fine location for class "
+							  .concat(PrefsManager.getClassName(
+								  this, classNum)));
+				}
+				PrefsManager.setLocationState(this, true);
+				PrefsManager.setLatitude(
+					this, classNum, PrefsManager.LATITUDE_FIRST);
+			}
+			else
+			{
+				float meters =
+					(float)PrefsManager.getAfterMetres(this, classNum);
+				if (ls.contains("gps"))
+				{
+					lm.requestLocationUpdates("gps", 5 * 60 * 1000, meters, pi);
+				}
+				else
+				{
+					Criteria cr = new Criteria();
+					cr.setAccuracy(Criteria.ACCURACY_FINE);
+					lm.requestLocationUpdates(5 * 60 * 1000, meters, cr, pi);
+				}
+			}
+		}
+	}
+
+	private void startLocationWait(int classNum, Intent intent) {
+		Location here =
+			intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
+		if (!PrefsManager.getLocationState(this))
+		{
+			LocationUpdates(classNum, PrefsManager.LATITUDE_FIRST);
 		}
 		else if (here != null)
 		{
-			float meters = (float)PrefsManager.getAfterMetres(this, classNum);
+			LocationUpdates(classNum, 0.0);
 			PrefsManager.setLatitude(this, classNum, here.getLatitude());
 			PrefsManager.setLongitude(this, classNum, here.getLongitude());
 			new MyLog(this,
@@ -232,55 +374,27 @@ public class MuteService extends IntentService
 						  .concat(((Double)here.getLatitude()).toString())
 						  .concat(", ")
 						  .concat(((Double)here.getLongitude()).toString()));
-			if (locationState == -1)
-			{
-				locationState = 0;
-				LocationManager lm =
-					(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-				Criteria cr = new Criteria();
-				cr.setAccuracy(Criteria.ACCURACY_FINE);
-				String s = "CalendarTrigger.Location";
-				PendingIntent pi = PendingIntent.getBroadcast(
-					this, 0 /*requestCode*/,
-					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
-					PendingIntent.FLAG_UPDATE_CURRENT);
-				lm.requestLocationUpdates(
-					5 * 60 * 1000, (float)(meters), cr, pi);
-				new MyLog(this,
-						  "Requesting location updates for class "
-						  .concat(PrefsManager.getClassName(this, classNum)));
-			}
 		}
 	}
 
 	// return true if not left geofence yet
 	private boolean checkLocationWait(
 		int classNum, double latitude, Intent intent) {
-		Location here = intent.getParcelableExtra(KEY_LOCATION_CHANGED);
+		if (!PrefsManager.getLocationState(this))
+		{
+			// we got reset, pretend we left the geofence
+			PrefsManager.setLatitude(
+				this, classNum, PrefsManager.LATITUDE_IDLE);
+			return false;
+		}
+		Location here =
+			intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
 		if (here != null)
 		{
-			float meters = (float)PrefsManager.getAfterMetres(this, classNum);
-			if (locationState == -1)
-			{
-				locationState = 0;
-				LocationManager lm =
-					(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-				Criteria cr = new Criteria();
-				cr.setAccuracy(Criteria.ACCURACY_FINE);
-				String s = "CalendarTrigger.Location";
-				PendingIntent pi = PendingIntent.getBroadcast(
-					this, 0 /*requestCode*/,
-					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
-					PendingIntent.FLAG_UPDATE_CURRENT);
-				lm.requestLocationUpdates(
-					5 * 60 * 1000, (float)(meters), cr, pi);
-				new MyLog(this,
-						  "Requesting location updates for class "
-						  .concat(PrefsManager.getClassName(this, classNum)));
-			}
-			if (latitude == 300.0)
+			if (latitude == PrefsManager.LATITUDE_FIRST)
 			{
 				// waiting for current location, and got it
+				LocationUpdates(classNum, 0.0);
 				PrefsManager.setLatitude(this, classNum, here.getLatitude());
 				PrefsManager.setLongitude(this, classNum, here.getLongitude());
 				new MyLog(this,
@@ -294,6 +408,7 @@ public class MuteService extends IntentService
 			}
 			// waiting for geofence exit
 			{
+				float meters = (float)PrefsManager.getAfterMetres(this, classNum);
 				float[] results = new float[1];
 				double longitude = PrefsManager.getLongitude(this, classNum);
 				Location.distanceBetween(latitude, longitude,
@@ -313,7 +428,8 @@ public class MuteService extends IntentService
 					return true;
 				}
 				// else we've exited the geofence
-				PrefsManager.setLatitude(this, classNum, 360.0);
+				PrefsManager.setLatitude(
+					this, classNum, PrefsManager.LATITUDE_IDLE);
 				new MyLog(this,
 						  "Exited geofence for class "
 						  .concat(PrefsManager.getClassName(this, classNum))
@@ -352,7 +468,8 @@ public class MuteService extends IntentService
 					wakelock.acquire();
 				}
 				orientationState = -1;
-				sm.registerListener(this, ams, SENSOR_DELAY_FASTEST);
+				sm.registerListener(this, ams,
+									SensorManager.SENSOR_DELAY_FASTEST);
 				new MyLog(this,
 						  "Requested accelerometer value for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
@@ -452,31 +569,152 @@ public class MuteService extends IntentService
 		return true;
 	}
 
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// Set the ringer mode. Returns true if mode changed.
+	boolean setCurrentRinger(AudioManager audio, int apiVersion, int mode) {
+		int current = PrefsManager.getCurrentMode(this);
+        int last =  PrefsManager.getLastRinger(this);
+		if (   (last != PrefsManager.RINGER_MODE_NONE)
+            && (last != current))
+		{
+			// user changed ringer mode
+			PrefsManager.setUserRinger(this, current);
+			if (current > mode)
+			{
+				return false;  // user set quieter mode since we last set it
+			}
+		}
+		if (   (current == mode)
+			|| (   (mode == PrefsManager.RINGER_MODE_NONE)
+			    && (current == PrefsManager.RINGER_MODE_NORMAL)))
+		{
+			return false;  // no change
+		}
+		if (apiVersion >= android.os.Build.VERSION_CODES.M)
+		{
+			NotificationManager nm = (NotificationManager)
+				getSystemService(Context.NOTIFICATION_SERVICE);
+			switch (mode)
+			{
+				case PrefsManager.RINGER_MODE_SILENT:
+					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_NONE);
+					}
+					else
+					{
+						PermissionFail(mode);
+					}
+					break;
+				case PrefsManager.RINGER_MODE_ALARMS:
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_ALARMS);
+						break;
+					}
+					/*FALLTHRU if no permission, treat as muted */
+				case PrefsManager.RINGER_MODE_DO_NOT_DISTURB:
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_PRIORITY);
+						break;
+					}
+					PermissionFail(mode);
+					/*FALLTHRU if no permission, treat as muted */
+				case PrefsManager.RINGER_MODE_MUTED:
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_ALL);
+					}
+					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+					break;
+				case PrefsManager.RINGER_MODE_VIBRATE:
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_ALL);
+					}
+					audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+					break;
+                case PrefsManager.RINGER_MODE_NORMAL:
+				case PrefsManager.RINGER_MODE_NONE:
+					if (nm.isNotificationPolicyAccessGranted())
+					{
+						nm.setInterruptionFilter(
+							NotificationManager.INTERRUPTION_FILTER_ALL);
+					}
+					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+					break;
+				default: // unknown
+					return false;
+			}
+		}
+		else
+		{
+			switch (mode) {
+				case PrefsManager.RINGER_MODE_MUTED:
+					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+					break;
+				case PrefsManager.RINGER_MODE_VIBRATE:
+					audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+					break;
+				case PrefsManager.RINGER_MODE_NONE:
+				case PrefsManager.RINGER_MODE_NORMAL:
+					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+					break;
+				default: // unknown
+					return false;
+			}
+		}
+		int user = PrefsManager.getUserRinger(this);
+		if (mode == PrefsManager.RINGER_MODE_NONE)
+		{
+			// restoring saved user ringer
+			PrefsManager.setUserRinger(this, PrefsManager.RINGER_MODE_NONE);
+		}
+		else if (user == PrefsManager.RINGER_MODE_NONE)
+		{
+			// no saved user ringer, save it
+			PrefsManager.setUserRinger(this, current);
+		}
+		// "Neither of the above" is possible if events with different
+		// ringer requirements overlap.
+		PrefsManager.setLastRinger(this, mode);
+		return true;
+	}
+
 	// Determine which event classes have become active
 	// and which event classes have become inactive
 	// and consequently what we need to do.
 	// Incidentally we compute the next alarm time.
+	@TargetApi(Build.VERSION_CODES.M)
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
+		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
 			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		int userRinger = audio.getRingerMode();
-		canRestoreRinger = userRinger == PrefsManager.getLastRinger(this);
-		wantRestoreRinger = false;
-		muteRequested = false;
-		vibrateRequested = false;
+		int wantedMode = PrefsManager.RINGER_MODE_NONE;
 		long nextAlarmTime = Long.MAX_VALUE;
 		nextAccelTime = Long.MAX_VALUE;
-		startEvent = "";
 		int classNum;
+		String startEvent = "";
 		String startClassName = "";
-		endEvent = "";
+		String endEvent = "";
 		String endClassName = "";
 		String alarmReason = "";
-		anyStepCountActive = false;
+		boolean startNotifyWanted = false;
+		boolean endNotifyWanted = false;
+		int phoneState = UpdatePhoneState(intent);
+		boolean anyStepCountActive = false;
 		boolean anyLocationActive = false;
-		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		PackageManager packageManager = getPackageManager();
 		final boolean haveStepCounter =
 			currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
@@ -500,110 +738,137 @@ public class MuteService extends IntentService
 				int ringerAction = PrefsManager.getRingerAction(this, classNum);
 				CalendarProvider.startAndEnd result
 					= provider.nextActionTimes(this, currentTime, classNum);
+
+				// true if user requested immediate event of this class
 				boolean triggered
 					= PrefsManager.isClassTriggered(this, classNum);
-				if (triggered) {
-					result.startEventName = "<immediate>";
-					result.endEventName = "<immediate>";
-				}
-				boolean active =    (result.startTime <= currentTime)
+
+				// true if an event of this class should be currently active
+				boolean active = (result.startTime <= currentTime)
 								 && (result.endTime > currentTime);
-				if (   (triggered || active)
-					&& (!PrefsManager.isClassActive(this, classNum)))
-				{
-					boolean dbg = checkOrientationWait(classNum);
-					new MyLog(this, "checkOrientationWait("
-							  		+ className
-							  		+ ") returns "
-							        + (dbg ? "true" : "false"));
-					if (dbg)
-					{
-						triggered = false;
-						active = false;
-						if ((nextAccelTime < nextAlarmTime)
-							&& (nextAccelTime > currentTime))
-						{
-							nextAlarmTime = nextAccelTime;
-							alarmReason =
-								" for next orientation check for event "
-									.concat(result.endEventName)
-									.concat(" of class ")
-									.concat(className);
-						}
-					}
-					dbg = checkConnectionWait(classNum);
-					new MyLog(this, "checkConnectionWait("
-									+ className
-									+ ") returns "
-									+ (dbg ? "true" : "false"));
-					if (dbg)
-					{
-						triggered = false;
-						active = false;
-					}
-				}
+
 				if (triggered)
 				{
-					PrefsManager.setClassTriggered(this, classNum, false);
+					long after = PrefsManager.getAfterMinutes(this, classNum)
+								 * 60000;
+					if (after > 0)
+					{
+						long triggerEnd = currentTime + after;
+						if (   (active && (triggerEnd > result.endTime))
+							|| ((!active) && (triggerEnd < result.startTime)))
+						{
+							result.endEventName = "<immediate>";
+							result.endTime = triggerEnd;
+						}
+						PrefsManager.setLastTriggerEnd(
+							this, classNum, result.endTime);
+					}
+					else if (!active)
+					{
+						// We will start the event (possibly after a state
+						// delay) and end it immediately: this is probably not
+						// a useful case, but we have to handle it correctly.
+						result.endEventName = "<immediate>";
+
+						// We do need this because we may have found an event
+						// which starts and ends in the future.
+						result.endTime = currentTime;
+					}
+					if (!active)
+					{
+						result.startEventName = "<immediate>";
+						result.startTime = currentTime;
+					}
+					if (after > 0)
+					{
+						// need to do this after above test
+						active = true;
+					}
 				}
 				if (triggered || active)
 				{
-					// class should be currently active
-					int resNum = R.string.mode_sonnerie_pas_de_change_pour;
-					if (ringerAction == AudioManager.RINGER_MODE_SILENT)
-					{
-						if (!muteRequested)
-						{
-							resNum = R.string.mode_sonnerie_change_silencieux_pour;
-							muteRequested = true;
-							wantRestoreRinger = false;
-						}
-					}
-					else if (ringerAction == AudioManager.RINGER_MODE_VIBRATE)
-					{
-						if (!(muteRequested | vibrateRequested))
-						{
-							resNum = R.string.mode_sonnerie_change_vibreur_pour;
-							vibrateRequested = true;
-							wantRestoreRinger = false;
-						}
-					}
 					if (!PrefsManager.isClassActive(this, classNum))
 					{
-						startEvent = result.startEventName;
-						if (PrefsManager.getNotifyStart(this, classNum))
+						// need to start this class
+
+						// True if not ready to start it yet.
+						boolean notNow =
+							phoneState == PrefsManager.PHONE_CALL_ACTIVE;
+						if (!notNow)
 						{
-							emitNotification(resNum, startEvent);
+							notNow = checkOrientationWait(classNum);
+							new MyLog(this, "checkOrientationWait("
+											+ className
+											+ ") returns "
+											+ (notNow ? "true" : "false"));
+							if (notNow)
+							{
+								if ((nextAccelTime < nextAlarmTime)
+									&& (nextAccelTime > currentTime))
+								{
+									nextAlarmTime = nextAccelTime;
+									alarmReason =
+										" for next orientation check for event "
+											.concat(result.endEventName)
+											.concat(" of class ")
+											.concat(className);
+								}
+							}
+							else
+							{
+								notNow = checkConnectionWait(classNum);
+								new MyLog(this, "checkConnectionWait("
+												+ className
+												+ ") returns "
+												+ (notNow ? "true" : "false"));
+							}
 						}
-						PrefsManager.setTargetSteps(this, classNum, 0);
-						PrefsManager.setLatitude(this, classNum, 360.0);
-						PrefsManager.setClassActive(this, classNum, true);
-						startClassName = className;
+						if (notNow)
+						{
+							// we can't start it yet
+							triggered = false;
+							active = false;
+						}
+						else
+						{
+							if (   (PrefsManager.getNotifyStart(this, classNum))
+								&& (ringerAction > wantedMode))
+							{
+								startNotifyWanted = true;
+								startEvent = result.startEventName;
+								startClassName = className;
+							}
+							PrefsManager.setTargetSteps(this, classNum, 0);
+							PrefsManager.setLatitude(this, classNum, 360.0);
+							PrefsManager.setClassActive(this, classNum, true);
+						}
 					}
-					if (result.endTime < nextAlarmTime)
+				}
+				if (active) // may have changed
+				{
+					// class should be currently active
+					if (ringerAction > wantedMode)
 					{
-						nextAlarmTime = result.endTime;
-						endClassName = className;
-						alarmReason = " for end of event "
-									  .concat(result.endEventName)
-									  .concat(" of class ")
-									  .concat(className);
+						wantedMode = ringerAction;
+						startEvent = result.startEventName;
+						startClassName = className;
 					}
 					PrefsManager.setLastActive(
 						this, classNum, result.endEventName);
 				}
-				if (triggered || !active)
+				if (!active)
 				{
 					// class should not be currently active
+
+					// check if we're waiting for movement
 					boolean done = false;
 					boolean waiting = false;
+					int aftersteps =
+						PrefsManager.getAfterSteps(this, classNum);
 					if (PrefsManager.isClassActive(this, classNum))
 					{
-						// ... but it is
-						PrefsManager.setClassActive(this, classNum, false);
 						done = true;
-						if (haveStepCounter
-							&& PrefsManager.getAfterSteps(this, classNum) > 0)
+						if (haveStepCounter && (aftersteps > 0))
 						{
 							if (lastCounterSteps < 0)
 							{
@@ -617,10 +882,8 @@ public class MuteService extends IntentService
 									done = false;
 								}
 							}
-							else if (lastCounterSteps >= 0)
+							else // sensor already running
 							{
-								int aftersteps =
-									 PrefsManager.getAfterSteps(this, classNum);
 								PrefsManager.setTargetSteps(
 									this, classNum,
 									lastCounterSteps + aftersteps);
@@ -636,9 +899,9 @@ public class MuteService extends IntentService
 								done = false;
 							}
 						}
-						if (   havelocation
-							&& (PrefsManager.getAfterMetres(
-									this, classNum) > 0))
+						if (havelocation
+							&& (PrefsManager.getAfterMetres(this, classNum)
+								> 0))
 						{
 							// keep it active while waiting for location
 							startLocationWait(classNum, intent);
@@ -646,16 +909,11 @@ public class MuteService extends IntentService
 							waiting = true;
 							done = false;
 						}
-						if (waiting)
-						{
-							PrefsManager.setClassWaiting(this, classNum, true);
-						}
+						PrefsManager.setClassActive(this, classNum, false);
 					}
-					else if (PrefsManager.isClassWaiting(this, classNum))
+					if (PrefsManager.isClassWaiting(this, classNum))
 					{
 						done = true;
-						int aftersteps
-							= PrefsManager.getAfterSteps(this, classNum);
 						if ((lastCounterSteps > -2) && (aftersteps > 0))
 						{
 							int steps
@@ -696,161 +954,151 @@ public class MuteService extends IntentService
 							done = false;
 						}
 					}
+					else if (waiting)
+					{
+						PrefsManager.setClassWaiting(this, classNum, true);
+					}
 					if (done)
 					{
-						String last =
-							PrefsManager.getLastActive(this, classNum);
 						if (   (PrefsManager.getRestoreRinger(this, classNum))
-							   && !(muteRequested | vibrateRequested))
+							&& (wantedMode == PrefsManager.RINGER_MODE_NONE))
 						{
-							wantRestoreRinger = true;
+							wantedMode = PrefsManager.getUserRinger(this);
 							if (PrefsManager.getNotifyEnd(this, classNum))
 							{
-								int resNum =
-									R.string.mode_sonnerie_pas_de_change_apres;
-								int ringer = PrefsManager.getUserRinger(this);
-								if (   (ringer != audio.getRingerMode())
-									&& canRestoreRinger)
-								{
-									resNum =
-										(ringer == AudioManager.RINGER_MODE_VIBRATE)
-										? R.string.mode_sonnerie_change_vibreur_apres
-										: R.string.mode_sonnerie_change_normale_apres;
-								}
-								emitNotification(resNum, last);
+								endNotifyWanted = true;
 							}
-							endEvent = last;
+							endEvent =
+								PrefsManager.getLastActive(this, classNum);
 							endClassName = className;
 						}
 						PrefsManager.setClassActive(this, classNum, false);
 						PrefsManager.setClassWaiting(this, classNum, false);
 					}
-					else if (waiting)
+					else if (waiting && (wantedMode < ringerAction))
 					{
-						if (ringerAction == AudioManager.RINGER_MODE_SILENT)
-						{
-							if (!muteRequested)
-							{
-								muteRequested = true;
-								wantRestoreRinger = false;
-							}
-						}
-						else if (ringerAction == AudioManager.RINGER_MODE_VIBRATE)
-						{
-							if (!(muteRequested | vibrateRequested))
-							{
-								vibrateRequested = true;
-								wantRestoreRinger = false;
-							}
-						}
-					}
-					if (   (result.startTime < nextAlarmTime)
-					    && (result.startTime > currentTime))
-					{
-						nextAlarmTime = result.startTime;
-						alarmReason = " for start of event "
-							.concat(result.startEventName)
-							.concat(" of class ")
-							.concat(className);
+						wantedMode = ringerAction;
 					}
 				}
-			}
-		}
-		if (muteRequested)
-		{
-			if (PrefsManager.getLastRinger(this) == PrefsManager
-				.RINGER_MODE_NONE)
-			{
-				PrefsManager.setUserRinger(this, userRinger);
-			}
-			audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-			PrefsManager.setLastRinger(this,AudioManager.RINGER_MODE_SILENT);
-			if (!startEvent.equals(""))
-			{
-				new MyLog(this, "Setting ringer to "
-					.concat(MyLog.rm(AudioManager.RINGER_MODE_SILENT))
-					.concat(" for start of event ")
-					.concat(startEvent)
-					.concat(" of class ")
-					.concat(startClassName));
-			}
-		}
-		else if (vibrateRequested)
-		{
-			if (PrefsManager.getLastRinger(this) == PrefsManager
-				.RINGER_MODE_NONE)
-			{
-				PrefsManager.setUserRinger(this, userRinger);
-			}
-			audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-			PrefsManager.setLastRinger(this,AudioManager.RINGER_MODE_VIBRATE);
-			if (!startEvent.equals(""))
-			{
-				new MyLog(this, "Setting ringer to "
-					.concat(MyLog.rm(AudioManager.RINGER_MODE_VIBRATE))
-					.concat(" for start of event ")
-					.concat(startEvent)
-					.concat(" of class ")
-					.concat(startClassName));
-			}
-		}
-		else if (wantRestoreRinger)
-		{
-			int ringer = PrefsManager.getUserRinger(this);
-			if ((ringer != userRinger) && canRestoreRinger)
-			{
-				audio.setRingerMode(ringer);
-				if (!endEvent.equals(""))
+				if (   (result.endTime < nextAlarmTime)
+					&& (result.endTime > currentTime))
 				{
-					new MyLog(this, "Restoring ringer to "
-						.concat(MyLog.rm(ringer))
-						.concat(" after event ")
-						.concat(endEvent)
+					nextAlarmTime = result.endTime;
+					alarmReason = " for end of event "
+						.concat(result.endEventName)
 						.concat(" of class ")
-						.concat(endClassName));
+						.concat(className);
+				}
+				if (   (result.startTime < nextAlarmTime)
+					&& (result.startTime > currentTime))
+				{
+					nextAlarmTime = result.startTime;
+					alarmReason = " for start of event "
+						.concat(result.startEventName)
+						.concat(" of class ")
+						.concat(className);
+				}
+				if (triggered)
+				{
+					PrefsManager.setClassTriggered(this, classNum, false);
 				}
 			}
-			PrefsManager.setLastRinger(this, PrefsManager.RINGER_MODE_NONE);
 		}
-
-		long lastAlarm = PrefsManager.getLastAlarmTime(this);
-		// Try always setting alarm to see if it works better
-		if (true/*nextAlarmTime != lastAlarm*/)
+		String shortText;
+		String longText;
+		if (startNotifyWanted)
 		{
-			int flags = 0;
-			PendingIntent pIntent = PendingIntent.getBroadcast(
-				this, 0 /*requestCode*/,
-				new Intent("CalendarTrigger.Alarm", Uri.EMPTY,
-					this, StartServiceReceiver.class),
-					PendingIntent.FLAG_UPDATE_CURRENT);
-			AlarmManager alarmManager = (AlarmManager)
-				getSystemService(Context.ALARM_SERVICE);
-			// Remove previous alarms
-			if (lastAlarm != Long.MAX_VALUE)
+			shortText = PrefsManager.getRingerSetting(this, wantedMode);
+			longText = shortText
+					   + " "
+					   + getString(R.string.eventstart)
+					   + " "
+					   + startEvent
+					   + " "
+					   + getString(R.string.ofclass)
+					   + " "
+					   + startClassName;
+			emitNotification(shortText, longText);
+		}
+		if (endNotifyWanted)
+		{
+				shortText = PrefsManager.getRingerSetting(this, wantedMode);
+				longText = shortText
+						   + " "
+						   + getString(R.string.eventend)
+						   + " "
+						   + endEvent
+						   + " "
+						   + getString(R.string.ofclass)
+						   + " "
+						   + endClassName;
+				emitNotification(shortText, longText);
+		}
+		if (setCurrentRinger(audio, currentApiVersion, wantedMode))
+		{
+			if (startEvent != "")
+			{
+				new MyLog(this,
+						  "Setting ringer mode to "
+						  + PrefsManager.getEnglishStateName(this,
+															 wantedMode)
+						  + " for start of event "
+						  + startEvent
+						  + " of class "
+						  + startClassName);
+
+			}
+			if (endEvent != "")
+			{
+				new MyLog(this,
+						  "Setting ringer mode to "
+						  + PrefsManager.getEnglishStateName(this,
+															 wantedMode)
+						  + " for end of event "
+						  + endEvent
+						  + " of class "
+						  + endClassName);
+
+			}
+		}
+		PendingIntent pIntent = PendingIntent.getBroadcast(
+			this, 0 /*requestCode*/,
+			new Intent("CalendarTrigger.Alarm", Uri.EMPTY,
+				this, StartServiceReceiver.class),
+				PendingIntent.FLAG_UPDATE_CURRENT);
+		AlarmManager alarmManager = (AlarmManager)
+			getSystemService(Context.ALARM_SERVICE);
+		// Update alarm if it has changed
+		// Avoid recreating alarm if it has not changed because Android can
+		// silently fail to do so if the alarm time is too soon
+		if (PrefsManager.getLastAlarmTime(this) != nextAlarmTime)
+		{
+			if (nextAlarmTime == Long.MAX_VALUE)
 			{
 				alarmManager.cancel(pIntent);
 				new MyLog(this, "Alarm cancelled");
 			}
-
-			if (nextAlarmTime != Long.MAX_VALUE)
+			else
 			{
-				// Add new alarm
-				alarmManager.setExact(
-					AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
+				{
+					alarmManager.setExactAndAllowWhileIdle(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
+				else
+				{
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
 				DateFormat df = DateFormat.getDateTimeInstance();
 				new MyLog(this, "Alarm time set to "
-								.concat(df.format(nextAlarmTime))
-								.concat(alarmReason));
+					.concat(df.format(nextAlarmTime))
+					.concat(alarmReason));
+				PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 			}
 		}
-		else
-		{
-			DateFormat df = DateFormat.getDateTimeInstance();
-			new MyLog(this, "Alarm unchanged at "
-							.concat(df.format(nextAlarmTime)));
-		}
-		PrefsManager.setLastAlarmTime(this, nextAlarmTime);
-		PrefsManager.setLastInvocationTime(this,currentTime);
+
+		PrefsManager.setLastInvocationTime(this, currentTime);
 		if (!anyStepCountActive)
 		{
 			if (lastCounterSteps >= 0)
@@ -864,19 +1112,10 @@ public class MuteService extends IntentService
 		}
 		if (!anyLocationActive)
 		{
-			if (locationState == 0)
+			if (PrefsManager.getLocationState(this))
 			{
-				String s = "CalendarTrigger.Location";
-				PendingIntent pi = PendingIntent.getBroadcast(
-					this, 0 /*requestCode*/,
-					new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
-					PendingIntent.FLAG_UPDATE_CURRENT);
-				LocationManager lm = (LocationManager)getSystemService(
-					Context.LOCATION_SERVICE);
-				lm.removeUpdates(pi);
-				new MyLog(this, "Called lm.removeUpdates()");
+				LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 			}
-			locationState = -2;
 		}
 		if (   (wakelock != null)
 			&& (lastCounterSteps == -2)
@@ -887,12 +1126,202 @@ public class MuteService extends IntentService
 		}
 	}
 
+// Commented out as we don't want this debugging code in the real app
+// It runs a test to see which combinations of interruption filter and ringer
+// mode are actually valid on Marshmallow and later versions
+/*
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// debugging code
+	private void currentRingerMode() {
+		String s = "Current state is ";
+		int filter =
+			((NotificationManager)
+				getSystemService(Context.NOTIFICATION_SERVICE))
+				.getCurrentInterruptionFilter();
+		switch (filter) {
+			case  NotificationManager.INTERRUPTION_FILTER_NONE:
+				s += "INTERRUPTION_FILTER_NONE";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_ALARMS:
+				s += "INTERRUPTION_FILTER_ALARMS";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+				s += "INTERRUPTION_FILTER_PRIORITY";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_ALL:
+				s += "INTERRUPTION_FILTER_ALL";
+				break;
+			default:
+				s += "Unknown interruption filter " + String.valueOf(filter);
+				break;
+		}
+		AudioManager audio
+			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		int mode = audio.getRingerMode();
+		switch (mode) {
+			case AudioManager.RINGER_MODE_NORMAL:
+				s += ", RINGER_MODE_NORMAL";
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				s += ", RINGER_MODE_VIBRATE";
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				s += ", RINGER_MODE_SILENT";
+				break;
+			default:
+				s += ", Unknown ringer mode " + String.valueOf(mode);
+				break;
+		}
+		new MyLog(this, s);
+	}
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// debugging code
+	private void testRingerMode1(int filter, int mode) {
+		String s = "Setting state to ";
+		switch (filter)
+		{
+			case NotificationManager.INTERRUPTION_FILTER_NONE:
+				s += "INTERRUPTION_FILTER_NONE";
+				break;
+			case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+				s += "INTERRUPTION_FILTER_ALARMS";
+				break;
+			case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+				s += "INTERRUPTION_FILTER_PRIORITY";
+				break;
+			case NotificationManager.INTERRUPTION_FILTER_ALL:
+				s += "INTERRUPTION_FILTER_ALL";
+				break;
+			default:
+				s += "Unknown interruption filter " + String.valueOf(filter);
+				break;
+		}
+		((NotificationManager)
+			getSystemService(Context.NOTIFICATION_SERVICE))
+			.setInterruptionFilter(filter);
+		switch (mode)
+		{
+			case AudioManager.RINGER_MODE_NORMAL:
+				s += ", RINGER_MODE_NORMAL";
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				s += ", RINGER_MODE_VIBRATE";
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				s += ", RINGER_MODE_SILENT";
+				break;
+			default:
+				s += ", Unknown ringer mode " + String.valueOf(mode);
+				break;
+		}
+		AudioManager audio
+			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		audio.setRingerMode(mode);
+		new MyLog(this, s);
+		currentRingerMode();
+	}
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// debugging code
+	private void testRingerMode2(int filter, int mode) {
+		String s = "Setting state to ";
+		switch (mode) {
+			case AudioManager.RINGER_MODE_NORMAL:
+				s += "RINGER_MODE_NORMAL";
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				s += "RINGER_MODE_VIBRATE";
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				s += "RINGER_MODE_SILENT";
+				break;
+			default:
+				s += "Unknown ringer mode " + String.valueOf(mode);
+				break;
+		}
+		AudioManager audio
+			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		audio.setRingerMode(mode);
+		switch (filter) {
+			case  NotificationManager.INTERRUPTION_FILTER_NONE:
+				s += ", INTERRUPTION_FILTER_NONE";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_ALARMS:
+				s += ", INTERRUPTION_FILTER_ALARMS";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+				s += ", INTERRUPTION_FILTER_PRIORITY";
+				break;
+			case  NotificationManager.INTERRUPTION_FILTER_ALL:
+				s += ", INTERRUPTION_FILTER_ALL";
+				break;
+			default:
+				s += ", Unknown interruption filter " + String.valueOf(filter);
+				break;
+		}
+		((NotificationManager)
+			getSystemService(Context.NOTIFICATION_SERVICE))
+			.setInterruptionFilter(filter);
+		new MyLog(this, s);
+		currentRingerMode();
+	}
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// debugging code
+	private void exerciseModes() {
+		currentRingerMode();
+		int filter = NotificationManager.INTERRUPTION_FILTER_NONE;
+		int mode =  AudioManager.RINGER_MODE_SILENT;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_VIBRATE;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_NORMAL;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		filter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+		mode =  AudioManager.RINGER_MODE_SILENT;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_VIBRATE;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_NORMAL;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		filter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+		mode =  AudioManager.RINGER_MODE_SILENT;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_VIBRATE;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_NORMAL;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		filter = NotificationManager.INTERRUPTION_FILTER_ALL;
+		mode =  AudioManager.RINGER_MODE_SILENT;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_VIBRATE;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+		mode =  AudioManager.RINGER_MODE_NORMAL;
+		testRingerMode1(filter, mode);
+		testRingerMode2(filter, mode);
+	}
+*/
 
 	@Override
 	public void onHandleIntent(Intent intent) {
 		new MyLog(this, "onHandleIntent("
 				  .concat(intent.toString())
 				  .concat(")"));
+		if (intent.getAction() == MUTESERVICE_RESET) {
+			doReset();
+		}
 		updateState(intent);
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}

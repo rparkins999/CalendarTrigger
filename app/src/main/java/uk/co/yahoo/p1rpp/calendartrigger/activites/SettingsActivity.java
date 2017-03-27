@@ -6,11 +6,8 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -39,26 +36,8 @@ public class SettingsActivity extends Activity {
     }
 
     private void doReset() {
-		int n = PrefsManager.getNumClasses(this);
-		int classNum;
-		for (classNum = 0; classNum < n; ++classNum)
-        {
-            if (PrefsManager.isClassUsed(this, classNum))
-            {
-				PrefsManager.setClassTriggered(this, classNum, false);
-                PrefsManager.setClassActive(this, classNum, false);
-				PrefsManager.setClassWaiting(this, classNum, false);
-            }
-        }
-        String s = "CalendarTrigger.Location";
-        PendingIntent pi = PendingIntent.getBroadcast(
-            this, 0 /*requestCode*/,
-            new Intent(s, Uri.EMPTY, this, MuteService.StartServiceReceiver.class),
-            PendingIntent.FLAG_UPDATE_CURRENT);
-        LocationManager lm = (LocationManager)getSystemService(
-            Context.LOCATION_SERVICE);
-        lm.removeUpdates(pi);
-        MuteService.doReset();
+        startService(new Intent(
+            MuteService.MUTESERVICE_RESET, null, this, MuteService.class));
     }
 
     @Override
@@ -88,6 +67,47 @@ public class SettingsActivity extends Activity {
                 return true;
             }
         });
+        tv = (TextView)findViewById (R.id.laststatetext);
+        int mode = PrefsManager.getLastRinger(this);
+        tv.setText(getString(R.string.laststatedetail,
+                             PrefsManager.getRingerStateName(this, mode)));
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.lastStateHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        tv = (TextView)findViewById (R.id.currentstatetext);
+        mode = PrefsManager.getCurrentMode(this);
+        tv.setText(getString(R.string.currentstatedetail,
+                             PrefsManager.getRingerStateName(this, mode)));
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.currentStateHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        tv = (TextView)findViewById (R.id.wakelocktext);
+        if (MuteService.wakelock == null)
+        {
+            tv.setText(getString(R.string.nowakelock));
+        }
+        else
+        {
+            tv.setText(getString(R.string.yeswakelock));
+        }
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.wakelockHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         tv = (TextView)findViewById (R.id.logfiletext);
         String s = MyLog.LogFileName();
         tv.setText(getString(R.string.Logging, s));
@@ -97,10 +117,26 @@ public class SettingsActivity extends Activity {
                 PrefsManager.setLoggingMode(me, true);
             }
         });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.loggingOnHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.radioLoggingOff);
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 PrefsManager.setLoggingMode(me, false);
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.loggingOffHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
             }
         });
         RadioGroup rg = (RadioGroup)findViewById(R.id.radioGroupLogging);

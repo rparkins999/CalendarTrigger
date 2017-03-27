@@ -6,6 +6,10 @@
 <resources>
 
     <string name="app_name">Calendar Trigger</string>
+    <string name="servicename">Calendar Trigger Background Server</string>
+    <string name="new_event_class">New Event Class</string>
+    <string name="create_it">Create</string>
+    <string name="cancel_create">Cancel</string>
     <string name="settings">Debugging</string>
     <string name="lastcalldetail">Last called at %s</string>
     <string name="lastCallHelp">This is the time at which CalendarTrigger was
@@ -14,6 +18,27 @@
     <string name="lastalarmdetail">Last alarm set for %s</string>
     <string name="lastAlarmHelp">This is the time of the alarm set by
         CalendarTrigger the last time it was called.</string>
+    <string name="laststatedetail">Ringer state last set to %s</string>
+    <string name="lastStateHelp">This is the last ringer state set by
+        CalendarTrigger.</string>
+    <string name="currentstatedetail">Current actual ringer state is %s</string>
+    <string name="currentStateHelp">This is the actual current ringer
+        state.</string>
+    <string name="yeswakelock">Holding a wake lock</string>
+    <string name="nowakelock">Not holding a wake lock</string>
+    <string name="wakelockHelp">This tells if CalendarTrigger is holding a wake
+        lock.</string>
+    <string name="Logging">Logging to file %s</string>
+    <string name="LoggingOn">On</string>
+    <string name="loggingOnHelp">This enables logging. The log file directory
+        and the log file itself are created when necessary if nonexistent.
+        </string>
+    <string name="LoggingOff">Off</string>
+    <string name="loggingOffHelp">This disables logging. The log file if it
+		exists is not cleared.</string>
+    <string name="logfail">Cannot open log file</string>
+    <string name="lognodir">Cannot create log directory</string>
+    <string name="lognodirdetail">exists but is a plain file</string>
     <string name="clearLog">Clear Log</string>
     <string name="clearLogHelp">This button deletes the log file. The next
         attempt to write to the log will automatically recreate it, so this
@@ -24,37 +49,30 @@
         choose a suitable application to do this.</string>
     <string name="notexteditor">Cannot find a text editor to display log
         file</string>
-    <string name="new_event_class">New Event Class</string>
-    <string name="create_it">Create</string>
-    <string name="cancel_create">Cancel</string>
+    <string name="reset">Reset</string>
+    <string name="resethelp">This button forces all classes to be inactive and
+        stops all temporary waits. It is for use if the application gets stuck
+        or if you have deleted a calendar event while it was active. Note that
+        if you are between the start and finish times of a calendar event, any
+        class(es) to which that event belongs will immediately become active
+        again.</string>
     <string name="edit_event_class">Edit class %s</string>
-    <string name="erreur_listing_agendas">Error listing your agendas ; is Google Agenda installed ?</string>
-    <string name="chargement">Loading&#8230;</string>
-    <string name="synchronise">Synchronized</string>
-    <string name="non_synchronise">Not synchronized</string>
-    <string name="rafraichir_calendriers">Refresh calendars</string>
-    <string name="rafraichir_calendriers_short">Refresh calendars</string>
-    <string name="afficher_notification">Show a notification</string>
-    <string name="mode_sonnerie_change">Ringer mode </string>
-    <string name="mode_sonnerie_pas_de_change_pour">unchanged at start of event
-    </string>
-    <string name="mode_sonnerie_change_silencieux_pour">switched to silent for the event </string>
-    <string name="mode_sonnerie_change_vibreur_pour">switched to vibrate for the event </string>
-    <string name="mode_sonnerie_pas_de_change_apres">unchanged at end of event
-    </string>
-    <string name="mode_sonnerie_change_vibreur_apres">restored to vibrate after the event </string>
-    <string name="mode_sonnerie_change_normale_apres">restored to sound after the event </string>
-    <string name="Logging">Logging to file %s</string>
-    <string name="LoggingOn">On</string>
-    <string name="LoggingOff">Off</string>
-    <string name="logfail">Cannot open log file</string>
-    <string name="logfilename">File </string>
-    <string name="name">name</string>
     <string name="longpresslabel">Long press here for help information.</string>
     <string name="editclassHelp">This screen allows you to define the
         characteristics of class %s or delete it. When you have done, press
         the back button. A long press on any of the buttons below will bring up
         some help information about it.</string>
+    <string name="deleteButtonLabel">Delete class %s (no undo)</string>
+    <string name="deleteButtonHelp">This button deletes the class and
+        cancels any actions scheduled for calendar events in this class. This
+        action cannot be undone. The events themselves are not affected.
+    </string>
+    <string name="defineButtonLabel">Conditions for a calendar event to be in
+        class %s</string>
+    <string name="defineButtonHelp">Define the conditions for a calendar event
+        to be in this class. An event can be in more than one class: in
+        that case it will trigger the action(s) for each class it belongs to.
+    </string>
     <string name="defineclasspopup">This screen allows you to specify the
         conditions for a calendar event to be in class %s. All conditions
         must be satisfied for the event to be in the class, but each condition
@@ -112,17 +130,6 @@
     <string name="onlyattendees">attendees</string>
     <string name="onlynoattendees">no attendees</string>
     <string name="attendeesandnot">either</string>
-    <string name="deleteButtonLabel">Delete class %s (no undo)</string>
-    <string name="deleteButtonHelp">This button deletes the class and
-        cancels any actions scheduled for calendar events in this class. This
-        action cannot be undone. The events themselves are not affected.
-    </string>
-    <string name="defineButtonLabel">Conditions for a calendar event to be in
-        class %s</string>
-    <string name="defineButtonHelp">Define the conditions for a calendar event
-        to be in this class. An event can be in more than one class: in
-        that case it will trigger the action(s) for each class it belongs to.
-    </string>
     <string name="defineStartLabel">Event start definition for class %s</string>
     <string name="defineStartHelp">Define the conditions for the event start
         action(s) to be triggered for an event in this class.</string>
@@ -181,12 +188,6 @@
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in this class.</string>
-    <string name="eventNowLabel">Immediate event of class %s</string>
-    <string name="eventNowHelp">This button triggers a temporary event of this
-        class which starts immediately and then ends immediately. It can be
-        useful when the class provides a movement delay on its end action, if
-        for example you walk into a quiet room and want to mute your ringer
-        until you leave the room again.</string>
     <string name="actionstartpopup">This screen allows you to define what
         action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help
@@ -196,11 +197,37 @@
     <string name="setRingerHelp">This sets the state of the ringer during the
         event. CalendarTrigger will only set the ringer to a state \"weaker\"
         than it is already in, as set by the user or an overlapping event.
-        Silent is weaker than vibrate which is weaker than normal ringtone.
+        Silent is weaker than alarms-only which is weaker than muted which is
+        weaker than do-not-disturb which is weaker than vibrate which is
+        weaker than normal ringtone.
     </string>
     <string name="normal">normal</string>
+    <string name="normalhelp">the normal mode in which all notification sounds
+        are played and the phone can ring: since CalendarTrigger will only set
+        a weaker mode, this is effectively \"no change\"</string>
     <string name="vibrate">vibrate</string>
+    <string name="vibratehelp">the device will vibrate instead of playing a
+        ringtone</string>
+    <string name="priority">do not disturb</string>
+    <string name="priorityhelp">a do not disturb mode which can be
+        configured from the device\'s settings page</string>
+	<string name="priorityforbidden">This option is disabled because
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set do not disturb mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
+    <string name="unsupported">The device\'s operating system does not
+        support this option.</string>
+    <string name="muted">muted</string>
+    <string name="mutedhelp">the phone will not ring but other sounds may be
+        played</string>
+    <string name="alarms">alarms</string>
+    <string name="alarmshelp">only alarms (as defined by Android) will sound
+       </string>
+	<string name="alarmsforbidden">This option is disabled because
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set alarms only mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
     <string name="silent">silent</string>
+    <string name="silenthelp">all sounds including media play are suppressed
+    </string>
+	<string name="silentforbidden">This option is disabled because
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set sielnt mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
     <string name="startNotifyHelp">If this is checked, CalendarTrigger will
         show a notification at the start of the event. The way in which the
         notification is presented depends on the user\'s notification settings.
@@ -269,10 +296,50 @@
         show a notification at the end of the event. The way in which the
         notification is presented depends on the user\'s notification settings.
     </string>
-    <string name="reset">Reset</string>
-    <string name="resethelp">This button forces all classes to be inactive and
-        stops all temporary waits. It is for use if the application gets stuck.
-        Note that if you are between the start and finish times of a calendar
-        event, any class(es) to which that event belongs will immediately
-        become active again.</string>
+    <string name="eventNowLabel">Immediate event of class %s</string>
+    <string name="eventNowHelp">This button triggers a temporary event of this
+        class which starts immediately and then ends immediately. It can be
+        useful when the class provides a movement delay on its end action, if
+        for example you walk into a quiet room and want to mute your ringer
+        until you leave the room again.</string>
+    <string name="erreur_listing_agendas">Error listing your agendas; is Google Agenda installed?</string>
+    <string name="chargement">Loading&#8230;</string>
+    <string name="synchronise">Synchronized</string>
+    <string name="non_synchronise">Not synchronized</string>
+    <string name="rafraichir_calendriers">Refresh calendars</string>
+    <string name="rafraichir_calendriers_short">Refresh calendars</string>
+    <string name="afficher_notification">Show a notification</string>
+    <string name="mode_sonnerie_change">Ringer mode </string>
+    <string name="mode_sonnerie_pas_de_change_pour">unchanged at start of event
+    </string>
+    <string name="mode_sonnerie_change_silencieux_pour">switched to silent for the event </string>
+    <string name="mode_sonnerie_change_vibreur_pour">switched to vibrate for the event </string>
+    <string name="mode_sonnerie_pas_de_change_apres">unchanged at end of event
+    </string>
+    <string name="mode_sonnerie_change_vibreur_apres">restored to vibrate after the event </string>
+    <string name="mode_sonnerie_change_normale_apres">restored to sound after the event </string>
+    <string name="logfilename">File </string>
+    <string name="name">name</string>
+    <string name="settingTo">Setting audio mode to</string>
+    <string name="ringerModeNone">unchanged</string>
+    <string name="ringerModeNormal">normal</string>
+    <string name="ringerModeVibrate">vibrate</string>
+    <string name="ringerModeNoDisturb">do-not-disturb</string>
+    <string name="ringerModeMuted">muted</string>
+    <string name="ringerModeAlarms">alarms only</string>
+    <string name="ringerModeSilent">totally silent</string>
+    <string name="invalidmode">[error-invalid]</string>
+    <string name="eventstart">for start of event</string>
+    <string name="ofclass">of class</string>
+    <string name="eventend">for end of event</string>
+	<string name="permissionfail">No permission ACCESS_NOTIFICATION_POLICY
+		</string>
+	<string name="permissionfailbig">CalendarTrigger no longer has permission
+		ACCESS_NOTIFICATION_POLICY. It needs this permission to set do not
+        disturb mode.</string>
+	<string name="readphonefail">No permission READ_PHONE_STATE
+		</string>
+	<string name="readphonefailbig">CalendarTrigger no longer has permission
+		READ_PHONE_STATE. It needs this permission to prevent it from muting
+        while a call is active.</string>
 </resources>

@@ -5,8 +5,11 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger;
 
+import android.annotation.TargetApi;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -14,7 +17,7 @@ import java.util.StringTokenizer;
 public class PrefsManager {
 
 	private static final String PREFS_NAME = "mainPreferences";
-	
+
 	private static final String PREF_LOGGING = "logging";
 
 	public static void setLoggingMode(Context context, boolean IsOn) {
@@ -27,10 +30,41 @@ public class PrefsManager {
 					  .getBoolean(PREF_LOGGING, false);
 	}
 
+	private static final String PREF_PHONE_STATE = "phoneState";
+
+	// Our idea of the phone state differs from Android's because we consider
+	// ringing when a call is active to be "active" whereas Android thinks it
+	// is "ringing".
+	public static final int PHONE_IDLE = 0;
+	public static final int PHONE_RINGING = 1;
+	public static final int PHONE_CALL_ACTIVE = 2;
+
+	public static void setPhoneState(Context context, int state) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putInt(PREF_PHONE_STATE, state).commit();
+	}
+
+	public static int getPhoneState(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(PREF_PHONE_STATE, PHONE_IDLE);
+	}
+
+	private static final String PREF_LOCATION_ACTIVE = "locationActive";
+
+	public static void setLocationState(Context context, boolean state) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putBoolean(PREF_LOCATION_ACTIVE, state).commit();
+	}
+
+	public static boolean getLocationState(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_LOCATION_ACTIVE, false);
+	}
+
 	private static final String NUM_CLASSES = "numClasses";
 
 	private static int getNumClasses(SharedPreferences prefs) {
-		// hack for first use of new version only
+		// hack for first use of new version only                          la
 		if (prefs.contains("delay"))
 		{
 			// old style preferences, remove
@@ -100,6 +134,197 @@ public class PrefsManager {
 	public static long getLastAlarmTime(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getLong(PREF_LAST_ALARM, Long.MAX_VALUE);
+	}
+
+	// used for "nothing saved"
+	public static final int RINGER_MODE_NONE = -99;
+
+	// Our own set of states: AudioManager			NotificationManager
+	// 						  RINGER_MODE_NORMAL	INTERRUPTION_FILTER_ALL
+	public static final int RINGER_MODE_NORMAL = 10;
+
+	//                        RINGER_MODE_VIBRATE	INTERRUPTION_FILTER_ALL
+	public static final int RINGER_MODE_VIBRATE = 20;
+
+	// (do not disturb)       RINGER_MODE_NORMAL	INTERRUPTION_FILTER_PRIORITY
+	public static final int RINGER_MODE_DO_NOT_DISTURB = 30;
+
+	//                        RINGER_MODE_SILENT    INTERRUPTION_FILTER_ALL
+	public static final int RINGER_MODE_MUTED = 40;
+
+	//                        RINGER_MODE_NORMAL    INTERRUPTION_FILTER_ALARMS
+	public static final int RINGER_MODE_ALARMS = 50;
+
+	//                        RINGER_MODE_SILENT    INTERRUPTION_FILTER_NONE
+	public static final int RINGER_MODE_SILENT = 60;
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	// Work out what the current ringer state should be from our set of states
+	public static int getCurrentMode(Context context)
+	{
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		{
+			// Marshmallow or later, has Do Not Disturb mode
+			switch (
+				((NotificationManager)
+					context.getSystemService(Context.NOTIFICATION_SERVICE)
+				).getCurrentInterruptionFilter())
+			{
+				case  NotificationManager.INTERRUPTION_FILTER_NONE:
+					return RINGER_MODE_SILENT;
+				case  NotificationManager.INTERRUPTION_FILTER_ALARMS:
+					return RINGER_MODE_ALARMS;
+				case  NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+					return RINGER_MODE_DO_NOT_DISTURB;
+				default: // INTERRUPTION_FILTER_ALL or unknown
+					// fall out into non-Marshmallow case
+			}
+		}
+		// older OS, just use basic ringer modes
+		AudioManager audio
+			= (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+		switch (audio.getRingerMode())
+		{
+			case AudioManager.RINGER_MODE_SILENT:
+				return RINGER_MODE_MUTED;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				return RINGER_MODE_VIBRATE;
+			default:
+				return RINGER_MODE_NORMAL;
+		}
+	}
+
+	public static String getRingerStateName(Context context, int mode) {
+		int res;
+		switch (mode)
+		{
+			case RINGER_MODE_NONE:
+				res = R.string.ringerModeNone;
+				break;
+			case RINGER_MODE_NORMAL:
+				res = R.string.ringerModeNormal;
+				break;
+			case RINGER_MODE_VIBRATE:
+				res = R.string.ringerModeVibrate;
+				break;
+			case RINGER_MODE_DO_NOT_DISTURB:
+				res = R.string.ringerModeNoDisturb;
+				break;
+			case RINGER_MODE_MUTED:
+				res = R.string.ringerModeMuted;
+				break;
+			case RINGER_MODE_ALARMS:
+				res = R.string.ringerModeAlarms;
+				break;
+			case RINGER_MODE_SILENT:
+				res = R.string.ringerModeSilent;
+				break;
+			default:
+				res = R.string.invalidmode;
+		}
+		return context.getString(res);
+	}
+
+	public static String getEnglishStateName(Context context, int mode) {
+		switch (mode)
+		{
+			case RINGER_MODE_NONE:
+				return "unchanged";
+			case RINGER_MODE_NORMAL:
+				return "normal";
+			case RINGER_MODE_VIBRATE:
+				return "vibrate";
+			case RINGER_MODE_DO_NOT_DISTURB:
+				return "do-not-disturb";
+			case RINGER_MODE_MUTED:
+				return "muted";
+			case RINGER_MODE_ALARMS:
+				return "alarms only";
+			case RINGER_MODE_SILENT:
+				return "silent";
+			default:
+				return "[error-invalid]";
+		}
+	}
+
+	public static String getRingerSetting(Context context, int mode) {
+		return context.getString(R.string.settingTo)
+			   + " "
+			   + getRingerStateName(context, mode);
+	}
+
+	// last user's ringer state
+	private static final String USER_RINGER = "userRinger";
+
+	public static void setUserRinger(Context context, int userRinger) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(USER_RINGER, userRinger).commit();
+	}
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	public static int getUserRinger(Context context) {
+		int userRinger
+			=  context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(USER_RINGER, RINGER_MODE_NONE);
+		// handle old-style preference
+		switch (userRinger)
+		{
+			case AudioManager.RINGER_MODE_NORMAL:
+				userRinger = RINGER_MODE_NORMAL;
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				userRinger = RINGER_MODE_VIBRATE;
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				userRinger = RINGER_MODE_MUTED;
+				break;
+			default: break;
+		}
+		// just in case the user upgraded, MUTED is no longer available
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		{
+			if (userRinger == RINGER_MODE_MUTED) {
+				userRinger = RINGER_MODE_SILENT;
+			}
+		}
+		return userRinger;
+	}
+
+	// last ringer state set by this app (to check if user changed it)
+	private static final String LAST_RINGER = "lastRinger";
+
+	public static void setLastRinger(Context context, int lastRinger) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(LAST_RINGER, lastRinger).commit();
+	}
+
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	public static int getLastRinger(Context context) {
+		int lastRinger
+			=  context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(LAST_RINGER, RINGER_MODE_NONE);
+		// handle old-style preference
+		switch (lastRinger)
+		{
+			case AudioManager.RINGER_MODE_NORMAL:
+				lastRinger = RINGER_MODE_NORMAL;
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				lastRinger = RINGER_MODE_VIBRATE;
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				lastRinger = RINGER_MODE_MUTED;
+				break;
+			default: break;
+		}
+		// just in case the user upgraded, MUTED is no longer available
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		{
+			if (lastRinger == RINGER_MODE_MUTED) {
+				lastRinger = RINGER_MODE_SILENT;
+			}
+		}
+		return lastRinger;
 	}
 
 	// (optional) name of class
@@ -350,35 +575,6 @@ public class PrefsManager {
 					  .getInt(prefName, ATTENDEES_AND_NOT);
 	}
 
-	// used for "nothing saved"
-	public static final int RINGER_MODE_NONE = -99;
-
-	// last user's ringer state
-	private static final String USER_RINGER = "userRinger";
-
-	public static void setUserRinger(Context context, int userRinger) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putInt(USER_RINGER, userRinger).commit();
-	}
-
-	public static int getUserRinger(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(USER_RINGER, RINGER_MODE_NONE);
-	}
-
-	// last ringer state set by this app (to check if user changed it)
-	private static final String LAST_RINGER = "lastRinger";
-
-	public static void setLastRinger(Context context, int lastRinger) {
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putInt(LAST_RINGER, lastRinger).commit();
-	}
-
-	public static int getLastRinger(Context context) {
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(LAST_RINGER, RINGER_MODE_NONE);
-	}
-
 	// ringer state wanted during event of this class
 	private static final String RINGER_ACTION = "ringerAction";
 
@@ -388,11 +584,35 @@ public class PrefsManager {
 			   .edit().putInt(prefName, action).commit();
 	}
 
+	@TargetApi(android.os.Build.VERSION_CODES.M)
 	public static int getRingerAction(Context context, int classNum)
 	{
 		String prefName = RINGER_ACTION + (String.valueOf(classNum));
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(prefName, RINGER_MODE_NONE);
+		int action
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					 .getInt(prefName, RINGER_MODE_NONE);
+		// handle old-style preference
+		switch (action)
+		{
+			case AudioManager.RINGER_MODE_NORMAL:
+				action = RINGER_MODE_NORMAL;
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				action = RINGER_MODE_VIBRATE;
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				action = RINGER_MODE_MUTED;
+				break;
+			default: break;
+		}
+		// just in case the user upgraded, MUTED is no longer available
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+		{
+			if (action == RINGER_MODE_MUTED) {
+				action = RINGER_MODE_SILENT;
+			}
+		}
+		return action;
 	}
 
 	// whether to restore ringer after event of this class
@@ -447,7 +667,7 @@ public class PrefsManager {
 	public static int getBeforeOrientation(Context context, int classNum) {
 		String prefName = BEFORE_ORIENTATION + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(prefName, 0);
+					  .getInt(prefName, BEFORE_ANY_POSITION);
 	}
 
 	// required connection state for event of this class to start
@@ -472,7 +692,7 @@ public class PrefsManager {
 	public static int getBeforeConnection(Context context, int classNum) {
 		String prefName = BEFORE_CONNECTION + String.valueOf(classNum);
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(prefName, 0);
+					  .getInt(prefName, BEFORE_ANY_CONNECTION);
 	}
 
 	// minutes after end time event of this class to take actions
@@ -539,9 +759,17 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
-	// Location from which we're waiting to be getAfterMetres(...)faceup
-	// Impossible latitude of 360 means we aren't waiting
+	// Location from which we're waiting to be getAfterMetres(...)
 	private static final String LATITUDE = "latitude";
+	
+	// Not waiting
+	public static final Double LATITUDE_IDLE = 360.0;
+	
+	// Waiting for current location
+	public static final Double LATITUDE_FIRST = 300.0;
+	
+	// Any other value (can be between -90 and +90) is the initial location
+	// which is the centre of the geofence.
 
 	public static void setLatitude(
 		Context context, int classNum, double x) {
@@ -554,7 +782,8 @@ public class PrefsManager {
 	public static Double getLatitude(Context context, int classNum) {
 		String prefName = LATITUDE + (String.valueOf(classNum));
 		String s = context.getSharedPreferences(
-			PREFS_NAME, Context .MODE_PRIVATE) .getString(prefName, "360.0");
+			PREFS_NAME, Context .MODE_PRIVATE)
+			.getString(prefName, String.valueOf(LATITUDE_IDLE));
 		return new Double(s);
 	}
 
@@ -620,6 +849,23 @@ public class PrefsManager {
 		String prefName = IS_TRIGGERED + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
+	}
+
+	// last trigger time + AFTER_MINUTES
+	private static final String LAST_TRIGGER_END = "lastTriggerEnd";
+
+	public static void setLastTriggerEnd(
+		Context context, int classNum, long endTime)
+	{
+		String prefName = LAST_TRIGGER_END + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putLong(prefName, endTime).commit();
+	}
+
+	public static long getLastTriggerEnd(Context context, int classNum) {
+		String prefName = LAST_TRIGGER_END + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getLong(prefName, Long.MIN_VALUE);
 	}
 
 	// is an event of this class currently active?
@@ -690,8 +936,8 @@ public class PrefsManager {
 			 .putInt(RINGER_ACTION + (num), RINGER_MODE_NONE)
 			 .putBoolean(RESTORE_RINGER + (num), false)
 			 .putInt(BEFORE_MINUTES + (num), 0)
-			 .putInt(BEFORE_ORIENTATION + (num), 0)
-			 .putInt(BEFORE_CONNECTION + (num), 0)
+			 .putInt(BEFORE_ORIENTATION + (num), BEFORE_ANY_POSITION)
+			 .putInt(BEFORE_CONNECTION + (num), BEFORE_ANY_CONNECTION)
 			 .putInt(AFTER_MINUTES + (num), 0)
 			 .putInt(AFTER_STEPS + (num), 0)
 			 .putInt(TARGET_STEPS + (num), 0)
@@ -700,7 +946,11 @@ public class PrefsManager {
 			 .putString(LONGITUDE + (num), "360.0")
 			 .putBoolean(NOTIFY_START + (num), false)
 			 .putBoolean(NOTIFY_END + (num), false)
+			 .putBoolean(IS_TRIGGERED + (num), false)
+			 .putLong(LAST_TRIGGER_END + (num), Long.MIN_VALUE)
 			 .putBoolean(IS_ACTIVE + (num), false)
+			 .putBoolean(IS_WAITING + (num), false)
+			 .putString(LAST_ACTIVE_EVENT + (num), "")
 			 .commit();
 	}
 

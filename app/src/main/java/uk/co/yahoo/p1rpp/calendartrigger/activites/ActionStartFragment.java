@@ -5,9 +5,11 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.TargetApi;
 import android.app.Fragment;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.res.Configuration;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
@@ -54,11 +57,24 @@ public class ActionStartFragment extends Fragment {
         return rootView;
     }
 
+	@TargetApi(android.os.Build.VERSION_CODES.M)
     @Override
     public void onResume() {
         super.onResume();
         final EditActivity ac = (EditActivity)getActivity();
         ac.setButtonVisibility(View.INVISIBLE);
+        int apiVersion = android.os.Build.VERSION.SDK_INT;
+        NotificationManager nm = (NotificationManager)
+            ac.getSystemService(Context.NOTIFICATION_SERVICE);
+        boolean havePermission;
+        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        {
+            havePermission = nm.isNotificationPolicyAccessGranted();
+        }
+        else
+        {
+            havePermission = false;
+        }
         int classNum = PrefsManager.getClassNum(
             ac, getArguments().getString(ARG_CLASS_NAME));
         final String className =
@@ -89,6 +105,7 @@ public class ActionStartFragment extends Fragment {
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
+        lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         tv = new TextView(ac);
         tv.setText(R.string.setRinger);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -100,34 +117,225 @@ public class ActionStartFragment extends Fragment {
             }
         });
         Configuration config = getResources().getConfiguration();
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            lll.setPadding((int)(scale * 25.0), 0, 0, 0);
+        ringerAction = new RadioGroup(ac);
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
+        {
             tv.setPadding(0, (int)(scale * 7.0), 0, 0);
             lll.addView(tv, ww);
-        } else {
-            lll.setPadding((int)(scale * 50.0), 0, 0, 0);
+            ringerAction.setOrientation(LinearLayout.HORIZONTAL);
+        } else
+        {
             tv.setPadding((int)(scale * 25.0), 0, 0, 0);
-            ll.addView(tv, ww);
+            lll.addView(tv, ww);
+            ringerAction.setOrientation(LinearLayout.VERTICAL);
         }
-        ringerAction = new RadioGroup(ac);
-        ringerAction.setOrientation(LinearLayout.HORIZONTAL);
         int ra = PrefsManager.getRingerAction(ac, classNum);
-        int id = -1;
-        RadioButton rb = new RadioButton(ac);
-        rb.setText(R.string.normal);
-        rb.setId(AudioManager.RINGER_MODE_NORMAL);
-        ringerAction.addView(rb, -1, ww);
-        if (ra == AudioManager.RINGER_MODE_NORMAL) { ringerAction.check(ra); }
-        rb = new RadioButton(ac);
-        rb.setText(R.string.vibrate);
-        rb.setId(AudioManager.RINGER_MODE_VIBRATE);
-        ringerAction.addView(rb, -1, ww);
-        if (ra == AudioManager.RINGER_MODE_VIBRATE) { ringerAction.check(ra); }
-        rb = new RadioButton(ac);
-        rb.setText(R.string.silent);
-        rb.setId(AudioManager.RINGER_MODE_SILENT);
-        ringerAction.addView(rb, -1, ww);
-        if (ra == AudioManager.RINGER_MODE_SILENT) { ringerAction.check(ra); }
+        RadioButton normalButton = new RadioButton(ac);
+        normalButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.normalhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        normalButton.setText(R.string.normal);
+        normalButton.setId(PrefsManager.RINGER_MODE_NORMAL);
+        ringerAction.addView(normalButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_NORMAL)
+        {
+            ringerAction.check(ra);
+        }
+        RadioButton vibrateButton = new RadioButton(ac);
+        vibrateButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.vibratehelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        vibrateButton = new RadioButton(ac);
+        vibrateButton.setText(R.string.vibrate);
+        vibrateButton.setId(PrefsManager.RINGER_MODE_VIBRATE);
+        ringerAction.addView(vibrateButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_VIBRATE)
+        {
+            ringerAction.check(ra);
+        }
+        RadioButton dndButton;
+        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        {
+            if (havePermission)
+            {
+                dndButton = new RadioButton(ac);
+                dndButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.priorityhelp,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+            else
+            {
+                dndButton = new DisabledRadioButton(ac);
+                dndButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.priorityforbidden,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+        }
+        else
+        {
+            dndButton = new DisabledRadioButton(ac);
+            dndButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac, R.string.unsupported,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        dndButton.setText(R.string.priority);
+        dndButton.setId(PrefsManager.RINGER_MODE_DO_NOT_DISTURB);
+        ringerAction.addView(dndButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_DO_NOT_DISTURB)
+        {
+            ringerAction.check(ra);
+        }
+        RadioButton mutedButton;
+        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        {
+            mutedButton = new DisabledRadioButton(ac);
+            mutedButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac, R.string.unsupported,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        else
+        {
+            mutedButton = new RadioButton(ac);
+            mutedButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac, R.string.mutedhelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        mutedButton.setText(R.string.muted);
+        mutedButton.setId(PrefsManager.RINGER_MODE_MUTED);
+        ringerAction.addView(mutedButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_MUTED)
+        {
+            ringerAction.check(ra);
+        }
+        RadioButton alarmsButton;
+        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        {
+            if (havePermission)
+            {
+                alarmsButton = new RadioButton(ac);
+                alarmsButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.alarmshelp,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+            else
+            {
+                alarmsButton = new DisabledRadioButton(ac);
+                alarmsButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.alarmsforbidden,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+        }
+        else
+        {
+            alarmsButton = new DisabledRadioButton(ac);
+            alarmsButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac, R.string.unsupported,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        alarmsButton.setText(R.string.alarms);
+        alarmsButton.setId(PrefsManager.RINGER_MODE_ALARMS);
+        ringerAction.addView(alarmsButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_ALARMS)
+        {
+            ringerAction.check(ra);
+        }
+        RadioButton silentButton;
+        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        {
+            if (havePermission)
+            {
+                silentButton = new RadioButton(ac);
+                silentButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.silenthelp,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+            else
+            {
+                silentButton = new DisabledRadioButton(ac);
+                silentButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.silentforbidden,
+                                       Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            }
+        }
+        else
+        {
+            silentButton = new DisabledRadioButton(ac);
+            silentButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac, R.string.unsupported,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        silentButton.setText(R.string.silent);
+        silentButton.setId(PrefsManager.RINGER_MODE_SILENT);
+        ringerAction.addView(silentButton, -1, ww);
+        if (ra == PrefsManager.RINGER_MODE_SILENT)
+        {
+            ringerAction.check(ra);
+        }
         lll.addView(ringerAction, ww);
         ll.addView(lll, ww);
         lll = new LinearLayout(ac);

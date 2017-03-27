@@ -25,10 +25,10 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
-	protected void onStop() {
+	public void onBackPressed() {
 		// Don't start service until user finishes setup
-		super.onStop();
 		MuteService.startIfNecessary(this, "MainActivity");
+		super.onBackPressed();
 	}
 
 	@Override

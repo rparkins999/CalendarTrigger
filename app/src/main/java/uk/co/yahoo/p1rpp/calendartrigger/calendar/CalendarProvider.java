@@ -211,8 +211,11 @@ public class CalendarProvider {
 
 	// get next action times for event class
 	public class startAndEnd {
+		// Start time of current or next event, Long.MAX_VALUE if none
 		public long startTime;
 		public String startEventName;
+		
+		// End time of current or next event, currentTime if none
 		public long endTime;
 		public String endEventName;
 	}
@@ -229,17 +232,28 @@ public class CalendarProvider {
 
 	public startAndEnd nextActionTimes(
 		Context context, long currentTime, int classNum) {
+		int before = PrefsManager.getBeforeMinutes(context, classNum) * 60000;
+		int after = PrefsManager.getAfterMinutes(context, classNum) * 60000;
 		startAndEnd result = new startAndEnd();
-		result.startTime = Long.MAX_VALUE;
-		result.endTime = currentTime;
-		result.startEventName = "";
-		result.endEventName = "";
+		long triggerEnd =  PrefsManager.getLastTriggerEnd(context, classNum);
+		if (triggerEnd > currentTime)
+		{
+			result.startTime = currentTime;
+			result.endTime = triggerEnd;
+			result.startEventName = "<immediate>";
+			result.endEventName = "<immediate>";
+		}
+		else
+		{
+			result.startTime = Long.MAX_VALUE;
+			result.endTime = currentTime;
+			result.startEventName = "";
+			result.endEventName = "";
+		}
 		ContentResolver cr = context.getContentResolver();
 		StringBuilder selClause = selection(context, classNum);
 		selClause.append(" AND ( ").append(Instances.END)
 				 .append(" > ? )");
-		int before = PrefsManager.getBeforeMinutes(context, classNum) * 60000;
-		int after = PrefsManager.getAfterMinutes(context, classNum) * 60000;
 		String[] selectionArgs = new String[] {
 			String.valueOf(currentTime - after)};
 		// Do query sorted by start time
@@ -255,10 +269,13 @@ public class CalendarProvider {
 				// This can only happen once, because we sort the
 				// query on ascending start time
 				result.startTime = start;
-				result.endTime = end;
-				result.startEventName =
-					cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
-				result.endEventName = result.startEventName;
+				if (end > result.endTime)
+				{
+					result.endTime = end;
+					result.startEventName =
+						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+					result.endEventName = result.startEventName;
+				}
 			}
 			else if (start <= result.endTime)
 			{
