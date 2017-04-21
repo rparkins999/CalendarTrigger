@@ -116,19 +116,10 @@ public class ActionStartFragment extends Fragment {
                 return true;
             }
         });
-        Configuration config = getResources().getConfiguration();
+        tv.setPadding((int)(scale * 10.0), (int)(scale * 7.0), 0, 0);
+        lll.addView(tv, ww);
         ringerAction = new RadioGroup(ac);
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE)
-        {
-            tv.setPadding(0, (int)(scale * 7.0), 0, 0);
-            lll.addView(tv, ww);
-            ringerAction.setOrientation(LinearLayout.HORIZONTAL);
-        } else
-        {
-            tv.setPadding((int)(scale * 25.0), 0, 0, 0);
-            lll.addView(tv, ww);
-            ringerAction.setOrientation(LinearLayout.VERTICAL);
-        }
+        ringerAction.setOrientation(LinearLayout.VERTICAL);
         int ra = PrefsManager.getRingerAction(ac, classNum);
         RadioButton normalButton = new RadioButton(ac);
         normalButton.setOnLongClickListener(new View.OnLongClickListener() {
