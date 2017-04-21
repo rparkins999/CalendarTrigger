@@ -8,8 +8,8 @@ android {
         applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "1.2.0"
     }
     buildTypes {
         release {

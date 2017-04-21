@@ -8,6 +8,8 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -45,7 +47,18 @@ public class SettingsActivity extends Activity {
     protected void onResume() {
         final SettingsActivity me = this;
         super.onResume();
-        TextView tv = (TextView)findViewById (R.id.lastcalltext);
+        TextView tv = (TextView)findViewById (R.id.versiontext);
+        PackageManager pm = getPackageManager();
+        try
+        {
+            PackageInfo pi = pm.getPackageInfo(
+                "uk.co.yahoo.p1rpp.calendartrigger", 0);
+            tv.setText("CalendarTrigger ".concat(pi.versionName));
+        }
+        catch (PackageManager.NameNotFoundException e)
+        {
+        }
+        tv = (TextView)findViewById (R.id.lastcalltext);
         DateFormat df = DateFormat.getDateTimeInstance();
         long t = PrefsManager.getLastInvocationTime(this);
         tv.setText(getString(R.string.lastcalldetail, df.format(t)));
