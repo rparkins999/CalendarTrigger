@@ -21,9 +21,16 @@
     <string name="laststatedetail">Ringer state last set to %s</string>
     <string name="lastStateHelp">This is the last ringer state set by
         CalendarTrigger.</string>
+    <string name="userstatedetail">Saved user state is %s</string>
+    <string name="userStateHelp">This is the saved ringer state last set by
+        the user before CalendarTrigger changed it.</string>
     <string name="currentstatedetail">Current actual ringer state is %s</string>
     <string name="currentStateHelp">This is the actual current ringer
         state.</string>
+    <string name="yeslocation">Monitoring location</string>
+    <string name="nolocation">Not monitoring location</string>
+    <string name="LocationStateHelp">This tells if CalendarTrigger currently
+        has a pending location update request.</string>
     <string name="yeswakelock">Holding a wake lock</string>
     <string name="nowakelock">Not holding a wake lock</string>
     <string name="wakelockHelp">This tells if CalendarTrigger is holding a wake

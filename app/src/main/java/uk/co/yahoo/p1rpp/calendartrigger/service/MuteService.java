@@ -80,14 +80,16 @@ public class MuteService extends IntentService
 	private static float accelerometerZ;
 	private long nextAccelTime;
 
+	// Safe for this to be local because if it is not null we have a wakelock
+	// and we won't get stopped.
 	public static PowerManager.WakeLock wakelock = null;
 
 	private static int notifyId = 1400;
 
-    // 0 USB not connected or connected to dumb charger
-    // 1 device is USB host to some peripheral
-    // 2 device is USB slave and receiving power from a USB host
-    private static int usbState;
+	// Safe for this to be local because it is only used to transfer state from
+	// doReset() (which is called by the UI) to  updateState() (which is called
+	// when the UI exits.
+	private static boolean resetting = false;
 
 	private void doReset() {
 		int n = PrefsManager.getNumClasses(this);
@@ -108,6 +110,7 @@ public class MuteService extends IntentService
 			wakelock = null;
 		}
 		LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
+		resetting = true;
 	}
 
 	// We don't know anything sensible to do here
@@ -831,16 +834,19 @@ public class MuteService extends IntentService
 						}
 						else
 						{
-							if (   (PrefsManager.getNotifyStart(this, classNum))
-								&& (ringerAction > wantedMode))
+							if (ringerAction > wantedMode)
 							{
-								startNotifyWanted = true;
+								if (PrefsManager.getNotifyStart(this, classNum))
+								{
+									startNotifyWanted = true;
+								}
 								startEvent = result.startEventName;
 								startClassName = className;
+								PrefsManager.setTargetSteps(this, classNum, 0);
+								PrefsManager.setLatitude(this, classNum, 360.0);
+								PrefsManager.setClassActive(
+									this, classNum, true);
 							}
-							PrefsManager.setTargetSteps(this, classNum, 0);
-							PrefsManager.setLatitude(this, classNum, 360.0);
-							PrefsManager.setClassActive(this, classNum, true);
 						}
 					}
 				}
@@ -850,11 +856,7 @@ public class MuteService extends IntentService
 					if (ringerAction > wantedMode)
 					{
 						wantedMode = ringerAction;
-						startEvent = result.startEventName;
-						startClassName = className;
 					}
-					PrefsManager.setLastActive(
-						this, classNum, result.endEventName);
 				}
 				if (!active)
 				{
@@ -867,6 +869,8 @@ public class MuteService extends IntentService
 						PrefsManager.getAfterSteps(this, classNum);
 					if (PrefsManager.isClassActive(this, classNum))
 					{
+						PrefsManager.setLastActive(
+							this, classNum, result.endEventName);
 						done = true;
 						if (haveStepCounter && (aftersteps > 0))
 						{
@@ -960,17 +964,20 @@ public class MuteService extends IntentService
 					}
 					if (done)
 					{
-						if (   (PrefsManager.getRestoreRinger(this, classNum))
-							&& (wantedMode == PrefsManager.RINGER_MODE_NONE))
+						if (PrefsManager.getRestoreRinger(this, classNum))
 						{
-							wantedMode = PrefsManager.getUserRinger(this);
-							if (PrefsManager.getNotifyEnd(this, classNum))
+							int user = PrefsManager.getUserRinger(this);
+							if (wantedMode < user)
 							{
-								endNotifyWanted = true;
+								wantedMode = user;
+								if (PrefsManager.getNotifyEnd(this, classNum))
+								{
+									endNotifyWanted = true;
+								}
+								endEvent =
+									PrefsManager.getLastActive(this, classNum);
+								endClassName = className;
 							}
-							endEvent =
-								PrefsManager.getLastActive(this, classNum);
-							endClassName = className;
 						}
 						PrefsManager.setClassActive(this, classNum, false);
 						PrefsManager.setClassWaiting(this, classNum, false);
@@ -1006,36 +1013,26 @@ public class MuteService extends IntentService
 		}
 		String shortText;
 		String longText;
-		if (startNotifyWanted)
+		if (setCurrentRinger(audio, currentApiVersion, wantedMode))
 		{
-			shortText = PrefsManager.getRingerSetting(this, wantedMode);
-			longText = shortText
-					   + " "
-					   + getString(R.string.eventstart)
-					   + " "
-					   + startEvent
-					   + " "
-					   + getString(R.string.ofclass)
-					   + " "
-					   + startClassName;
-			emitNotification(shortText, longText);
-		}
-		if (endNotifyWanted)
-		{
+			if (wantedMode == PrefsManager.RINGER_MODE_NONE)
+			{
+				wantedMode = PrefsManager.RINGER_MODE_NORMAL;
+			}
+			if (startNotifyWanted)
+			{
 				shortText = PrefsManager.getRingerSetting(this, wantedMode);
 				longText = shortText
 						   + " "
-						   + getString(R.string.eventend)
+						   + getString(R.string.eventstart)
 						   + " "
-						   + endEvent
+						   + startEvent
 						   + " "
 						   + getString(R.string.ofclass)
 						   + " "
-						   + endClassName;
+						   + startClassName;
 				emitNotification(shortText, longText);
-		}
-		if (setCurrentRinger(audio, currentApiVersion, wantedMode))
-		{
+			}
 			if (startEvent != "")
 			{
 				new MyLog(this,
@@ -1048,6 +1045,20 @@ public class MuteService extends IntentService
 						  + startClassName);
 
 			}
+			if (endNotifyWanted)
+			{
+				shortText = PrefsManager.getRingerSetting(this, wantedMode);
+				longText = shortText
+						   + " "
+						   + getString(R.string.eventend)
+						   + " "
+						   + endEvent
+						   + " "
+						   + getString(R.string.ofclass)
+						   + " "
+						   + endClassName;
+				emitNotification(shortText, longText);
+			}
 			if (endEvent != "")
 			{
 				new MyLog(this,
@@ -1058,9 +1069,17 @@ public class MuteService extends IntentService
 						  + endEvent
 						  + " of class "
 						  + endClassName);
-
+			}
+			else if (resetting)
+			{
+				new MyLog(this,
+						  "Setting ringer mode to "
+						  + PrefsManager.getEnglishStateName(this,
+															 wantedMode)
+						  + " after reset");
 			}
 		}
+		resetting = false;
 		PendingIntent pIntent = PendingIntent.getBroadcast(
 			this, 0 /*requestCode*/,
 			new Intent("CalendarTrigger.Alarm", Uri.EMPTY,

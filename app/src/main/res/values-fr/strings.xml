@@ -20,9 +20,17 @@
     <string name="laststatedetail">Dernière mode de la sonnerie %s</string>
     <string name="lastStateHelp">Ceci est la dernière mode de la sonnerie
         fixé par CalendarTrigger.</string>
+    <string name="userstatedetail">Usager mode de la sonnerie %s</string>
+    <string name="userStateHelp">Ceci est la dernière mode de la sonnerie
+        fixé par l\'usager avant d\'avoir été changée par CalendarTrigger.
+    </string>
     <string name="currentstatedetail">Actuelle mode de la sonnerie %s</string>
     <string name="currentStateHelp">Ceci est la actuelle mode de la sonnerie
         fixé par n\'importe qui.</string>
+    <string name="yeslocation">CalendarTrigger surveillant location</string>
+    <string name="nolocation">CalendarTrigger non surveillant location</string>
+    <string name="LocationStateHelp">Montrer si CalendarTrigger est en train
+        d\'utiliser les services de location.</string>
     <string name="yeswakelock">CalendarTrigger tient un verrouillage de
         réveil.</string>
     <string name="nowakelock">CalendarTrigger ne tient aucun verrouillage de

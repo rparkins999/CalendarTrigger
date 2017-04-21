@@ -38,6 +38,7 @@ public class SettingsActivity extends Activity {
     private void doReset() {
         startService(new Intent(
             MuteService.MUTESERVICE_RESET, null, this, MuteService.class));
+
     }
 
     @Override
@@ -79,6 +80,18 @@ public class SettingsActivity extends Activity {
                 return true;
             }
         });
+        tv = (TextView)findViewById (R.id.userstatetext);
+        mode = PrefsManager.getUserRinger(this);
+        tv.setText(getString(R.string.userstatedetail,
+                             PrefsManager.getRingerStateName(this, mode)));
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.userStateHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         tv = (TextView)findViewById (R.id.currentstatetext);
         mode = PrefsManager.getCurrentMode(this);
         tv.setText(getString(R.string.currentstatedetail,
@@ -87,6 +100,19 @@ public class SettingsActivity extends Activity {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(me, R.string.currentStateHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        tv = (TextView)findViewById (R.id.locationtext);
+        mode = PrefsManager.getCurrentMode(this);
+        tv.setText(getString(PrefsManager.getLocationState(this) ?
+                             R.string.yeslocation :
+                             R.string.nolocation));
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.LocationStateHelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }

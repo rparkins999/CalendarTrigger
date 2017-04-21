@@ -4,18 +4,16 @@
    Released under GPL V3 or later
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:id="@+id/edit_activity_container"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.SettingsActivity"
-             tools:ignore="MergeRootFrame" >
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="left|top">
+        android:layout_gravity="left|top"
+        android:id="@+id/edit_activity_container">
         <TextView
             android:id="@+id/lblDuringEvent"
             android:layout_width="wrap_content"
@@ -44,7 +42,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
+            android:id="@+id/userstatetext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
             android:id="@+id/currentstatetext"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/locationtext"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -107,4 +115,4 @@
 
     </LinearLayout>
 
-</FrameLayout>
+</ScrollView>
