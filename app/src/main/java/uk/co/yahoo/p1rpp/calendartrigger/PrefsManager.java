@@ -79,7 +79,7 @@ public class PrefsManager {
 	private static final String NUM_CLASSES = "numClasses";
 
 	private static int getNumClasses(SharedPreferences prefs) {
-		// hack for first use of new version only                          la
+		// hack for first use of new version only
 		if (prefs.contains("delay"))
 		{
 			// old style preferences, remove
@@ -295,13 +295,6 @@ public class PrefsManager {
 				break;
 			default: break;
 		}
-		// just in case the user upgraded, MUTED is no longer available
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
-		{
-			if (userRinger == RINGER_MODE_MUTED) {
-				userRinger = RINGER_MODE_SILENT;
-			}
-		}
 		return userRinger;
 	}
 
@@ -331,13 +324,6 @@ public class PrefsManager {
 				lastRinger = RINGER_MODE_MUTED;
 				break;
 			default: break;
-		}
-		// just in case the user upgraded, MUTED is no longer available
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
-		{
-			if (lastRinger == RINGER_MODE_MUTED) {
-				lastRinger = RINGER_MODE_SILENT;
-			}
 		}
 		return lastRinger;
 	}
@@ -619,13 +605,6 @@ public class PrefsManager {
 				action = RINGER_MODE_MUTED;
 				break;
 			default: break;
-		}
-		// just in case the user upgraded, MUTED is no longer available
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
-		{
-			if (action == RINGER_MODE_MUTED) {
-				action = RINGER_MODE_SILENT;
-			}
 		}
 		return action;
 	}

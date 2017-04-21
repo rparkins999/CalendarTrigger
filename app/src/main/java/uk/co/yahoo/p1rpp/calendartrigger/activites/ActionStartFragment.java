@@ -202,30 +202,15 @@ public class ActionStartFragment extends Fragment {
             ringerAction.check(ra);
         }
         RadioButton mutedButton;
-        if (apiVersion >= android.os.Build.VERSION_CODES.M)
-        {
-            mutedButton = new DisabledRadioButton(ac);
-            mutedButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    Toast.makeText(ac, R.string.unsupported,
-                                   Toast.LENGTH_LONG).show();
-                    return true;
-                }
-            });
-        }
-        else
-        {
-            mutedButton = new RadioButton(ac);
-            mutedButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    Toast.makeText(ac, R.string.mutedhelp,
-                                   Toast.LENGTH_LONG).show();
-                    return true;
-                }
-            });
-        }
+        mutedButton = new RadioButton(ac);
+        mutedButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.mutedhelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         mutedButton.setText(R.string.muted);
         mutedButton.setId(PrefsManager.RINGER_MODE_MUTED);
         ringerAction.addView(mutedButton, -1, ww);
