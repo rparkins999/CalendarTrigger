@@ -4,9 +4,14 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -19,9 +24,27 @@ import static android.text.TextUtils.htmlEncode;
 
 public class MainActivity extends Activity {
 
+	@TargetApi(android.os.Build.VERSION_CODES.M)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		int apiVersion = android.os.Build.VERSION.SDK_INT;
+		if (   (savedInstanceState == null)
+			&& (apiVersion >= android.os.Build.VERSION_CODES.M))
+		{
+			PowerManager
+				pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			if (!pm.isIgnoringBatteryOptimizations(
+				    "uk.co.yahoo.p1rpp.calendartrigger"))
+			{
+				Intent intent = new Intent();
+				intent.setAction(
+					Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+				String packageName = getPackageName();
+				intent.setData(Uri.parse("package:" + packageName));
+				startActivity(intent);
+			}
+		}
 	}
 
 	@Override

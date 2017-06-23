@@ -76,6 +76,30 @@ public class PrefsManager {
 					  .getBoolean(PREF_LOCATION_ACTIVE, false);
 	}
 
+	private static final String PREF_STEP_COUNT = "stepCounter";
+
+	// step counter is not active	
+	public static final int STEP_COUNTER_IDLE = -3;
+	
+	// wakeup step counter listener registered but not responded yet
+	public static final int STEP_COUNTER_WAKEUP = -2;
+	
+	// non wakeup step counter listener registered but not responded yet
+	// (and we hold a wake lock)
+	public static final int STEP_COUNTER_WAKE_LOCK = -1;
+
+	// zero or positive is a real step count
+
+	public static void setStepCount(Context context, int steps) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putInt(PREF_STEP_COUNT, steps).commit();
+	}
+
+	public static int getStepCount(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(PREF_STEP_COUNT, -3);
+	}
+
 	private static final String NUM_CLASSES = "numClasses";
 
 	private static int getNumClasses(SharedPreferences prefs) {

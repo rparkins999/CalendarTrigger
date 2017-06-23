@@ -59,14 +59,6 @@ public class MuteService extends IntentService
 	// (Preferences?) since Android doesn't
 	// keep even static variables for a shut-down service
 
-	// FIXME can we use a similar power saving trick as accelerometer?
-	// -2 means the step counter is not active
-	// -1 means  we've registered our listener but it hasn't been called yet
-	// zero or positive is a real step count
-	// -1 or greater means we're holding a wake lock because the step counter
-	// isn't a wakeup sensor
-	public static int lastCounterSteps = -2;
-
 	// -2 means the orientation listener is not active
 	// -1 means we've registered our listener but it hasn't been called yet
 	//     we hold a wake lock while it's -1
@@ -123,12 +115,14 @@ public class MuteService extends IntentService
 		switch(sensorEvent.sensor.getType())
 		{
 			case Sensor.TYPE_STEP_COUNTER:
-				int newCounterSteps = (int)sensorEvent.values[0];
-				if (newCounterSteps != lastCounterSteps)
-				{
-					lastCounterSteps = newCounterSteps;
-					startIfNecessary(this, "Step counter changed");
-				}
+                {
+                    int newCounterSteps = (int)sensorEvent.values[0];
+                    if (newCounterSteps != PrefsManager.getStepCount(this))
+                    {
+                        PrefsManager.setStepCount(this, newCounterSteps);
+                        startIfNecessary(this, "Step counter changed");
+                    }
+                }
 				break;
 			case Sensor.TYPE_ACCELEROMETER:
 				SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -247,30 +241,49 @@ public class MuteService extends IntentService
 		return phoneState;
 	}
 
+    // FIXME can we use a similar power saving trick as accelerometer?
 	// return true if step counter is now running
 	private boolean StartStepCounter(int classNum) {
-		if (lastCounterSteps == -2)
+		if (PrefsManager.getStepCount(this) == PrefsManager.STEP_COUNTER_IDLE)
 		{
-			lastCounterSteps = -1;
-			new MyLog(this,
-					  "Step counter activated for class "
-						  .concat(PrefsManager.getClassName(this, classNum)));
 			SensorManager sensorManager =
 				(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
 			Sensor sensor =
-				sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-			if (   (sensor != null)
-				&& (sensorManager.registerListener(this, sensor,
-						   SensorManager.SENSOR_DELAY_NORMAL)))
+				sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER, true);
+            if (sensor == null)
+            {
+                // if we can't get a wakeup step counter, try without
+                sensor =
+                    sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+                if (sensor == null)
+                {
+                    // no step counter at all
+                    return false;
+                }
+            }
+			if (sensorManager.registerListener(
+			    this, sensor, SensorManager.SENSOR_DELAY_NORMAL))
 			{
-				if (wakelock == null)
-				{
-					PowerManager powerManager
-						= (PowerManager)getSystemService(POWER_SERVICE);
-					wakelock = powerManager.newWakeLock(
-						PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
-					wakelock.acquire();
-				}
+                new MyLog(this, "Step counter activated for class "
+                    .concat(PrefsManager.getClassName(this, classNum)));
+                if (sensor.isWakeUpSensor())
+                {
+                    PrefsManager.setStepCount(
+                        this, PrefsManager.STEP_COUNTER_WAKEUP);
+                }
+                else
+                {
+                    PrefsManager.setStepCount(
+                        this, PrefsManager.STEP_COUNTER_WAKE_LOCK);
+                    if (wakelock == null)
+                    {
+                        PowerManager powerManager
+                            = (PowerManager)getSystemService(POWER_SERVICE);
+                        wakelock = powerManager.newWakeLock(
+                            PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
+                        wakelock.acquire();
+                    }
+                }
 				return true;
 			}
 			else
@@ -577,11 +590,22 @@ public class MuteService extends IntentService
 	boolean setCurrentRinger(AudioManager audio, int apiVersion, int mode) {
 		int current = PrefsManager.getCurrentMode(this);
         int last =  PrefsManager.getLastRinger(this);
-		if (   (last != PrefsManager.RINGER_MODE_NONE)
-            && (last != current))
+		int user =  PrefsManager.getUserRinger(this);
+		if (last != current)
 		{
 			// user changed ringer mode
-			PrefsManager.setUserRinger(this, current);
+			if (user != PrefsManager.RINGER_MODE_NONE)
+			{
+				if (mode == PrefsManager.RINGER_MODE_NONE)
+				{
+					// restoring saved user ringer
+					PrefsManager.setUserRinger(this, PrefsManager.RINGER_MODE_NONE);
+				}
+				else
+				{
+					PrefsManager.setUserRinger(this, current);
+				}
+			}
 			if (current > mode)
 			{
 				return false;  // user set quieter mode since we last set it
@@ -676,7 +700,6 @@ public class MuteService extends IntentService
 					return false;
 			}
 		}
-		int user = PrefsManager.getUserRinger(this);
 		if (mode == PrefsManager.RINGER_MODE_NONE)
 		{
 			// restoring saved user ringer
@@ -727,7 +750,7 @@ public class MuteService extends IntentService
 			PackageManager.PERMISSION_GRANTED ==
 			ActivityCompat.checkSelfPermission(
 				this, Manifest.permission.ACCESS_FINE_LOCATION);
-		if (lastCounterSteps >= 0)
+		if (PrefsManager.getStepCount(this) >= 0)
 		{
 			new MyLog(this, "Step counter running");
 		}
@@ -865,6 +888,7 @@ public class MuteService extends IntentService
 					// check if we're waiting for movement
 					boolean done = false;
 					boolean waiting = false;
+                    int lastCounterSteps = PrefsManager.getStepCount(this);
 					int aftersteps =
 						PrefsManager.getAfterSteps(this, classNum);
 					if (PrefsManager.isClassActive(this, classNum))
@@ -918,7 +942,8 @@ public class MuteService extends IntentService
 					if (PrefsManager.isClassWaiting(this, classNum))
 					{
 						done = true;
-						if ((lastCounterSteps > -2) && (aftersteps > 0))
+						if ((lastCounterSteps != PrefsManager.STEP_COUNTER_IDLE)
+                            && (aftersteps > 0))
 						{
 							int steps
 								= PrefsManager.getTargetSteps(this, classNum);
@@ -1120,9 +1145,10 @@ public class MuteService extends IntentService
 		PrefsManager.setLastInvocationTime(this, currentTime);
 		if (!anyStepCountActive)
 		{
-			if (lastCounterSteps >= 0)
+			if (PrefsManager.getStepCount(this)
+                != PrefsManager.STEP_COUNTER_IDLE)
 			{
-				lastCounterSteps = -2;
+				PrefsManager.setStepCount(this, PrefsManager.STEP_COUNTER_IDLE);
 				SensorManager sensorManager =
 					(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
 				sensorManager.unregisterListener(this);
@@ -1136,8 +1162,10 @@ public class MuteService extends IntentService
 				LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 			}
 		}
+		int lcs = PrefsManager.getStepCount(this);
 		if (   (wakelock != null)
-			&& (lastCounterSteps == -2)
+			&& (   (lcs == PrefsManager.STEP_COUNTER_IDLE)
+                || (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
 			&& (orientationState != -1))
 		{
 			wakelock.release();
