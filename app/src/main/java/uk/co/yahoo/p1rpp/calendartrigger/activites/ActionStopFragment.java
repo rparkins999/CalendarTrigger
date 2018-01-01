@@ -5,15 +5,17 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -24,11 +26,10 @@ import static android.text.TextUtils.htmlEncode;
 /**
  * Created by rparkins on 05/07/16.
  */
-public class ActionStopFragment extends Fragment {
+public class ActionStopFragment extends ActionFragment {
     private static final String ARG_CLASS_NAME = "class name";
     private float scale;
     private CheckBox ringerRestore;
-    private CheckBox showNotification;
 
     public ActionStopFragment() {
     }
@@ -39,6 +40,17 @@ public class ActionStopFragment extends Fragment {
         args.putString(ARG_CLASS_NAME, className);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void openThis(File file) {
+        final EditActivity ac = (EditActivity)getActivity();
+        PrefsManager.setDefaultDir(ac, file.getParent());
+        int classNum = PrefsManager.getClassNum(
+            ac, getArguments().getString(ARG_CLASS_NAME));
+        PrefsManager.setSoundFileEnd(
+            ac, classNum, file.getPath());
+        getFragmentManager().popBackStack();
     }
 
     @Override
@@ -55,6 +67,7 @@ public class ActionStopFragment extends Fragment {
         super.onResume();
         final EditActivity ac = (EditActivity)getActivity();
         ac.setButtonVisibility(View.INVISIBLE);
+        gettingFile = false;
         int classNum = PrefsManager.getClassNum(
             ac, getArguments().getString(ARG_CLASS_NAME));
         final String className =
@@ -98,9 +111,11 @@ public class ActionStopFragment extends Fragment {
             }
         });
         lll.addView(ringerRestore, ww);
+        ll.addView(lll, ww);
         showNotification = new CheckBox(ac);
         showNotification.setText(R.string.afficher_notification);
-        showNotification.setChecked(PrefsManager.getNotifyEnd(ac, classNum));
+        boolean notif = PrefsManager.getNotifyEnd(ac, classNum);
+        showNotification.setChecked(notif);
         showNotification.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -109,7 +124,69 @@ public class ActionStopFragment extends Fragment {
                 return true;
             }
         });
-        lll.addView(showNotification, ww);
+        showNotification.setOnCheckedChangeListener(
+            new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(
+                    CompoundButton v, boolean isChecked) {
+                    playSound.setEnabled(isChecked);
+                    soundFilename.setEnabled(isChecked);
+                }
+            });
+        ll.addView(showNotification, ww);
+        lll = new LinearLayout(ac);
+        lll.setPadding((int)(scale * 40.0), 0, 0, 0);
+        playSound = new CheckBox(ac);
+        playSound.setEnabled(notif);
+        playSound.setText(R.string.playsound);
+        playSound.setChecked(PrefsManager.getPlaysoundEnd(ac, classNum));
+        playSound.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, R.string.endPlaySoundHelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        lll.addView(playSound, ww);
+        ll.addView(lll);
+        lll = new LinearLayout(ac);
+        lll.setPadding((int)(scale * 55.0), 0, 0, 0);
+        soundFilename = new TextView(ac);
+        soundFilename.setEnabled(notif);
+        String sf =  PrefsManager.getSoundFileEnd(ac, classNum);
+        if (sf.isEmpty()) {
+            hasFileName = false;
+            String browse = "<i>" +
+                            htmlEncode(getString(R.string.browsenofile)) +
+                            "</i>";
+            soundFilename.setText(fromHtml(browse));
+        }
+        else {
+            hasFileName = true;
+            soundFilename.setText(sf);
+        }
+        soundFilename.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                getFile();
+            }
+        });
+        soundFilename.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (hasFileName)
+                {
+                    Toast.makeText(ac, R.string.browsefileHelp,
+                                   Toast.LENGTH_LONG).show();
+                }
+                else {
+                    Toast.makeText(ac, R.string.browsenofileHelp,
+                                   Toast.LENGTH_LONG).show();
+                }
+                return true;
+            }
+        });
+        lll.addView(soundFilename, ww);
         ll.addView(lll, ww);
     }
 
@@ -117,10 +194,21 @@ public class ActionStopFragment extends Fragment {
     public void onPause() {
         super.onPause();
         final EditActivity ac = (EditActivity)getActivity();
+        if (!gettingFile) {
+            ac.setButtonVisibility(View.VISIBLE);
+        }
         int classNum = PrefsManager.getClassNum(
             ac, getArguments().getString(ARG_CLASS_NAME));
         PrefsManager.setRestoreRinger(ac, classNum, ringerRestore.isChecked());
         PrefsManager.setNotifyEnd(ac, classNum, showNotification.isChecked());
-        ac.setButtonVisibility(View.VISIBLE);
+        PrefsManager.setPlaysoundEnd(
+            ac, classNum, playSound.isChecked());
+        if (hasFileName) {
+            PrefsManager.setSoundFileEnd(
+                ac, classNum, soundFilename.getText().toString());
+        }
+        else {
+            PrefsManager.setSoundFileEnd( ac, classNum, "");
+        }
     }
 }

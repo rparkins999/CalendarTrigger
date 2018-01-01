@@ -18,14 +18,14 @@
     <string name="lastalarmdetail">Last alarm set for %s</string>
     <string name="lastAlarmHelp">This is the time of the alarm set by
         CalendarTrigger the last time it was called.</string>
-    <string name="laststatedetail">Ringer state last set to %s</string>
-    <string name="lastStateHelp">This is the last ringer state set by
+    <string name="laststatedetail">Audio state last set to %s</string>
+    <string name="lastStateHelp">This is the last audio state set by
         CalendarTrigger.</string>
     <string name="userstatedetail">Saved user state is %s</string>
-    <string name="userStateHelp">This is the saved ringer state last set by
+    <string name="userStateHelp">This is the saved audio state last set by
         the user before CalendarTrigger changed it.</string>
-    <string name="currentstatedetail">Current actual ringer state is %s</string>
-    <string name="currentStateHelp">This is the actual current ringer
+    <string name="currentstatedetail">Current actual audio state is %s</string>
+    <string name="currentStateHelp">This is the actual current audio
         state.</string>
     <string name="yeslocation">Monitoring location</string>
     <string name="nolocation">Not monitoring location</string>
@@ -200,9 +200,9 @@
         press on any of the controls below will bring up some help
         information about it.</string>
     <string name="actionstartlist">At start of an event in class %s:-</string>
-    <string name="setRinger">Set ringer to at most</string>
-    <string name="setRingerHelp">This sets the state of the ringer during the
-        event. CalendarTrigger will only set the ringer to a state \"weaker\"
+    <string name="setRinger">Set audio to at most</string>
+    <string name="setRingerHelp">This sets the state of the audio during the
+        event. CalendarTrigger will only set the audio to a state \"weaker\"
         than it is already in, as set by the user or an overlapping event.
         Silent is weaker than alarms-only which is weaker than muted which is
         weaker than do-not-disturb which is weaker than vibrate which is
@@ -238,6 +238,23 @@
     <string name="startNotifyHelp">If this is checked, CalendarTrigger will
         show a notification at the start of the event. The way in which the
         notification is presented depends on the user\'s notification settings.
+    </string>
+    <string name="playsound">Play a sound</string>
+    <string name="startPlaySoundHelp">If this is checked, CalendarTrigger will
+        play a sound at the start of the event. The sound can be selected
+        using a file browser. If this class mutes the audio, the sound will not
+        be heard. Use a separate class to play the sound before the start of
+        the event.
+    </string>
+    <string name="endPlaySoundHelp">If this is checked, CalendarTrigger will
+        play a sound at the end of the event. The sound can be selected
+        using a file browser.
+    </string>
+    <string name="browsenofile">Browse for a sound file</string>
+    <string name="browsenofileHelp">Click here to browse for a sound file
+    </string>
+    <string name="browsefileHelp">Click here to browse for a different sound
+        file
     </string>
     <string name="defineStopLabel">Event end definition for class %s</string>
     <string name="defineStopHelp">Define the conditions for the event end
@@ -285,7 +302,7 @@
         selecting the Application Manager.</string>
     <string name="firstlocationlabel">The device has moved by</string>
     <string name="lastlocationlabel">metres.</string>
-    <string name="actionStopLabel">Event end action for class %s</string>
+    <string name="actionStopLabel">Event end action(s) for class %s</string>
     <string name="actionStopHelp">Define the action(s) to be
         triggered at or after the end of an event in this class.</string>
     <string name="actionstoppopup">This screen allows you to define what
@@ -316,7 +333,7 @@
     <string name="rafraichir_calendriers">Refresh calendars</string>
     <string name="rafraichir_calendriers_short">Refresh calendars</string>
     <string name="afficher_notification">Show a notification</string>
-    <string name="mode_sonnerie_change">Ringer mode </string>
+    <string name="mode_sonnerie_change">Setting audio mode at\ </string>
     <string name="mode_sonnerie_pas_de_change_pour">unchanged at start of event
     </string>
     <string name="mode_sonnerie_change_silencieux_pour">switched to silent for the event </string>

@@ -2,14 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '25.0.0'
     project.archivesBaseName = "CalendarTrigger";
     defaultConfig {
         applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 4
-        versionName "1.2.0"
+        versionCode 5
+        versionName "1.3.0"
     }
     buildTypes {
         release {

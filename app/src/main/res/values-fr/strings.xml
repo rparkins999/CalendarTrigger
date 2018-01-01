@@ -236,6 +236,18 @@
         notification au début d\'un évènement. La présentation d\'une
         notification est déterminée par les paramètres notification fixés par
         l\'usager.</string>
+    <string name="playsound">Jouer un son</string>
+    <string name="startPlaySoundHelp">Si coché, CalendarTrigger jouera un son
+        au début d\'un évènement. On peut choisir le son au moyen d\'un
+        navigateur de fichiers.</string>
+    <string name="endPlaySoundHelp">Si coché, CalendarTrigger jouera un son
+        a la fin d\'un évènement. On peut choisir le son au moyen d\'un
+        navigateur de fichiers. Si cette classe assourdit l\'audio, le son ne
+        ne sera pas entendu. Il faut utiliser une autre classe pour faire
+        jouer le son avant le commencement de l\'évènement. </string>
+    <string name="browsenofile">Navigation de fichiers</string>
+    <string name="browsenofileHelp">Choisir un fichier de son</string>
+    <string name="browsefileHelp">Choisir un autre fichier de son </string>
     <string name="defineStopLabel">Définition fin d\'un évènement de la classe
         %s</string>
     <string name="defineStopHelp">Définir conditions requises pour déclencher
@@ -316,7 +328,7 @@
     <string name="rafraichir_calendriers">Rafraîchir les calendriers</string>
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
     <string name="afficher_notification">Afficher une notification</string>
-	<string name="mode_sonnerie_change">Mode de sonnerie changé</string>
+	<string name="mode_sonnerie_change">Mode d\'audio changé à\ </string>
     <string name="mode_sonnerie_pas_de_change_pour">Non changé pour
     l\'évènement </string>
 	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement </string>

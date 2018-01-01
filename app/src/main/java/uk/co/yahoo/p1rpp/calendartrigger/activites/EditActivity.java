@@ -35,20 +35,28 @@ public class EditActivity extends Activity {
 
     public void setButtonVisibility(int visibility) {
         TextView tv = (TextView)findViewById (R.id.backgroundtext);
+        tv.setEnabled(visibility == 0);
         tv.setVisibility(visibility);
         Button b = (Button)findViewById(R.id.deleteclassbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.defineclassbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.definestartbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.actionstartbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.definestopbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.actionstopbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.eventnowbutton);
+        b.setEnabled(visibility == 0);
         b.setVisibility(visibility);
     }
 
@@ -213,5 +221,6 @@ public class EditActivity extends Activity {
                 return true;
             }
         });
+        setButtonVisibility(View.VISIBLE);
     }
 }

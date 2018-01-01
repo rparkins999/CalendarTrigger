@@ -18,6 +18,18 @@ public class PrefsManager {
 
 	private static final String PREFS_NAME = "mainPreferences";
 
+	private static final String PREF_DEFAULTDIRECTORY = "DefaultDir";
+
+	public static final void setDefaultDir(Context context, String dir) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putString(PREF_DEFAULTDIRECTORY, dir).commit();
+	}
+
+	public static final String getDefaultDir(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(PREF_DEFAULTDIRECTORY, "/");
+	}
+
 	private static final String PREF_LOGGING = "logging";
 
 	public static void setLoggingMode(Context context, boolean IsOn) {
@@ -836,6 +848,39 @@ public class PrefsManager {
 					  .getBoolean(prefName, false);
 	}
 
+	// whether to play a sound before start of event
+	private static final String PLAYSOUND_START = "playsoundStart";
+
+	public static void setPlaysoundStart(
+		Context context, int classNum, boolean playsoundStart) {
+		String prefName = PLAYSOUND_START + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, playsoundStart).commit();
+
+	}
+
+	public static boolean getPlaysoundStart(Context context, int classNum) {
+		String prefName = PLAYSOUND_START + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// pathname of sound file to play before start of event
+	private static final String SOUNDFILE_START = "soundfileStart";
+
+	public static void setSoundFileStart(
+		Context context, int classNum, String filename) {
+		String prefName = SOUNDFILE_START + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, filename).commit();
+	}
+
+	public static String getSoundFileStart(Context context, int classNum) {
+		String prefName = SOUNDFILE_START + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			          .getString(prefName, "");
+	}
+
 	// whether to display notification after end of event
 	private static final String NOTIFY_END = "notifyEnd";
 
@@ -850,6 +895,39 @@ public class PrefsManager {
 		String prefName = NOTIFY_END + (String.valueOf(classNum));
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getBoolean(prefName, false);
+	}
+
+	// whether to play a sound after end of event
+	private static final String PLAYSOUND_END = "playsoundEnd";
+
+	public static void setPlaysoundEnd(
+		Context context, int classNum, boolean playsoundEnd) {
+		String prefName = PLAYSOUND_END + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putBoolean(prefName, playsoundEnd).commit();
+
+	}
+
+	public static boolean getPlaysoundEnd(Context context, int classNum) {
+		String prefName = PLAYSOUND_END + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(prefName, false);
+	}
+
+	// pathname of sound file to play after end of event
+	private static final String SOUNDFILE_END = "soundfileEnd";
+
+	public static void setSoundFileEnd(
+		Context context, int classNum, String filename) {
+		String prefName = SOUNDFILE_END + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putString(prefName, filename).commit();
+	}
+
+	public static String getSoundFileEnd(Context context, int classNum) {
+		String prefName = SOUNDFILE_END + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getString(prefName, "");
 	}
 
 	// is an immediate event of this class currently requested?
