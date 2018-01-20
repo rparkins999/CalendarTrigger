@@ -7,7 +7,7 @@ This program is a generalisation of RemiNV/CalendarMute.
 
 It can trigger different actions on different types of calendar event, and handles overlapping events wanting different ringer states in a sensible way (the "quietest" state wins). Also the start and end actions for an event can be delayed until the device is in some particular state. This requires a preferences format incompatible with the original calendar mute, hence the need for a new repo.
 
-Latest version (1.3.0) supports posting notifications with sounds. You can browse the filesystem for a suitable sound. Obviously the sound doesn't get played if the event mutes the audio. 1.3.0 also fixes some issues which sometimes caused CalendarTrigger to get confused and need you to reset it.
+Latest version (1.3.1) supports posting notifications with sounds. You can browse the filesystem for a suitable sound. Obviously the sound doesn't get played if the event mutes the audio. 1.3.1 also fixes some issues which sometimes caused CalendarTrigger to get confused and need you to reset it.
 
 It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file.
 

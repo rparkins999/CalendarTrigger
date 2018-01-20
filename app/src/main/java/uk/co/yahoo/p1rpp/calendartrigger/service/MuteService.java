@@ -60,7 +60,7 @@ public class MuteService extends IntentService
 			@Override
 			public void handleMessage(Message inputMessage) {
 				Context owner = (Context)inputMessage.obj;
-				int mode =  PrefsManager.getCurrentMode(owner);
+				int mode = PrefsManager.getCurrentMode(owner);
 				new MyLog(owner,
 						  "Handler got mode "
 						  + PrefsManager.getEnglishStateName(owner, mode));
@@ -86,8 +86,9 @@ public class MuteService extends IntentService
 	private static float accelerometerZ;
 	private long nextAccelTime;
 
-	// Safe for this to be local because if it is not null we have a wakelock
-	// and we won't get stopped.
+	// Safe for this to be local because if our class gets re-instantiated we
+	// create a new one. If the handler is actually in use we have a wake lock
+	// so our class instance won't get destroyed.
 	private static Handler mHandler =  null;
 	private static final int what = 0;
 
@@ -97,6 +98,7 @@ public class MuteService extends IntentService
 	private void lock() { // get the wake lock if we don't already have it
 		if (wakelock == null)
 		{
+			new MyLog(this, "Getting lock");
 			PowerManager powerManager
 				= (PowerManager)getSystemService(POWER_SERVICE);
 			wakelock = powerManager.newWakeLock(
@@ -108,13 +110,18 @@ public class MuteService extends IntentService
 		int lcs = PrefsManager.getStepCount(this);
 		if (   (wakelock != null)
 			   && (   (lcs == PrefsManager.STEP_COUNTER_IDLE)
-					  || (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
+				   || (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
 			   && (orientationState != -1)
-			   && (!mHandler.hasMessages(what)))
+			   && (   (mHandler == null)
+		           || !mHandler.hasMessages(what)))
 		{
+			new MyLog(this, "Releasing lock");
 			wakelock.release();
 			wakelock = null;
-			mHandler = null;
+		}
+		else
+		{
+			new MyLog(this, "Retaining lock");
 		}
 	}
 
@@ -713,17 +720,20 @@ public class MuteService extends IntentService
 					return false;
 			}
 		}
+		int gotmode = PrefsManager.getCurrentMode(this);
 		new MyLog(this,
 				  "Tried to set mode "
 				  + PrefsManager.getEnglishStateName(this, mode)
 				  + ", actually got "
-				  + PrefsManager.getEnglishStateName(
-				  	this, PrefsManager.getCurrentMode(this)));
+				  + PrefsManager.getEnglishStateName(this, gotmode));
 		// Some versions of Android give us a mode different from the one that
 		// we asked for, and some versions of Android take a while to do it.
 		// We use a Handler to delay getting the mode actually set.
 		boolean result = mHandler.sendMessageDelayed(
 			mHandler.obtainMessage(what, this), 1000);
+		new MyLog(this,
+				  "mHandler.hasMessages() returns "
+				  + (mHandler.hasMessages(what) ? "true" : "false"));
 		lock();
 		return true;
 	}
@@ -748,7 +758,17 @@ public class MuteService extends IntentService
 				  + PrefsManager.getEnglishStateName(this, last)
 				  + ", current mode is "
 				  + PrefsManager.getEnglishStateName(this, current));
-		if (last != current)
+		/* This will do the wrong thing if the user changes the mode during the
+		 * one second that we are waiting for Android to set the new mode, but
+		 * there seems to be no workaround because Android is a bit
+		 * unpredictable in this area. Since Android can delay setting the
+		 * mode that we asked for, or even set a different mode, but doesn't
+		 * always do so, we can't tell if a change was done by Android or by the
+		 * user.
+		 */
+		if (   (last != current)
+			&& (   (mHandler == null)
+		        || !mHandler.hasMessages(what)))
 		{
 			// user changed ringer mode
 			user = current;
