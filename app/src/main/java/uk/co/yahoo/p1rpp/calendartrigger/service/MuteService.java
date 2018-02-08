@@ -108,20 +108,26 @@ public class MuteService extends IntentService
 	}
 	private void unlock() { // release the wake lock if we no longer need it
 		int lcs = PrefsManager.getStepCount(this);
-		if (   (wakelock != null)
-			   && (   (lcs == PrefsManager.STEP_COUNTER_IDLE)
-				   || (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
-			   && (orientationState != -1)
-			   && (   (mHandler == null)
-		           || !mHandler.hasMessages(what)))
+		if (wakelock != null)
 		{
-			new MyLog(this, "Releasing lock");
-			wakelock.release();
-			wakelock = null;
+			if (   (   (lcs == PrefsManager.STEP_COUNTER_IDLE)
+					|| (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
+				&& (orientationState != -1)
+				&& ((mHandler == null)
+					|| !mHandler.hasMessages(what)))
+			{
+				new MyLog(this, "Releasing lock");
+				wakelock.release();
+				wakelock = null;
+			}
+			else
+			{
+				new MyLog(this, "Retaining lock");
+			}
 		}
 		else
 		{
-			new MyLog(this, "Retaining lock");
+			new MyLog(this, "No lock");
 		}
 	}
 
@@ -637,6 +643,7 @@ public class MuteService extends IntentService
 		{
 			return false;  // no change
 		}
+		PrefsManager.setLastRinger(this, PrefsManager.RINGER_MODE_NONE);
 		if (apiVersion >= android.os.Build.VERSION_CODES.M)
 		{
 			NotificationManager nm = (NotificationManager)
@@ -767,12 +774,14 @@ public class MuteService extends IntentService
 		 * user.
 		 */
 		if (   (last != current)
-			&& (   (mHandler == null)
-		        || !mHandler.hasMessages(what)))
+			&& (last != PrefsManager.RINGER_MODE_NONE))
 		{
 			// user changed ringer mode
 			user = current;
 			PrefsManager.setUserRinger(this, user);
+			new MyLog(this,
+					  "Setting user ringer to "
+					  + PrefsManager.getEnglishStateName(this, user));
 		}
 		long nextAlarmTime = Long.MAX_VALUE;
 		nextAccelTime = Long.MAX_VALUE;
