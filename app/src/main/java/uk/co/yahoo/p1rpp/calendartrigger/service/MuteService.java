@@ -69,18 +69,6 @@ public class MuteService extends IntentService
 		};
 	}
 
-	// need to stash these persistent state variables somewhere
-	// (Preferences?) since Android doesn't
-	// keep even static variables for a shut-down service
-
-	// -2 means the orientation listener is not active
-	// -1 means we've registered our listener but it hasn't been called yet
-	//     we hold a wake lock while it's -1
-	// zero means we just got a value
-	//     if we're not there yet we reset to -2
-	//     and set an alarm to check again 5 minutes from now
-	private static int orientationState = -2;
-
 	private static float accelerometerX;
 	private static float accelerometerY;
 	private static float accelerometerZ;
@@ -108,11 +96,12 @@ public class MuteService extends IntentService
 	}
 	private void unlock() { // release the wake lock if we no longer need it
 		int lcs = PrefsManager.getStepCount(this);
+		int orientation = PrefsManager.getOrientationState(this);
 		if (wakelock != null)
 		{
 			if (   (   (lcs == PrefsManager.STEP_COUNTER_IDLE)
 					|| (lcs == PrefsManager.STEP_COUNTER_WAKEUP))
-				&& (orientationState != -1)
+				&& (orientation != PrefsManager.ORIENTATION_WAITING)
 				&& ((mHandler == null)
 					|| !mHandler.hasMessages(what)))
 			{
@@ -149,7 +138,7 @@ public class MuteService extends IntentService
 				PrefsManager.setClassWaiting(this, classNum, false);
 			}
 		}
-		orientationState = -2;
+		PrefsManager.setOrientationState(this, PrefsManager.ORIENTATION_IDLE);
 		LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 		resetting = true;
 	}
@@ -179,7 +168,8 @@ public class MuteService extends IntentService
 				accelerometerX = sensorEvent.values[0];
 				accelerometerY = sensorEvent.values[1];
 				accelerometerZ = sensorEvent.values[2];
-				orientationState = 0;
+				PrefsManager.setOrientationState(this,
+												 PrefsManager.ORIENTATION_DONE);
 				startIfNecessary(this, "Accelerometer event");
 				break;
 			default:
@@ -516,31 +506,40 @@ public class MuteService extends IntentService
 	}
 
 	// return true if still waiting for correct orientation
-	private boolean checkOrientationWait(int classNum)
+	private boolean checkOrientationWait(int classNum, boolean before)
 	{
-		int wanted = PrefsManager.getBeforeOrientation(this, classNum);
+		int wanted;
+		if (before)
+		{
+			wanted = PrefsManager.getBeforeOrientation(this, classNum);
+		}
+		else
+		{
+			wanted = PrefsManager.getAfterOrientation(this, classNum);
+		}
 		if (   (wanted == 0)
 			|| (wanted == PrefsManager.BEFORE_ANY_POSITION))
 		{
 			return false;
 		}
-		switch (orientationState)
+		switch (PrefsManager.getOrientationState(this))
 		{
-			case -2: // sensor currently not active
+			case PrefsManager.ORIENTATION_IDLE: // sensor currently not active
 				SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
 				Sensor ams = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 				if (ams == null) { return false; }
 				lock();
-				orientationState = -1;
+				PrefsManager.setOrientationState(
+					this, PrefsManager.ORIENTATION_WAITING);
 				sm.registerListener(this, ams,
 									SensorManager.SENSOR_DELAY_FASTEST);
 				new MyLog(this,
 						  "Requested accelerometer value for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
 				//FALLTHRU
-			case -1: // waiting for value
+			case PrefsManager.ORIENTATION_WAITING: // waiting for value
 				return true;
-			case 0: // just got a value
+			case PrefsManager.ORIENTATION_DONE: // just got a value
 				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
 				new MyLog(this, "accelerometerX = "
 						        + String.valueOf(accelerometerX)
@@ -577,7 +576,7 @@ public class MuteService extends IntentService
 					return false;
 				}
 				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
-				orientationState = -2;
+				PrefsManager.setOrientationState(this, PrefsManager.ORIENTATION_IDLE);
 				new MyLog(this,
 						  "Still waiting for orientation for class "
 						  .concat(PrefsManager.getClassName(this, classNum)));
@@ -879,10 +878,10 @@ public class MuteService extends IntentService
 							phoneState == PrefsManager.PHONE_CALL_ACTIVE;
 						if (!notNow)
 						{
-							notNow = checkOrientationWait(classNum);
+							notNow = checkOrientationWait(classNum, true);
 							new MyLog(this, "checkOrientationWait("
 											+ className
-											+ ") returns "
+											+ ", true) returns "
 											+ (notNow ? "true" : "false"));
 							if (notNow)
 							{
@@ -995,6 +994,21 @@ public class MuteService extends IntentService
 							waiting = true;
 							done = false;
 						}
+						if (checkOrientationWait(classNum, false))
+						{
+							if ((nextAccelTime < nextAlarmTime)
+								&& (nextAccelTime > currentTime))
+							{
+								nextAlarmTime = nextAccelTime;
+								alarmReason =
+									" for next orientation check for event "
+										.concat(result.endEventName)
+										.concat(" of class ")
+										.concat(className);
+							}
+							waiting = true;
+							done = false;
+						}
 						PrefsManager.setClassActive(this, classNum, false);
 					}
 					if (PrefsManager.isClassWaiting(this, classNum))
@@ -1037,6 +1051,21 @@ public class MuteService extends IntentService
 							&& checkLocationWait(classNum, latitude, intent))
 						{
 							anyLocationActive = true;
+							waiting = true;
+							done = false;
+						}
+						if (checkOrientationWait(classNum, false))
+						{
+							if ((nextAccelTime < nextAlarmTime)
+								&& (nextAccelTime > currentTime))
+							{
+								nextAlarmTime = nextAccelTime;
+								alarmReason =
+									" for next orientation check for event "
+										.concat(result.endEventName)
+										.concat(" of class ")
+										.concat(className);
+							}
 							waiting = true;
 							done = false;
 						}

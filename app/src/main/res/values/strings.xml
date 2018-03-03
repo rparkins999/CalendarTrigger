@@ -160,7 +160,11 @@
         until the device is in some particular state.
     </string>
     <string name="devicepositionlabel">the device is any of:-</string>
-    <string name="devicepositionhelp">Here you can delay the start action(s) until the device is in some particular orientation. If no box is checked, no orientation check is performed. The orientation check is performed every five minutes until it is satisfied. This can drain the battery if it has to wait for a long time.</string>
+    <string name="devicepositionhelp">Here you can delay the action(s) until the
+        device is in some particular orientation. If no box is checked, no
+        orientation check is performed. The orientation check is performed every
+        five minutes until it is satisfied. This can drain the battery if it has
+        to wait for a long time.</string>
     <string name="devicefaceuplabel">facing up</string>
     <string name="devicefaceuphelp">Device is lying on a horizontal surface
         with the display facing upwards.</string>
@@ -172,7 +176,7 @@
     <string name="deviceUSBlabel">and the device is connected to any of</string>
     <string name="deviceUSBhelp">Here you can delay the start action(s) until
         the device is connected to (or not connected to) a particular kind of
-        charger or a USB perpheral via a USB on-the-go cable. If no box is
+        charger or a USB peripheral via a USB on-the-go cable. If no box is
 		checked, there is no connection test.</string>
     <string name="wirelesschargerlabel">a wireless charger</string>
     <string name="wirelesschargerhelp">The device is on a wireless charger.

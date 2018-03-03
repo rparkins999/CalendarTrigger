@@ -112,6 +112,21 @@ public class PrefsManager {
 					  .getInt(PREF_STEP_COUNT, -3);
 	}
 
+	private final static String PREF_ORIENTATION_STATE = "orientationState";
+	public static final int ORIENTATION_IDLE = -2; // inactive
+	public static final int ORIENTATION_WAITING = -1; // waiting for sensor
+	public static final int ORIENTATION_DONE = 0; // just got a value
+
+	public static void setOrientationState(Context context, int state) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putInt(PREF_ORIENTATION_STATE, state).commit();
+	}
+
+	public static int getOrientationState(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(PREF_ORIENTATION_STATE, ORIENTATION_IDLE);
+	}
+
 	private static final String NUM_CLASSES = "numClasses";
 
 	private static int getNumClasses(SharedPreferences prefs) {
@@ -678,7 +693,9 @@ public class PrefsManager {
 					  .getInt(prefName, 0);
 	}
 
-	// required orientation for event of this class to start
+	// required orientation for event of this class to start or end
+	// originally only used for start, hence misleading name
+	private static final String AFTER_ORIENTATION = "afterOrientation";
 	private static final String BEFORE_ORIENTATION = "beforeOrientation";
 	public static final int BEFORE_FACE_UP = 1;
 	public static final int BEFORE_FACE_DOWN = 2;
@@ -686,6 +703,19 @@ public class PrefsManager {
 	public static final int BEFORE_ANY_POSITION =   BEFORE_FACE_UP
 												  | BEFORE_FACE_DOWN
 												  | BEFORE_OTHER_POSITION;
+
+	public static void setAfterOrientation(
+		Context context, int classNum, int afterOrientation) {
+		String prefName = AFTER_ORIENTATION + (String.valueOf(classNum));
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterOrientation).commit();
+	}
+
+	public static int getAfterOrientation(Context context, int classNum) {
+		String prefName = AFTER_ORIENTATION + (String.valueOf(classNum));
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, BEFORE_ANY_POSITION);
+	}
 
 	public static void setBeforeOrientation(
 		Context context, int classNum, int beforeOrientation) {

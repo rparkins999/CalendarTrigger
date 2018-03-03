@@ -167,7 +167,8 @@
     <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
     <string name="startnotuntilhelp">Retarder les actions du commencement de l\'évènement jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
     <string name="devicepositionlabel">L\'écran est:-</string>
-    <string name="devicepositionhelp">Ici vous pouvez retarder les actions à la commencement de l\'évènement jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>
+    <string name="devicepositionhelp">Ici vous pouvez retarder les actions
+        jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>
     <string name="devicefaceuplabel">vers le haut</string>
     <string name="devicefaceuphelp">L\'appareil se trouve sur une surface
         horizontale avec l\'écran en haut.</string>
@@ -321,7 +322,8 @@
         la fin de l\'évènement, par example si vous entrez dans une chambre
         \'silence\' et vous voulez bloquer votre sonnerie jusq\'a ce que vouz
         êtes sorti(e).</string>
-    <string name="erreur_listing_agendas">Erreur de listing de vos agendas ; Google Calendar est-il installé ?</string>
+    <string name="erreur_listing_agendas">Erreur de listing de vos agendas;
+        Google Calendar est-il installé ?</string>
     <string name="chargement">Chargement&#8230;</string>
     <string name="synchronise">Synchronisé</string>
     <string name="non_synchronise">Non synchronisé</string>
