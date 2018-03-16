@@ -38,10 +38,10 @@ At a fixed interval (possibly zero) after the end of an event, CalendarTrigger c
 This is the screen to define when CalendarTrigger does event end actions
 ![CalendarTrigger](./assets/EndConditionScreen.png)
 
-This is the screen to define event what end actions CalendarTrigger does
+This is the screen to define what event end actions CalendarTrigger does
 ![CalendarTrigger](./assets/EndActionScreen.png)
 
-If events which set ringer modes overlap, the "quietest" one wins. If an event end action would restore the previous ringer state, and the user has in the menatime set a "quieter" state, the user's set state wins. The quietness order is as in the selection list for event start actions.
+If events which set ringer modes overlap, the "quietest" one wins. If an event end action would restore the previous ringer state, and the user has in the meantime set a "quieter" state, the user's set state wins. The quietness order is as in the selection list for event start actions.
 
 CalendarTrigger also has immediate events, useful if you walk into a "quiet" building and want to mute your ringer until you leave.
 
@@ -68,24 +68,27 @@ city, postcode, and country, you will get better results.
 
 It would be nice if the satnav could navigate to the address of the next appointment in your calendar too, but there isn't a Bluetooth protocol for it to read your calendar. The next location feature in CalendarTrigger, which can be enabled from the debugging screen, attempts to work around this. It creates a virtual contact called $Next $Location (the $ signs make it appear at the top of the list) and arranges for its address to always be the location of the next event in your calendar which has a location. The Location field in a calendar event is an unstructured string; CalendarTrigger does its best to decode this into its component parts. You can help it by using standard format addresses:
 
-20 Dean's Yard, London SW1P 3PA, England
+_20 Dean's Yard, London SW1P 3PA, England_
 
 should work. For public buildings which your satnav knows about,
 
-Westminster Abbey, London SW1P 3PA, England
-Westminster Abbey, 20 Dean's Yard, London SW1P 3PA, England
+_Westminster Abbey, London SW1P 3PA, England_
+
+or
+
+_Westminster Abbey, 20 Dean's Yard, London SW1P 3PA, England_
 
 should also work. If you're in Europe,
 
-6 parvis Notre-Dame - Place John Paul II, F-75004 Paris
+_6 parvis Notre-Dame - Place John Paul II, F-75004 Paris_
 
 should work. In the USA
 
-1600 Pennsylvania Avenue NW, Washington, DC 20500, USA
+_1600 Pennsylvania Avenue NW, Washington, DC 20500, USA_
 
 should work as well. It knows that DC is in the USA, so you can leave out the USA for American addresses: the format
 
-1600 Pennsylvania Avenue NW, Washington 20500, District of Columbia
+_1600 Pennsylvania Avenue NW, Washington 20500, District of Columbia_
 
 is also accepted.
 
@@ -95,11 +98,11 @@ Flat or apartment numbers or rooms within a building will probably confuse it, b
 
 Calendar Trigger will ignore anything after the state or country name if there is at least one punctuation character (other than - or ,) in between, so something like
 
-1600 Pennsylvania Avenue NW, Washington 20500, DC (West Wing)
+_1600 Pennsylvania Avenue NW, Washington 20500, DC (West Wing)_
 
 will work: this is the best way of attaching sub-building information or company names to an address. Tags used to identify event classes can also be hidden from the address decoder in this way, for example
 
-Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}
+_Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}_
 
 where presumably you have an event class which includes events whose location contains {mute inside}.
 
