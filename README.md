@@ -1,6 +1,6 @@
 Note: this README is for a new version, source code not posted yet
 
-##CalendarTrigger
+## CalendarTrigger
 
 Trigger actions on your Android device based on calendar events
 
@@ -8,11 +8,38 @@ This program is a generalisation of RemiNV/CalendarMute.
 
 It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file.
 
+This is the screen displayed when you start up the UI
+![CalendarTrigger](./assets/StartScreen.png)
+
+This is the screen displayed when you select Debugging from the menu
+![CalendarTrigger](./assets/DebuggingScreen.png)
+
 CalendarTrigger supports classes of events. Events can be classified by the calendar which they are in, the presence of a specified string in the event name or the event location or the event description, whether the event is busy, whether the event is recurrent, whether the user is the event's organiser, whether the event is public or private, whether the event has attendees, or any combination of these conditions.
+
+This is the screen displayed when you select NEW EVENT CLASS
+![CalendarTrigger](./assets/NewClassScreen.png)
+
+This is the screen displayed after creating a new class or if you select a class to be edited from the menu
+![CalendarTrigger](./assets/ExampleScreen.png)
+
+This is the screen to define the conditions for an event to be in a class
+![CalendarTrigger](./assets/DefineClassScreen.png)
 
 At a fixed interval (possibly zero) before the start of an event, CalendarTrigger can set the ringer to mute or vibrate or set Do Not Disturb mode on Android versions which support it, or show a notification and optionally play a sound, or any combination of these actions. If the event start action does not change the ringer state or play a sound, no notification will be shown. I may add other actions in the future. Event start actions can be delayed until the device is in a particular orientation or being charged by a particular type of charger or not being charged at all. This can be useful to set a sleep mode at night. If the event start action mutes the audio, any sound played will of course not be audible. An event can be in more than one class, so it is possible to play an audio reminder a few minutes before the start of an event and then mute the audio.
 
+This is the screen to define when CalendarTrigger does event start actions
+![CalendarTrigger](./assets/StartConditionScreen.png)
+
+This is the screen to define what event start actions CalendarTrigger does
+![CalendarTrigger](./assets/StartActionScreen.png)
+
 At a fixed interval (possibly zero) after the end of an event, CalendarTrigger can restore the original ringer state, or show a notification and optionally play a sound. If the event end action does not change the ringer state or play a sound, no notification will be shown. Again I may add other actions in the future. Event end actions can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter) or until the device is in a particular orientation. This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the room or leave the building or pick the device up.
+
+This is the screen to define when CalendarTrigger does event end actions
+![CalendarTrigger](./assets/EndConditionScreen.png)
+
+This is the screen to define event what end actions CalendarTrigger does
+![CalendarTrigger](./assets/EndActionScreen.png)
 
 If events which set ringer modes overlap, the "quietest" one wins. If an event end action would restore the previous ringer state, and the user has in the menatime set a "quieter" state, the user's set state wins. The quietness order is as in the selection list for event start actions.
 
@@ -24,19 +51,11 @@ The UI is available in English and French: the French version could probably be 
 
 Help with the French translations would be welcome, as would UI translations for other languages.
 
-![CalendarTrigger](./assets/StartScreen.png)
-![CalendarTrigger](./assets/DebuggingScreen.png)
-![CalendarTrigger](./assets/ExampleScreen.png)
-![CalendarTrigger](./assets/NewClassScreen.png)
-![CalendarTrigger](./assets/DefineClassScreen.png)
-![CalendarTrigger](./assets/StartConditionScreen.png)
-![CalendarTrigger](./assets/StartHelpScreen.png)
-![CalendarTrigger](./assets/StartActionScreen.png)
-![CalendarTrigger](./assets/EndConditionScreen.png)
-![CalendarTrigger](./assets/EndActionScreen.png)
-
 ## Help information
 CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system does not support it, a long press will say so.
+
+This is a Screen showing a help information popup
+![CalendarTrigger](./assets/StartHelpScreen.png)
 
 Some more complicated behaviours are described in this README file.
 
