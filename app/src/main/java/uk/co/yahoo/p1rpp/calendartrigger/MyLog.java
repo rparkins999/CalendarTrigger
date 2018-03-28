@@ -56,20 +56,7 @@ public class MyLog extends Object {
 						   DateFormat.getDateTimeInstance().format(new Date()), s);
 				log.close();
 			} catch (FileNotFoundException e) {
-				Resources res = c.getResources();
-				NotificationCompat.Builder builder
-					= new NotificationCompat.Builder(c)
-					.setSmallIcon(R.drawable.notif_icon)
-					.setContentTitle(res.getString(R.string.logfail))
-					.setContentText(res.getString(R.string.logfilename)
-									.concat(" ")
-									.concat(LOGFILE)
-									.concat(":\n")
-									.concat(e.getLocalizedMessage()));
-				// Show notification
-				NotificationManager notifManager = (NotificationManager)
-					c.getSystemService(Context.NOTIFICATION_SERVICE);
-				notifManager.notify(NOTIFY_ID, builder.build());
+				// do nothing
 			} catch (notDirectoryException e) {
 				Resources res = c.getResources();
 				NotificationCompat.Builder builder
@@ -85,16 +72,7 @@ public class MyLog extends Object {
 					c.getSystemService(Context.NOTIFICATION_SERVICE);
 				notifManager.notify(NOTIFY_ID, builder.build());
 			} catch (cannotCreateException e) {
-				Resources res = c.getResources();
-				NotificationCompat.Builder builder
-					= new NotificationCompat.Builder(c)
-					.setSmallIcon(R.drawable.notif_icon)
-					.setContentTitle(res.getString(R.string.lognodir))
-					.setContentText(res.getString(R.string.lognodir));
-				// Show notification
-				NotificationManager notifManager = (NotificationManager)
-					c.getSystemService(Context.NOTIFICATION_SERVICE);
-				notifManager.notify(NOTIFY_ID, builder.build());
+				// do nothing
 			}
 		}
 	}

@@ -42,6 +42,35 @@ public class PrefsManager {
 					  .getBoolean(PREF_LOGGING, false);
 	}
 
+	private static final String PREF_NEXT_LOCATION = "nextLocation";
+
+	public static void setNextLocationMode(Context context, boolean IsOn) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putBoolean(PREF_NEXT_LOCATION, IsOn).commit();
+	}
+
+	public static boolean getNextLocationMode(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_NEXT_LOCATION, false);
+	}
+
+
+	// This works around a nastiness in some Android versions:
+	// If we try to mute the ringer, the behaviour depends on the previous state
+	//    if it was normal, we get ALARMS_ONLY
+	//    but if it was ALARMS_ONLY, we get normal!
+	private static final String PREF_MUTE_RESULT = "muteresult";
+
+	public static void setMuteResult(Context context, int state) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putInt(PREF_MUTE_RESULT, state).commit();
+	}
+
+	public static int getMuteResult(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(PREF_MUTE_RESULT, PHONE_IDLE);
+	}
+
 	private static final String PREF_PHONE_STATE = "phoneState";
 
 	// Our idea of the phone state differs from Android's because we consider
@@ -694,7 +723,7 @@ public class PrefsManager {
 	}
 
 	// required orientation for event of this class to start or end
-	// originally only used for start, hence misleading name
+	// originally only used for start, hence misleading names
 	private static final String AFTER_ORIENTATION = "afterOrientation";
 	private static final String BEFORE_ORIENTATION = "beforeOrientation";
 	public static final int BEFORE_FACE_UP = 1;
@@ -731,6 +760,8 @@ public class PrefsManager {
 	}
 
 	// required connection state for event of this class to start
+	// originally only used for start, hence misleading names
+	private static final String AFTER_CONNECTION = "afterconnection";
 	private static final String BEFORE_CONNECTION = "beforeconnection";
 	public static final int BEFORE_WIRELESS_CHARGER = 1;
 	public static final int BEFORE_FAST_CHARGER = 2;
@@ -741,6 +772,19 @@ public class PrefsManager {
 		=   BEFORE_WIRELESS_CHARGER | BEFORE_FAST_CHARGER
 		  | BEFORE_PLAIN_CHARGER |  BEFORE_PERIPHERAL
 		  | BEFORE_UNCONNECTED;
+
+	public static void setAfterConnection(
+		Context context, int classNum, int afterConnection) {
+		String prefName = AFTER_CONNECTION + String.valueOf(classNum);
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			   .edit().putInt(prefName, afterConnection).commit();
+	}
+
+	public static int getAfterConnection(Context context, int classNum) {
+		String prefName = AFTER_CONNECTION + String.valueOf(classNum);
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getInt(prefName, BEFORE_ANY_CONNECTION);
+	}
 
 	public static void setBeforeConnection(
 		Context context, int classNum, int beforeConnection) {

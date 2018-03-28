@@ -186,7 +186,7 @@ public class DefineStartFragment extends Fragment {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.deviceUSBhelp,
+                Toast.makeText(ac, R.string.devicestartUSBhelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }

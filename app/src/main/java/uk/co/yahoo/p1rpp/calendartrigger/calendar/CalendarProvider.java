@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
-import uk.co.yahoo.p1rpp.calendartrigger.models.Calendar;
 
 public class CalendarProvider {
 
@@ -32,45 +31,6 @@ public class CalendarProvider {
 		Calendars.CALENDAR_DISPLAY_NAME,
 		Calendars.SYNC_EVENTS
 	};
-
-	public static final int CALENDAR_PROJECTION_ID_INDEX = 0;
-	public static final int CALENDAR_PROJECTION_DISPLAY_NAME_INDEX = 1;
-	public static final int CALENDAR_PROJECTION_IS_SYNCED_INDEX = 2;
-
-	/**
-	 * List the user's calendars
-	 *
-	 * @return All calendars of the user
-	 */
-	public Calendar[] listCalendars() {
-
-		ContentResolver cr = context.getContentResolver();
-
-		Uri calendarUri = Calendars.CONTENT_URI;
-
-		Cursor cur
-			= cr.query(calendarUri, CALENDAR_PROJECTION, null, null, null);
-
-		if (cur == null)
-			return null;
-
-		Calendar[] res = new Calendar[cur.getCount()];
-
-		int i = 0;
-		while (cur.moveToNext())
-		{
-
-			long calendarId = cur.getLong(CALENDAR_PROJECTION_ID_INDEX);
-			res[i] = new Calendar(calendarId,
-						cur.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX),
-						cur.getInt(CALENDAR_PROJECTION_IS_SYNCED_INDEX) == 1);
-
-			i++;
-		}
-		cur.close();
-
-		return res;
-	}
 
 	private Uri getInstancesQueryUri() {
 		// Event search window : from one month before to one month after, to be sure
@@ -298,5 +258,53 @@ public class CalendarProvider {
 		}
 		cur.close();
 		return result;
+	}
+
+	// get start time and location for next event with a location
+	public class StartAndLocation {
+		public long startTime;
+		public String location;
+		public String eventName;
+	}
+
+	private static final String[] LOCATION_PROJECTION = new String[] {
+		Instances.BEGIN,
+		Instances.EVENT_LOCATION,
+		Instances.TITLE,
+		};
+
+	private static final int LOCATION_PROJECTION_BEGIN_INDEX = 0;
+	private static final int LOCATION_PROJECTION_LOCATION_INDEX = 1;
+	private static final int LOCATION_PROJECTION_TITLE_INDEX = 2;
+
+	public StartAndLocation nextLocation(Context context, long currentTime) {
+		GregorianCalendar dateFin = new GregorianCalendar();
+		dateFin.add(GregorianCalendar.MONTH, 1);
+		StringBuilder selClause = new StringBuilder();
+		selClause.append("( ").append(Instances.BEGIN)
+				 .append(" > ").append(String.valueOf(currentTime))
+				 .append(" )");
+		selClause.append(" AND ( ").append(Instances.BEGIN)
+				 .append(" < ").append(String.valueOf(dateFin.getTimeInMillis
+			()))
+				 .append(" )");
+		selClause.append(" AND ( ").append(Instances.EVENT_LOCATION)
+				 .append(" IS NOT NULL )");
+		ContentResolver cr = context.getContentResolver();
+		Cursor cur = cr.query(getInstancesQueryUri(), LOCATION_PROJECTION,
+							  selClause.toString(), null,
+							  Instances.BEGIN);
+		if (cur.moveToFirst())
+		{
+			StartAndLocation result = new StartAndLocation();
+			result.startTime = cur.getLong(LOCATION_PROJECTION_BEGIN_INDEX);
+			result.location = cur.getString(LOCATION_PROJECTION_LOCATION_INDEX);
+			result.eventName = cur.getString(LOCATION_PROJECTION_TITLE_INDEX);
+			return result;
+		}
+		else
+		{
+			return null;
+		}
 	}
 }

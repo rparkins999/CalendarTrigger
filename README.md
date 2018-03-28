@@ -1,6 +1,6 @@
 Note: this README is for a new version, source code not posted yet
 
-## CalendarTrigger
+# CalendarTrigger
 
 Trigger actions on your Android device based on calendar events
 
@@ -35,7 +35,7 @@ This is the screen to define what event start actions CalendarTrigger does
 
 At a fixed interval (possibly zero) after the end of an event, CalendarTrigger can restore the original ringer state, or show a notification and optionally play a sound. If the event end action does not change the ringer state or play a sound, no notification will be shown. Again I may add other actions in the future. Event end actions can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter) or until the device is in a particular orientation. This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the room or leave the building or pick the device up.
 
-This is the screen to define when CalendarTrigger does event end actions
+This is the screen to define when CalendarTrigger does event end actions: the step counter option is disabled because the emulator on which these screen shots were generated doesn't emulate a step counter
 ![CalendarTrigger](./assets/EndConditionScreen.png)
 
 This is the screen to define what event end actions CalendarTrigger does
@@ -45,14 +45,14 @@ If events which set ringer modes overlap, the "quietest" one wins. If an event e
 
 CalendarTrigger also has immediate events, useful if you walk into a "quiet" building and want to mute your ringer until you leave.
 
-CalendarTrigger scans all of your calendars once for each event class every time anything happens which might cause it to take some action. This will not interfere with other applications because it happens in the background, but it does need the phone to wake up and use battery power, so you should not define too many event classes. Some Calendar Providers seem to generate many PROVIDER_CHANGED broadcasts even when nothing has actually changed, but CalendarTrigger needs to wake up for these broadcasts to determine whether in fact anything has changed, so I can't do anything about this. You could try complaining to your phone manufacturer....
+CalendarTrigger scans all of your calendars once for each event class every time anything happens which might cause it to take some action. This will not interfere with other applications because it happens in the background, but it does need the phone to wake up and use battery power, so you should not define too many event classes. Some Calendar Providers seem to generate many PROVIDER_CHANGED broadcasts even when nothing has actually changed, but CalendarTrigger needs to wake up for these broadcasts to determine whether in fact anything _has_ changed, so I can't do anything about this. You could try complaining to your phone manufacturer....
 
 The UI is available in English and French: the French version could probably be improved as I am not a native speaker.
 
 Help with the French translations would be welcome, as would UI translations for other languages.
 
 ## Help information
-CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system does not support it, a long press will say so.
+CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system or hardware does not support it, a long press will say so.
 
 This is a Screen showing a help information popup
 ![CalendarTrigger](./assets/StartHelpScreen.png)
@@ -66,43 +66,45 @@ systems are a bit picky about address formats, and some can't decode the
 unstructured string address of the contact. If you have a contacts manager which allows you to put in the address in separate fields for street address,
 city, postcode, and country, you will get better results.
 
-It would be nice if the satnav could navigate to the address of the next appointment in your calendar too, but there isn't a Bluetooth protocol for it to read your calendar. The next location feature in CalendarTrigger, which can be enabled from the debugging screen, attempts to work around this. It creates a virtual contact called $Next $Location (the $ signs make it appear at the top of the list) and arranges for its address to always be the location of the next event in your calendar which has a location. The Location field in a calendar event is an unstructured string; CalendarTrigger does its best to decode this into its component parts. You can help it by using standard format addresses:
+It would be nice if the satnav could navigate to the address of the next appointment in your calendar too, but there isn't a Bluetooth protocol for it to read your calendar. The next location feature in CalendarTrigger, which can be enabled from the debugging screen, attempts to work around this. It creates a virtual contact called !NextEventLocation (the ! makes it appear at the top of the list) and arranges for its address to always be the location of the next event in your calendar which has a location. The Location field in a calendar event is an unstructured string: CalendarTrigger does its best to decode this into its component parts. You can help it by using standard format addresses:
 
-_20 Dean's Yard, London SW1P 3PA, England_
+_20 Dean's Yard, London SW1P 3PA, England_  
 
-should work. For public buildings which your satnav knows about,
+or  
 
-_Westminster Abbey, London SW1P 3PA, England_
+_Westminster Abbey, 20, Dean's Yard, London, SW1P 3PA, England_  
 
-or
+should work. It tries to handle neighbourhood names, but doesn't always succeed unless it can find a street number and a postcode and a country name as well:..
 
-_Westminster Abbey, 20 Dean's Yard, London SW1P 3PA, England_
+_Westminster Abbey, 20 Dean's Yard, City of Westminster, London SW1P 3PA, England_  
 
-should also work. If you're in Europe,
+should work. If you're in Europe,  
 
-_6 parvis Notre-Dame - Place John Paul II, F-75004 Paris_
+_6 parvis Notre-Dame - Place John Paul II, F-75004 Paris_  
+or..
+_Groenplaats 21, 2000 Antwerpen, Belgium_..
 
-should work. In the USA
+should work. In the USA  
 
-_1600 Pennsylvania Avenue NW, Washington, DC 20500, USA_
+_1600 Pennsylvania Avenue NW, Washington, DC 20500, USA_  
 
-should work as well. It knows that DC is in the USA, so you can leave out the USA for American addresses: the format
+should work as well. It knows the state names and abbreviations for the USA, so you can leave out the USA for American addresses (as Americans usually do): the format  
 
-_1600 Pennsylvania Avenue NW, Washington 20500, District of Columbia_
+_1600 Pennsylvania Avenue NW, Washington 20500, District of Columbia_  
 
 is also accepted.
 
-If you leave out the country name, CalendarTrigger will assume that it is the country in which the phone currently is, as determined by the Mobile Country code of the cellular network to which it is currently connected, if any.
+If you leave out the country name for other countries, CalendarTrigger will assume that it is the country in which the phone currently is, as determined by the Mobile Country code of the cellular network to which it is currently connected, if any.
 
-Flat or apartment numbers or rooms within a building will probably confuse it, because it can't tell "Apartment 17" from a street address in those countries where it's normal to put the house number after the street name.
+Flat or apartment numbers or rooms or PO boxes within a building will probably confuse it, because it can't tell "Apartment 17" from a street address in those countries where it's normal to put the house number after the street name.
 
-Calendar Trigger will ignore anything after the state or country name if there is at least one punctuation character (other than - or ,) in between, so something like
+Calendar Trigger will ignore anything in () or [] or {} or <>, so  
 
-_1600 Pennsylvania Avenue NW, Washington 20500, DC (West Wing)_
+_(West Wing), 1600 Pennsylvania Avenue NW, Washington 20500, DC_  
 
-will work: this is the best way of attaching sub-building information or company names to an address. Tags used to identify event classes can also be hidden from the address decoder in this way, for example
+will work: this is the best way of attaching sub-building information or company names to an address. Tags used to identify event classes can also be hidden from the address decoder in this way, for example  
 
-_Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}_
+_Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}_  
 
 where presumably you have an event class which includes events whose location contains {mute inside}.
 
@@ -116,7 +118,7 @@ READ_PHONE_STATE
 This is needed to enable CalendarTrigger to avoid muting the audio during a call: if this permission is denied and an event calls for the audio to be muted, it may mute the audio even if a call is in progress. If it notices that this permission was previously granted but has been removed, it will display a notification (only once each time the permission state changes).
 
 REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-This is needed to prevent Android from shutting down CalendarTrigger's background server. In some versions of Android, you need to explicitly whitelist CalendarTrigger somewhere in the settings page (unfortunately different versions do this in different places) in order to protect it from battery optimisation: other versions will ask you before applying battery optimisation to an application. If CalendarTrigger's background server is shut down unexpectedly, it may fail to respond correctly to the start or the end of an event.
+This is needed to prevent Android from shutting down CalendarTrigger's background server. In some versions of Android, you need to explicitly whitelist CalendarTrigger somewhere in the settings page (unfortunately different versions do this in different places) in order to protect it from battery optimisation: other versions will ask you before applying battery optimisation to an application or permitting an application to have this permission. If this permission is denied and CalendarTrigger's background server is shut down unexpectedly, it may fail to respond correctly to the start or the end of an event.
 
 WAKE_LOCK
 This is needed to enable CalendarTrigger to stay awake while waiting for certain sensors to initialise: currently this permission is always granted. If some future Android version allows it to be denied, it may crash or otherwise not work properly.
@@ -129,7 +131,7 @@ This is needed to enable CalendarTrigger set and clear Do Not Disturb mode on th
 
 READ_CONTACTS
 WRITE_CONTACTS
-These are needed to make the Next Location feature work. CalendarTrigger only reads and write its own $Next $Location contact and does not read or write any other contacts (it is open source so you can check this). If this permission is denied, the Next Location feature is not available and the checkbox for it is disabled on the debugging screen: it will otherwise work normally.
+These are needed to make the Next Location feature work. CalendarTrigger only reads and write its own $Next $Location contact and does not read or write any other contacts (it is open source so you can check this). If this permission is denied, the Next Location feature is not available and the checkbox for it is disabled on the debugging screen: CalendarTrigger will otherwise work normally.
 
 WRITE_EXTERNAL_STORAGE
 This is needed to enable CalendarTrigger to write a log file. If you never enable logging, it isn't needed; if this permission is denied, logging cannot be enabled.

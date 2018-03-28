@@ -5,6 +5,9 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.service;
 
+// Add some logic to create local time events
+// Add @contact for event locations
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -35,6 +38,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.widget.RemoteViews;
@@ -47,12 +51,16 @@ import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
 
 public class MuteService extends IntentService
 	implements SensorEventListener {
 
 	public static final String MUTESERVICE_RESET =
 		"CalendarTrigger.MuteService.Reset";
+
+	// five minutes in milliseconds
+	private static final int FIVE_MINUTES = 5 * 60 * 1000;
 
 	public MuteService() {
 		super("CalendarTriggerService");
@@ -61,10 +69,16 @@ public class MuteService extends IntentService
 			public void handleMessage(Message inputMessage) {
 				Context owner = (Context)inputMessage.obj;
 				int mode = PrefsManager.getCurrentMode(owner);
+				int wantedMode = PrefsManager.getLastRinger(owner);
+				if (wantedMode == PrefsManager.RINGER_MODE_MUTED)
+				{
+					PrefsManager.setMuteResult(owner, mode);
+				}
 				new MyLog(owner,
 						  "Handler got mode "
 						  + PrefsManager.getEnglishStateName(owner, mode));
 				PrefsManager.setLastRinger(owner, mode);
+				unlock();
 			}
 		};
 	}
@@ -268,7 +282,7 @@ public class MuteService extends IntentService
 		{
 			boolean canCheckCallState =
 				PackageManager.PERMISSION_GRANTED ==
-				ActivityCompat.checkSelfPermission(
+				PermissionChecker.checkSelfPermission(
 					this, Manifest.permission.READ_PHONE_STATE);
 			if (!canCheckCallState)
 			{
@@ -540,7 +554,7 @@ public class MuteService extends IntentService
 			case PrefsManager.ORIENTATION_WAITING: // waiting for value
 				return true;
 			case PrefsManager.ORIENTATION_DONE: // just got a value
-				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
+				nextAccelTime = System.currentTimeMillis() + FIVE_MINUTES;
 				new MyLog(this, "accelerometerX = "
 						        + String.valueOf(accelerometerX)
 						  		+ ", accelerometerY = "
@@ -575,7 +589,7 @@ public class MuteService extends IntentService
 				{
 					return false;
 				}
-				nextAccelTime = System.currentTimeMillis() + 5 * 60 * 1000;
+				nextAccelTime = System.currentTimeMillis() + FIVE_MINUTES;
 				PrefsManager.setOrientationState(this, PrefsManager.ORIENTATION_IDLE);
 				new MyLog(this,
 						  "Still waiting for orientation for class "
@@ -587,9 +601,16 @@ public class MuteService extends IntentService
 	}
 
 	// return true if still waiting for correct connection
-	private boolean checkConnectionWait(int classNum)
+	private boolean checkConnectionWait(int classNum, boolean before)
 	{
-		int wanted = PrefsManager.getBeforeConnection(this, classNum);
+		int wanted;
+		if (before) {
+			wanted = PrefsManager.getBeforeConnection(this, classNum);
+		}
+		else
+		{
+			wanted = PrefsManager.getAfterConnection(this, classNum);
+		}
 		if (   (wanted == 0)
 			|| (wanted == PrefsManager.BEFORE_ANY_CONNECTION))
 		{
@@ -638,11 +659,13 @@ public class MuteService extends IntentService
 		int apiVersion, int mode, int current) {
 		if (   (current == mode)
 			|| (   (mode == PrefsManager.RINGER_MODE_NONE)
-			    && (current == PrefsManager.RINGER_MODE_NORMAL)))
+			    && (current == PrefsManager.RINGER_MODE_NORMAL))
+			|| (   (mode == PrefsManager.RINGER_MODE_MUTED)
+				   && (current == PrefsManager.getMuteResult(this))))
 		{
 			return false;  // no change
 		}
-		PrefsManager.setLastRinger(this, PrefsManager.RINGER_MODE_NONE);
+		PrefsManager.setLastRinger(this, mode);
 		if (apiVersion >= android.os.Build.VERSION_CODES.M)
 		{
 			NotificationManager nm = (NotificationManager)
@@ -743,7 +766,7 @@ public class MuteService extends IntentService
 		lock();
 		return true;
 	}
-
+	
 	// Determine which event classes have become active
 	// and which event classes have become inactive
 	// and consequently what we need to do.
@@ -752,6 +775,7 @@ public class MuteService extends IntentService
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
+		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
 			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
@@ -773,7 +797,8 @@ public class MuteService extends IntentService
 		 * user.
 		 */
 		if (   (last != current)
-			&& (last != PrefsManager.RINGER_MODE_NONE))
+			&& (last != PrefsManager.RINGER_MODE_NONE)
+			&& (!mHandler.hasMessages(what)))
 		{
 			// user changed ringer mode
 			user = current;
@@ -804,7 +829,7 @@ public class MuteService extends IntentService
 				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
 		final boolean havelocation =
 			PackageManager.PERMISSION_GRANTED ==
-			ActivityCompat.checkSelfPermission(
+			PermissionChecker.checkSelfPermission(
 				this, Manifest.permission.ACCESS_FINE_LOCATION);
 		if (PrefsManager.getStepCount(this) >= 0)
 		{
@@ -891,18 +916,27 @@ public class MuteService extends IntentService
 									nextAlarmTime = nextAccelTime;
 									alarmReason =
 										" for next orientation check for event "
-											.concat(result.endEventName)
+											.concat(result.startEventName)
 											.concat(" of class ")
 											.concat(className);
 								}
 							}
 							else
 							{
-								notNow = checkConnectionWait(classNum);
-								new MyLog(this, "checkConnectionWait("
-												+ className
-												+ ") returns "
-												+ (notNow ? "true" : "false"));
+								notNow = checkConnectionWait(classNum, true);
+								if (notNow)
+								{
+									if (nextTime < nextAlarmTime)
+									{
+										nextAlarmTime = nextTime;
+										alarmReason =
+											(" for next connection check for "
+											 + "event ")
+												.concat(result.startEventName)
+												.concat(" of class ")
+												.concat(className);
+									}
+								}
 							}
 						}
 						if (notNow)
@@ -910,6 +944,7 @@ public class MuteService extends IntentService
 							// we can't start it yet
 							triggered = false;
 							active = false;
+							result.endTime = Long.MAX_VALUE;
 						}
 						else
 						{
@@ -1009,6 +1044,21 @@ public class MuteService extends IntentService
 							waiting = true;
 							done = false;
 						}
+						else if (checkConnectionWait(classNum, false))
+						{
+							if (nextTime < nextAlarmTime)
+							{
+								nextAlarmTime = nextTime;
+								alarmReason =
+									(" for next connection check for "
+									 + "event ")
+										.concat(result.endEventName)
+										.concat(" of class ")
+										.concat(className);
+							}
+							waiting = true;
+							done = false;
+						}
 						PrefsManager.setClassActive(this, classNum, false);
 					}
 					if (PrefsManager.isClassWaiting(this, classNum))
@@ -1069,6 +1119,21 @@ public class MuteService extends IntentService
 							waiting = true;
 							done = false;
 						}
+						else if (checkConnectionWait(classNum, false))
+						{
+							if (nextTime < nextAlarmTime)
+							{
+								nextAlarmTime = nextTime;
+								alarmReason =
+									(" for next connection check for "
+									 + "event ")
+										.concat(result.endEventName)
+										.concat(" of class ")
+										.concat(className);
+							}
+							waiting = true;
+							done = false;
+						}
 					}
 					else if (waiting)
 					{
@@ -1117,6 +1182,30 @@ public class MuteService extends IntentService
 				if (triggered)
 				{
 					PrefsManager.setClassTriggered(this, classNum, false);
+				}
+			}
+		}
+		if (   (PackageManager.PERMISSION_GRANTED ==
+					   ActivityCompat.checkSelfPermission(
+						   this, Manifest.permission.READ_CONTACTS))
+		    && (PackageManager.PERMISSION_GRANTED ==
+				ActivityCompat.checkSelfPermission(
+					this, Manifest.permission.WRITE_CONTACTS))
+			   && (PrefsManager.getNextLocationMode(this)))
+		{
+			CalendarProvider.StartAndLocation sl =
+				provider.nextLocation(this, currentTime);
+			if (sl != null)
+			{
+				ContactCreator cc = new  ContactCreator(this);
+				cc.makeContact("!NextEventLocation", "", sl.location);
+				long slst = sl.startTime + 60000;
+				if (   (slst < nextAlarmTime)
+				    && (slst > currentTime))
+				{
+					nextAlarmTime = slst;
+					alarmReason = " after start of event "
+						.concat(sl.eventName);
 				}
 			}
 		}

@@ -40,10 +40,14 @@
     <string name="loggingOnHelp">This enables logging. The log file directory
         and the log file itself are created when necessary if nonexistent.
         </string>
+    <string name="cantLogHelp">Logging cannot be enabled because
+        CalendarTrigger does not have permission to write to external
+        storage. You can enable this permission from the device\'s Settings
+        tool by selecting the Application Manager.
+    </string>
     <string name="LoggingOff">Off</string>
     <string name="loggingOffHelp">This disables logging. The log file if it
 		exists is not cleared.</string>
-    <string name="logfail">Cannot open log file</string>
     <string name="lognodir">Cannot create log directory</string>
     <string name="lognodirdetail">exists but is a plain file</string>
     <string name="clearLog">Clear Log</string>
@@ -52,10 +56,9 @@
         effectively clears the log.</string>
     <string name="logCleared">Log cleared</string>
     <string name="showLog">Show Log</string>
-    <string name="showLogHelp">This button displays the log file: Android will
-        choose a suitable application to do this.</string>
-    <string name="notexteditor">Cannot find a text editor to display log
-        file</string>
+    <string name="showLogHelp">This button displays the log file in a scrolling
+        window: press the back button to return to this screen.</string>
+    <string name="nologfile">No log file (did you clear it?)</string>
     <string name="reset">Reset</string>
     <string name="resethelp">This button forces all classes to be inactive and
         stops all temporary waits. It is for use if the application gets stuck
@@ -63,6 +66,18 @@
         if you are between the start and finish times of a calendar event, any
         class(es) to which that event belongs will immediately become active
         again.</string>
+    <string name="nextLocationLabel">Enable next location</string>
+    <string name="nextLocationHelp">If checked, this option causes
+        CalendarTrigger to create a virtual contact $Next $Location
+        whose address is always the location of the next event in your
+        calendar which has a nonempty location. This can be useful if
+        you have a satnav which can navigate to the address of a
+        contact from your phone.
+    </string>
+    <string name="nextLocationNotAllowed">The next location feature
+        requires read and write permission on your contacts list, and cannot
+        be enabled because CalendarTrigger does not have that permission.
+        </string>
     <string name="edit_event_class">Edit class %s</string>
     <string name="longpresslabel">Long press here for help information.</string>
     <string name="editclassHelp">This screen allows you to define the
@@ -174,7 +189,11 @@
     <string name="deviceanypositionlabel">in any other position</string>
     <string name="deviceanypositionhelp">Device is not horizontal.</string>
     <string name="deviceUSBlabel">and the device is connected to any of</string>
-    <string name="deviceUSBhelp">Here you can delay the start action(s) until
+    <string name="devicestartUSBhelp">Here you can delay the start action(s)
+        until the device is connected to (or not connected to) a particular
+        kind of charger or a USB peripheral via a USB on-the-go cable. If no
+        box is checked, there is no connection test.</string>
+    <string name="deviceendUSBhelp">Here you can delay the end action(s) until
         the device is connected to (or not connected to) a particular kind of
         charger or a USB peripheral via a USB on-the-go cable. If no box is
 		checked, there is no connection test.</string>
@@ -222,8 +241,10 @@
     <string name="priority">do not disturb</string>
     <string name="priorityhelp">a do not disturb mode which can be
         configured from the device\'s settings page</string>
-	<string name="priorityforbidden">This option is disabled because
-		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set do not disturb mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
+    <string name="priorityforbidden">This option is disabled because
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to
+        set do not disturb mode. You can enable this permission from the
+        device\'s Settings tool by selecting the Application Manager.</string>
     <string name="unsupported">The device\'s operating system does not
         support this option.</string>
     <string name="muted">muted</string>
@@ -232,12 +253,12 @@
     <string name="alarms">alarms</string>
     <string name="alarmshelp">only alarms (as defined by Android) will sound
        </string>
-	<string name="alarmsforbidden">This option is disabled because
+    <string name="alarmsforbidden">This option is disabled because
 		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set alarms only mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
     <string name="silent">silent</string>
     <string name="silenthelp">all sounds including media play are suppressed
     </string>
-	<string name="silentforbidden">This option is disabled because
+    <string name="silentforbidden">This option is disabled because
 		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set sielnt mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
     <string name="startNotifyHelp">If this is checked, CalendarTrigger will
         show a notification at the start of the event. The way in which the
@@ -338,15 +359,6 @@
     <string name="rafraichir_calendriers_short">Refresh calendars</string>
     <string name="afficher_notification">Show a notification</string>
     <string name="mode_sonnerie_change">Setting audio mode at\ </string>
-    <string name="mode_sonnerie_pas_de_change_pour">unchanged at start of event
-    </string>
-    <string name="mode_sonnerie_change_silencieux_pour">switched to silent for the event </string>
-    <string name="mode_sonnerie_change_vibreur_pour">switched to vibrate for the event </string>
-    <string name="mode_sonnerie_pas_de_change_apres">unchanged at end of event
-    </string>
-    <string name="mode_sonnerie_change_vibreur_apres">restored to vibrate after the event </string>
-    <string name="mode_sonnerie_change_normale_apres">restored to sound after the event </string>
-    <string name="logfilename">File </string>
     <string name="name">name</string>
     <string name="settingTo">Setting audio mode to</string>
     <string name="ringerModeNone">unchanged</string>
@@ -360,14 +372,14 @@
     <string name="eventstart">for start of event</string>
     <string name="ofclass">of class</string>
     <string name="eventend">for end of event</string>
-	<string name="permissionfail">No permission ACCESS_NOTIFICATION_POLICY
+    <string name="permissionfail">No permission ACCESS_NOTIFICATION_POLICY
 		</string>
-	<string name="permissionfailbig">CalendarTrigger no longer has permission
+    <string name="permissionfailbig">CalendarTrigger no longer has permission
 		ACCESS_NOTIFICATION_POLICY. It needs this permission to set do not
         disturb mode.</string>
-	<string name="readphonefail">No permission READ_PHONE_STATE
+    <string name="readphonefail">No permission READ_PHONE_STATE
 		</string>
-	<string name="readphonefailbig">CalendarTrigger no longer has permission
+    <string name="readphonefailbig">CalendarTrigger no longer has permission
 		READ_PHONE_STATE. It needs this permission to prevent it from muting
         while a call is active.</string>
 </resources>

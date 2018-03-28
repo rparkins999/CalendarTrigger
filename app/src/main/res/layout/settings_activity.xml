@@ -15,7 +15,6 @@
         android:layout_gravity="left|top"
         android:id="@+id/edit_activity_container">
         <TextView
-            android:id="@+id/lblDuringEvent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/default_padding"
@@ -111,6 +110,11 @@
                 android:clickable="true"
                 android:enabled="true"/>
         </LinearLayout>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/nextlocationbox"/>
 
         <Button
             android:text="Reset"

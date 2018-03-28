@@ -19,25 +19,25 @@ public class DisabledRadioButton extends RadioButton {
     public DisabledRadioButton(Context context) {
         super(context);
         setTextColor(0x80000000);
-        setAlpha(0.5F);
+        setAlpha(0.4F);
     }
 
     public DisabledRadioButton(Context context, AttributeSet attrs) {
         super(context, attrs);
         setTextColor(0x80000000);
-        setAlpha(0.5F);
+        setAlpha(0.4F);
     }
 
     public DisabledRadioButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setTextColor(0x80000000);
-        setAlpha(0.5F);
+        setAlpha(0.4F);
     }
 
     public DisabledRadioButton(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setTextColor(0x80000000);
-        setAlpha(0.5F);
+        setAlpha(0.4F);
     }
 
     @Override

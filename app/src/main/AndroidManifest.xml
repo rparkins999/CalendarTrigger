@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
 
     <application
         android:allowBackup="true"
@@ -28,33 +30,27 @@
 
         <service
             android:name=".service.MuteService"
-            android:exported="false"
-            android:description="@string/servicename"/>
+            android:description="@string/servicename"
+            android:exported="false"/>
 
         <receiver android:name=".service.MuteService$StartServiceReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
-
                 <category android:name="android.intent.category.HOME"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE"/>
-
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED"/>
-
                 <data android:scheme="content"/>
                 <data android:host="com.android.calendar"/>
             </intent-filter>
         </receiver>
 
-        <activity
-            android:name=".activites.EditActivity"
-        />
-        <activity
-            android:name=".activites.SettingsActivity"
-        />
+        <activity android:name=".activites.EditActivity"/>
+        <activity android:name=".activites.SettingsActivity"/>
+        <activity android:name=".activites.FakeContact"/>
     </application>
 
 </manifest>

@@ -42,10 +42,13 @@
     <string name="loggingOnHelp">Activer journal. Le répertoire et le fichier
         pour le journal seront crées quand nécessaires s\'ils n\'existent pas.
     </string>
+    <string name="cantLogHelp">Journal ne peut pas être activé parce que
+        CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE. Vous
+        pouvez activer cette permission en employant l\'outil \'Paramètres\'
+    </string>string>
     <string name="LoggingOff">Non</string>
     <string name="loggingOffHelp">Désactiver journal. Le fichier journal s\'il
 		existe ne sera pas vidé.</string>
-	<string name="logfail">Impossible d\'ouvrir fichier journal</string>
     <string name="lognodir">Impossible de créer répertoire journal</string>
     <string name="lognodirdetail">existe comme simple fichier</string>
     <string name="clearLog">Faire vider fichier journal</string>
@@ -54,10 +57,11 @@
         fait vider.</string>
     <string name="logCleared">Fichier journal vidé</string>
     <string name="showLog">Exposer fichier journal</string>
-    <string name="showLogHelp">Ce bouton expose le fichier journal: Android
-        trouvera une application convenable.</string>
-    <string name="notexteditor">Android a failli de trouver une application
-        convenable pour exposer le fichier journal.</string>
+    <string name="showLogHelp">Ce bouton expose le fichier journal dans une
+        fenêtre défilante: touchez le bouton de retour pour revoir l\'ecran
+        de debogage.</string>
+    <string name="nologfile">Fichier journal n\'existe pas (l\'avez-vous vidé?)
+        </string>
     <string name="reset">Réinitialiser</string>
     <string name="resethelp">Ce bouton contraint tous les classes de devenir
         inactives et termine tous les delais temporaires. Il faut le toucher si
@@ -65,6 +69,19 @@
         actif. Remarquer que si vous êtes entre le temps du début et le temps
         de la fin d\'un évènement, tous les classes auxquels l\'évènement
         appartient redeviendront immédiatement actives.</string>
+    <string name="nextLocationLabel">Activer prochaine position</string>
+    <string name="nextLocationHelp">Si coché, CalendarTrigger créera un
+        contact virtuel nommé $Next $Location dont l\'addresse est toujours
+        le lieu du prochain évènement dans votre calendrier dont le lieu
+        existe. Ce contact peut être utile si vous avez un système de navigation
+        par satellite qui peut naviguer vers l\'addresse d\'un contact tiré
+        de votre téléphone portable.
+    </string>
+    <string name="nextLocationNotAllowed">Cette option n\'est pas permise parce
+        que CalendarTrigger n\'a pas les permissions READ_CONTACTS et
+        WRITE_CONTACTS. Vous pouvez activer cette permission en employant
+        l\'outil \'Paramètres\'.
+        </string>
     <string name="edit_event_class">Changer classe %s</string>
     <string name="longpresslabel">Longue toucher ici pour un message
         d\'assistance.</string>
@@ -179,7 +196,12 @@
     <string name="deviceanypositionhelp">L\'appareil ne se trouve pas sur
         une surface horizontale.</string>
     <string name="deviceUSBlabel">et l\'appareil est branché sur l\'un de</string>
-    <string name="deviceUSBhelp">Retarder les actions de la fin de l\'évènement jusqu\'à ce que l\'appareil se trouve branché sur une certaine source de courant ou rien.</string>
+    <string name="devicestartUSBhelp">Retarder les actions de la commencament
+        de l\'évènement jusqu\'à ce que l\'appareil se trouve branché sur une
+        certaine source de courant ou un périphérique USB ou rien.</string>
+    <string name="deviceendUSBhelp">Retarder les actions de la fin de
+        l\'évènement jusqu\'à ce que l\'appareil se trouve branché sur une
+        certaine source de courant ou un périphérique USB ou rien.</string>
     <string name="wirelesschargerlabel">un chargeur sans fil</string>
     <string name="wirelesschargerhelp">L\'appareil est branché sur un chargeur sans fil.</string>
     <string name="fastchargerlabel">un chargeur rapide</string>
@@ -217,7 +239,9 @@
     <string name="priorityhelp">une mode laquelle peut être configuré par
 		l\'écran paramètres de l\'appareil</string>
 	<string name="priorityforbidden">Cette option n\'est pas permise parce que
-		CalendarTrigger n\'a pas la permission ACCESS_NOTIFICATION_POLICY pour engager la mode \"ne pas déranger\". Vous pouvez activer cette permission en employant l\'outil \'Paramètres\'.</string>
+		CalendarTrigger n\'a pas la permission ACCESS_NOTIFICATION_POLICY pour
+        engager la mode \"ne pas déranger\".
+        Vous pouvez activer cette permission en employant l\'outil \'Paramètres\'.</string>
     <string name="unsupported">La système opérateur de l\'appareil n\'offre
         pas cette option.</string>
     <string name="muted">en sourdine</string>
@@ -331,15 +355,6 @@
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
     <string name="afficher_notification">Afficher une notification</string>
 	<string name="mode_sonnerie_change">Mode d\'audio changé à\ </string>
-    <string name="mode_sonnerie_pas_de_change_pour">Non changé pour
-    l\'évènement </string>
-	<string name="mode_sonnerie_change_silencieux_pour">Mode silencieux pour l\'évènement </string>
-	<string name="mode_sonnerie_change_vibreur_pour">Mode vibreur pour l\'évènement </string>
-    <string name="mode_sonnerie_pas_de_change_apres">Non changé après
-    l\'évènement </string>
-    <string name="mode_sonnerie_change_vibreur_apres">Restauration mode vibreur après l\'évènement </string>
-    <string name="mode_sonnerie_change_normale_apres">Restauration mode sonnerie après l\'évènement </string>
-	<string name="logfilename">Fichier </string>
     <string name="name">nom</string>
     <string name="settingTo">Mode de sonnerie</string>
     <string name="ringerModeNone">non changée</string>

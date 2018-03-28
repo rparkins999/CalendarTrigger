@@ -89,6 +89,120 @@ public class ContactCreator {
 		return false;
 	}
 
+	private boolean isUKcounty(String s) {
+		final String counties[] = {
+			"Aberdeenshire", "Aberdeen",
+			"Anglesey",
+			"Angus", "Forfarshire",
+			"County Antrim", "Antrim",
+			"Argyll",
+			"County Armagh", "Armagh",
+			"Ayrshire",
+			"Banffshire", "Banff",
+			"Bedfordshire", "Beds",
+			"Berkshire", "Berks",
+			"Berwickshire", "Berwick",
+			"Brecknockshire", "Brecknock", "Brecon",
+			"Buckinghamshire", "Bucks",
+			"Bute",
+			"Caernarfonshire", "Carnarvon",
+			"Caithness",
+			"Cardiganshire", "Cardigan", "Ceredigion",
+			"Cambridgeshire", "Cambs",
+			"Carmarthenshire", "Carmarthen", "Carms",
+			"Cheshire",
+			"Clackmannanshire", "Clackmannan",
+			"Cleveland",
+			"Cornwall",
+			"Cromartyshire", "Cromarty",
+			"Cumberland",
+			"Cumbria",
+			"Denbighshire", "Denbs", "Ddinbych",
+			"Derbyshire", "Derbys", "Derbs",
+			"Devon",
+			"County Down", "Down",
+			"Dorset",
+			"Dumfriesshire", "Dumfries",
+			"Dunbartonshire", "Dumbarton",
+			"County Durham", "Durham",
+			"Dyfed",
+			"East Lothian",
+			"Essex",
+			"County Fermanagh", "Fermanagh",
+			"Kingdom of Fife", "Fife",
+			"Flintshire", "Fflint", "Flints", "Flint",
+			"Glamorgan",
+			"Gloucestershire", "Glos",
+			"Gwent",
+			"Gwynedd",
+			"Hampshire", "Hants",
+			"Herefordshire",
+			"Hertfordshire", "Herts",
+			"Huntingdonshire", "Hunts",
+			"Inverness-shire", "Inverness",
+			"Isle of Wight", "IOW",
+			"Kent",
+			"Kincardineshire", "Kincardine",
+			"Kinross-shire", "Kinross",
+			"Kirkcudbrightshire", "Kirkcudbright",
+			"Lanarkshire", "Lanarks", "Lanark",
+			"Lancashire", "Lancs",
+			"Leicestershire", "Leics",
+			"Lincolnshire", "Lincs",
+			"County Londonderry", "Londonderry", "County Derry", "Derry",
+			"Merionethshire", "merioneth",
+			"Merseyside",
+			"Middlesex", "Middx",
+			"Midlothian",
+			"Monmouthshire", "Monmouth", "Mons", "Fynwy",
+			"Montgomeryshire", "Montgomery",
+			"Moray",
+			"Nairnshire", "Nairn",
+			"Northamptonshire", "Northants",
+			"Northumberland",
+			"Nottinghamshire", "Notts",
+			"Orkney",
+			"Oxfordshire", "Oxon",
+			"Peeblesshire", "Peebles",
+			"Pembrokeshire", "Pembroke", "Pembs", "Benfro",
+			"Perthshire", "Perth",
+			"Powys",
+			"Radnorshire", "Radnor",
+			"Renfrewshire", "Renfrew",
+			"Ross and Cromarty", "Ross & Cromarty",
+			"Ross-shire", "Ross",
+			"Roxburghshire", "Roxburgh",
+			"Rutland",
+			"Selkirkshire", "Selkirk",
+			"Shetland", "Zetland",
+			"Shropshire", "Salop",
+			"Somerset",
+			"South Glamorgan",
+			"Staffordshire", "Staffs",
+			"Stirlingshire", "Stirling",
+			"Suffolk",
+			"Surrey",
+			"Sussex",
+			"Sutherland",
+			"Tyne and Wear", "Tyne & Wear",
+			"County Tyrone", "Tyrone",
+			"Warwickshire", "Warks",
+			"West Lothian", "Linlithgowshire",
+			"West Glamorgan",
+			"Westmorland",
+			"Wigtownshire", "Wigtown",
+			"Wiltshire", "Wilts",
+			"Wrexham",
+			"Worcestershire", "Worcs",
+			"Yorkshire", "Yorks",
+		};
+		for (int i = 0; i < counties.length; ++i)
+		{
+			if (s.compareTo(counties[i]) == 0) {return true;}
+		}
+		return false;
+	}
+
 	private boolean isUKregion(String s) {
 		final String[] regions = {
 			"England", "Scotland", "Wales", "Northern Ireland"
@@ -350,8 +464,7 @@ public class ContactCreator {
 
 	private static final String[] CONTACT_PROJECTION =
 		{
-			RawContactsEntity.CONTACT_ID,
-			RawContactsEntity.DATA_ID
+			RawContactsEntity.CONTACT_ID
 		};
 
 	public void createOrUpdateContact(
@@ -593,7 +706,7 @@ public class ContactCreator {
 	// street name: we allow for house numbers like 221B Baker Street and also
 	// for American numbered streets like 350 5th AVenue.
 	private static final String MATCHSTREET =
-		"[0-9]+[A-Za-z]? +" +
+		"([0-9]+[A-Za-z]? +)?" +
 		"((E|(E\\.)|(East)|N|(N\\.)|(North)|" +
 		"S|(S\\.)|(South)|W|(W\\.)|(West)) +)?" +
 		"([0-9]+((st)|(nd)|(rd)|(th)) +)?( |[^0-9])+";
@@ -614,16 +727,25 @@ public class ContactCreator {
      * location fields: we do our best to reformat the address into something
      * that the satnav will understand.
 	 * We don't handle flat or apartment numbers because we would have to
-	 * recognise the word "flat" in all possible languages.
+	 * recognise the word "flat" in all possible languages. You can put the
+	 * flat number in () or [] or {} or <> to make the address decoder ignore
+	 * it.
+	 * We can't distinguish between a street name with no number followed by
+	 * either a neighbourhood name or a town name without a postcode, and a
+	 * building name followed by a street name with no number. We assume the
+	 * latter, which is more common. You can force the former interpretation
+	 * by leaving out the neighbourhood name and not putting a comma between
+	 * the town and the postcode (and ensuring that there *is* a postcode, of
+	 * course).
      */
 	public void makeContact(String first, String last, String address) {
-	    String buildingName = null;
-	    String streetAddress = null;
-	    String neighbourhood = null;
-	    String town = null;
-	    String state = null;
-	    String postCode = null;
-	    String country = null;
+	    String buildingName = "";
+	    String streetAddress = "";
+	    String neighbourhood = "";
+	    String town = "";
+	    String state = "";
+	    String postCode = "";
+	    String country = "";
 		ArrayList<String> splitup = splitAddress(address);
 		int used = 0;
 		int n = splitup.size();
@@ -653,7 +775,7 @@ public class ContactCreator {
 				streetAddress = s;
 				++used;
 			}
-			else if (s.matches("[^0-9]+[0-9]+[A-Za-z]?"))
+			else if (s.matches("[^0-9]+ +[0-9]+[A-Za-z]?"))
 			{
 				// some non-digits (possibly including spaces) followed by some
 				// digits possibly followed by a letter
@@ -728,7 +850,7 @@ public class ContactCreator {
 				// If we've been here before, what we thought was a town was
 				// actually a neighbourhood
 				neighbourhood = town;
-				town = cp[0]; // first part of town name
+				String possibletown = cp[0]; // first part of town name
 				// We need to be careful splitting this up because the town
 				// name might contain spaces, but a UK-style postcode can
 				// contain spaces too (e. g. Milton Keynes MK9 3EP).
@@ -736,7 +858,7 @@ public class ContactCreator {
 				// town names don't.
 				for (int i = 1; i < cp.length; ++i)
 				{
-					if (postCode == null)
+					if (postCode.isEmpty())
 					{
 						if (cp[i].matches("[^0-9]*[0-9].*"))
 						{
@@ -744,12 +866,27 @@ public class ContactCreator {
 						}
 						else
 						{
-							town += " " + cp[i]; // more of town name
+							possibletown += " " + cp[i]; // more of town name
 						}
 					}
 					else
 					{
 						postCode += " " + cp[i]; // more of postcode
+					}
+				}
+				if (!town.isEmpty())
+				{
+					if (isUKcounty(possibletown))
+					{
+						// Sometimes people put the postcode after the county
+						state = possibletown;
+					}
+					else
+					{
+						// If we've been here before, what we thought was a town was
+						// actually a neighbourhood
+						neighbourhood = town;
+						town = possibletown;
 					}
 				}
 				++ used;
@@ -758,10 +895,21 @@ public class ContactCreator {
 			else if (   (s.matches("[^0-9]+"))
 				     && (used + 1 < n))
 			{
-				// If we've been here before and there is still something more,
-				// what we thought was a town was actually a neighbourhood
-				neighbourhood = town;
-				town = s;
+				if (!town.isEmpty())
+				{
+					if (isUKcounty(s))
+					{
+						// Sometimes people put the postcode after the county
+						state = s;
+					}
+					else
+					{
+						// If we've been here before, what we thought was a
+						// town was actually a neighbourhood
+						neighbourhood = town;
+						town = s;
+					}
+				}
 				++used;
 				// otherwise assume no postcode and look for a country name
 			}
@@ -776,10 +924,6 @@ public class ContactCreator {
 			// The only case where we actually do loop is where we have seen a
 			// town name with no postcode: in that case it may really have been
 			// a neighbourhood name, so we look again for a town name.
-			// Note this doesn't work correctly if we have a neighbourhood name
-			// and a town name and no postcode or country name. The only way to
-			// get this case right is to check for all possible country names in
-			// all possible languages.
 		}
 		if (used < n)
 		{
@@ -811,7 +955,7 @@ public class ContactCreator {
 				country = s;
 			}
 		}
-		if ((streetAddress == null) && (buildingName != null))
+		if (streetAddress.isEmpty() && !(buildingName.isEmpty()))
 		{
 			// If we found a building name but no street address,
 			// give it to the satnav in the hope that it's a public
@@ -820,72 +964,69 @@ public class ContactCreator {
 			// not one in a contact), but it's worth a try.
 			streetAddress = buildingName;
 		}
-		String formattedAddress = null;
-	    if (streetAddress != null)
+		String formattedAddress = "";
+	    if (!streetAddress.isEmpty())
 	    {
 	    	formattedAddress = streetAddress;
 	    }
-	    if (neighbourhood != null)
+	    if (!neighbourhood.isEmpty())
 	    {
-	    	if (formattedAddress == null)
+	    	if (formattedAddress.isEmpty())
 	    	{
 	    		formattedAddress = neighbourhood;
 	    	}
 	    	else
 			{
-				formattedAddress += " " + neighbourhood;
+				formattedAddress += ", " + neighbourhood;
 			}
 	    }
-		if (town != null)
+		if (!town.isEmpty())
 		{
-			if (formattedAddress == null)
+			if (formattedAddress.isEmpty())
 			{
 				formattedAddress = town;
 			}
 			else
 			{
-				formattedAddress += " " + town;
+				formattedAddress += ", " + town;
 			}
 		}
-	    if (postCode != null)
+	    if (!postCode.isEmpty())
 		{
-			if (formattedAddress == null)
+			if (formattedAddress.isEmpty())
 			{
 				formattedAddress = postCode;
 			}
 			else
 			{
-				formattedAddress += " " + postCode;
+				formattedAddress += ", " + postCode;
 			}
 		}
-	    if (state != null)
+	    if (!state.isEmpty())
 		{
-			if (formattedAddress == null)
+			if (formattedAddress.isEmpty())
 			{
 				formattedAddress = state;
 			}
 			else
 			{
-				formattedAddress += " " + state;
+				formattedAddress += ", " + state;
 			}
 		}
-		if (country == null)
+		if (country.isEmpty())
 		{
 			// If we didn't get a country (nor a US state) ask the phone
 			// which country it is in and use that.
 			int mcc = me.getResources().getConfiguration().mcc;
 			country = lookupCountry(mcc);
 		}
+		if (formattedAddress.isEmpty())
+		{
+			formattedAddress = country;
+		}
 		else
 		{
-			if (formattedAddress == null)
-			{
-				formattedAddress = country;
-			}
-			else
-			{
-				formattedAddress += " " + country;
-			}
+			formattedAddress += ", " + country;
 		}
 		createOrUpdateContact(first, last, formattedAddress, streetAddress,
 							  neighbourhood, town,
@@ -904,12 +1045,467 @@ public class ContactCreator {
 
     }
 
-    // show the entire contacts list in a scrolling view
-	// only used for debugging
-    public ArrayList<String> dumpContacts() {
-		ArrayList<String> strings = new ArrayList<>();
+    private void addLine(ArrayList<String> strings,
+		String description, Cursor c, int i) {
+		switch (c.getType(i))
+		{
+			case Cursor.FIELD_TYPE_NULL:
+				strings.add(description + " is null");
+				break;
+			case Cursor.FIELD_TYPE_INTEGER:
+				strings.add(
+					description + " is " + String.valueOf(c.getLong (i)));
+				break;
+			case Cursor.FIELD_TYPE_FLOAT:
+				strings.add(description + " is "
+							+ String.valueOf(c.getDouble(i)));
+				break;
+			case Cursor.FIELD_TYPE_STRING:
+				strings.add(
+					description + " is " + c.getString(i));
+				break;
+			case Cursor.FIELD_TYPE_BLOB:
+				strings.add(description + " is a blob");
+				break;
+		}
+	}
+
+    private void dumpSingle(
+    	ArrayList<String> strings, Cursor c, Cursor c1)
+	{
 		if (BuildConfig.DEBUG)
 		{
+			String mimetype =  c.getString(2);
+			strings.add("RawContactsEntity row:");
+			strings.add("ACCOUNT NAME=" + c1.getString(0));
+			strings.add("ACCOUNT TYPE=" + c1.getString(1));
+			strings.add("CONTACT_ID=" + c.getString(1));
+			strings.add("MIMETYPE=" + mimetype);
+			int i;
+			if (mimetype.compareTo(
+				CommonDataKinds.Identity.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "IDENTITY", c, 3);
+				addLine(strings, "NAMESPACE", c, 4);
+				i = 5 ;
+			}
+			else if (mimetype.compareTo(
+				CommonDataKinds.Nickname.CONTENT_ITEM_TYPE) == 0)
+			{
+				if (c.getType(3) == Cursor.FIELD_TYPE_NULL)
+				{
+					// this shouldn't happen, but it does
+					i = 3;
+				}
+				else
+				{
+					addLine(strings, "NAME", c, 3);
+					switch(c.getInt(4)) {
+						case CommonDataKinds.Nickname.TYPE_DEFAULT:
+							strings.add("TYPE=TYPE_DEFAULT");
+							addLine(strings, "LABEL", c, 5);
+							break;
+						case CommonDataKinds.Nickname.TYPE_OTHER_NAME:
+							strings.add("TYPE=TYPE_OTHER_NAME");
+							addLine(strings, "LABEL", c, 5);
+							break;
+						case CommonDataKinds.Nickname.TYPE_MAIDEN_NAME:
+							strings.add("TYPE=TYPE_MAIDEN_NAME");
+							addLine(strings, "LABEL", c, 5);
+							break;
+						case CommonDataKinds.Nickname.TYPE_SHORT_NAME:
+							strings.add("TYPE=TYPE_SHORT_NAME");
+							addLine(strings, "LABEL", c, 5);
+							break;
+						case CommonDataKinds.Nickname.TYPE_INITIALS:
+							strings.add("TYPE=TYPE_INITIALS");
+							addLine(strings, "LABEL", c, 5);
+							break;
+						case CommonDataKinds.Nickname.TYPE_CUSTOM:
+							addLine(strings, "TYPE_CUSTOM", c, 5);
+							break;
+						default:
+							addLine(strings, "INVALID TYPE", c, 4);
+							addLine(strings, "LABEL", c, 5);
+							break;
+					}
+					i = 6;
+				}
+			}
+			else if (mimetype.compareTo(
+				CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "DISPLAY_NAME", c, 3);
+				addLine(strings, "GIVEN_NAME", c, 4);
+				addLine(strings, "FAMILY_NAME", c, 5);
+				addLine(strings, "PREFIX", c, 6);
+				addLine(strings, "MIDDLE_NAME", c, 7);
+				addLine(strings, "SUFFIX", c, 8);
+				addLine(strings, "PHONETIC_GIVEN_NAME", c, 9);
+				addLine(strings, "PHONETIC_MIDDLE_NAME", c, 10);
+				addLine(strings, "PHONETIC_FAMILY_NAME", c, 11);
+				i = 12 ;
+			}
+			else if  (mimetype.compareTo(
+				CommonDataKinds.Email.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "ADDRESS", c, 3);
+				switch(c.getInt(4)) {
+					case CommonDataKinds.Email.TYPE_HOME:
+						strings.add("TYPE=TYPE_HOME");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Email.TYPE_WORK:
+						strings.add("TYPE=TYPE_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Email.TYPE_OTHER:
+						strings.add("TYPE=TYPE_OTHER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Email.TYPE_MOBILE:
+						strings.add("TYPE=TYPE_MOBILE");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Email.TYPE_CUSTOM:
+						addLine(strings, "TYPE_CUSTOM", c, 5);
+						break;
+					default:
+						addLine(strings, "INVALID TYPE", c, 4);
+						addLine(strings, "LABEL", c, 5);
+						break;
+				}
+				i = 6;
+			}
+			else if  (mimetype.compareTo(
+				CommonDataKinds.Phone.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "NUMBER", c, 3);
+				switch(c.getInt(4)) {
+					case CommonDataKinds.Phone.TYPE_HOME:
+						strings.add("TYPE=TYPE_HOME");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_WORK:
+						strings.add("TYPE=TYPE_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_OTHER:
+						strings.add("TYPE=TYPE_OTHER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_MOBILE:
+						strings.add("TYPE=TYPE_MOBILE");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_FAX_WORK:
+						strings.add("TYPE=TYPE_FAX_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_FAX_HOME:
+						strings.add("TYPE=TYPE_FAX_HOME");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_PAGER:
+						strings.add("TYPE=TYPE_PAGER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_CALLBACK:
+						strings.add("TYPE=TYPE_CALLBACK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_CAR:
+						strings.add("TYPE=TYPE_CAR");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_COMPANY_MAIN:
+						strings.add("TYPE=TYPE_COMPANY_MAIN");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_ISDN:
+						strings.add("TYPE=TYPE_ISDN");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_MAIN:
+						strings.add("TYPE=TYPE_MAIN");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_OTHER_FAX:
+						strings.add("TYPE=TYPE_OTHER_FAX");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_RADIO:
+						strings.add("TYPE=TYPE_RADIO");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_TELEX:
+						strings.add("TYPE=TYPE_TELEX");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_TTY_TDD:
+						strings.add("TYPE=TYPE_TTY_TDD");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_WORK_MOBILE:
+						strings.add("TYPE=TYPE_WORK_MOBILE");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_WORK_PAGER:
+						strings.add("TYPE=TYPE_WORK_PAGER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_ASSISTANT:
+						strings.add("TYPE=TYPE_ASSISTANT");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_MMS:
+						strings.add("TYPE=TYPE_MMS");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Phone.TYPE_CUSTOM:
+						addLine(strings, "TYPE_CUSTOM", c, 5);
+						break;
+					default:
+						addLine(strings, "INVALID TYPE", c, 4);
+						addLine(strings, "LABEL", c, 5);
+						break;
+				}
+				i = 6;
+			}
+			else if  (mimetype.compareTo(
+				CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "FORMATTED_ADDRESS", c, 3);
+				switch(c.getInt(4)) {
+					case CommonDataKinds.StructuredPostal.TYPE_HOME:
+						strings.add("TYPE=TYPE_HOME");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.StructuredPostal.TYPE_WORK:
+						strings.add("TYPE=TYPE_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.StructuredPostal.TYPE_OTHER:
+						strings.add("TYPE=TYPE_OTHER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.StructuredPostal.TYPE_CUSTOM:
+						addLine(strings, "TYPE_CUSTOM", c, 5);
+						break;
+					default:
+						addLine(strings, "INVALID TYPE", c, 4);
+						addLine(strings, "LABEL", c, 5);
+						break;
+				}
+				addLine(strings, "STREET", c, 6);
+				addLine(strings, "POBOX", c, 7);
+				addLine(strings, "NEIGHBORHOOD", c, 8);
+				addLine(strings, "CITY", c, 9);
+				addLine(strings, "REGION", c, 10);
+				addLine(strings, "POSTCODE", c, 11);
+				addLine(strings, "COUNTRY", c, 12);
+				i = 13;
+			}
+			else if  (mimetype.compareTo(
+				CommonDataKinds.Organization.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "COMPANY", c, 3);
+				switch(c.getInt(4)) {
+					case CommonDataKinds.Organization.TYPE_WORK:
+						strings.add("TYPE=TYPE_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Organization.TYPE_OTHER:
+						strings.add("TYPE=TYPE_OTHER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Organization.TYPE_CUSTOM:
+						addLine(strings, "TYPE_CUSTOM", c, 5);
+						break;
+					default:
+						addLine(strings, "INVALID TYPE", c, 4);
+						addLine(strings, "LABEL", c, 5);
+						break;
+				}
+				addLine(strings, "TITLE", c, 6);
+				addLine(strings, "DEPARTMENT", c, 7);
+				addLine(strings, "JOB_DESCRIPTION", c, 8);
+				addLine(strings, "SYMBOL", c, 9);
+				addLine(strings, "PHONETIC_NAME", c, 10);
+				addLine(strings, "OFFICE_LCOATION", c, 11);
+				addLine(strings, "PHONETIC_NAME_STYLE", c, 12);
+				i = 13;
+			}
+			else if  (mimetype.compareTo(
+				CommonDataKinds.Website.CONTENT_ITEM_TYPE) == 0)
+			{
+				addLine(strings, "URL", c, 3);
+				switch(c.getInt(4)) {
+					case CommonDataKinds.Website .TYPE_HOMEPAGE:
+						strings.add("TYPE=TYPE_HOMEPAGE");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_BLOG:
+						strings.add("TYPE=TYPE_BLOG");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_PROFILE:
+						strings.add("TYPE=TYPE_PROFILE");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_HOME:
+						strings.add("TYPE=TYPE_HOME");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_WORK:
+						strings.add("TYPE=TYPE_WORK");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_FTP:
+						strings.add("TYPE=TYPE_FTP");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_OTHER:
+						strings.add("TYPE=TYPE_OTHER");
+						addLine(strings, "LABEL", c, 5);
+						break;
+					case CommonDataKinds.Website .TYPE_CUSTOM:
+						addLine(strings, "TYPE_CUSTOM", c, 5);
+						break;
+					default:
+						addLine(strings, "INVALID TYPE", c, 4);
+						addLine(strings, "LABEL", c, 5);
+						break;
+				}
+				i = 6;
+			}
+			else
+			{
+				i = 3;
+			}
+			for (; i < c.getColumnCount(); ++i)
+			{
+				addLine(strings, "DATA" + String.valueOf(i - 2), c, i);
+			}
+			strings.add("");
+		}
+	}
+
+	// show all the data for a single contact in a scrolling view
+	// only used for debugging
+	public ArrayList<String> dumpOneContact(String first, String last) {
+		ArrayList<String> strings;
+		if (BuildConfig.DEBUG)
+		{
+			final String[] CONTACT_PROJECTION =
+				{
+					RawContactsEntity.CONTACT_ID,
+					RawContactsEntity.DATA_ID
+				};
+			String CONTACT_SELECTION;
+			if ((first == null) || first.isEmpty())
+			{
+				if ((last == null) || last.isEmpty())
+				{
+					return dumpAllContacts();
+				}
+				else
+				{
+					CONTACT_SELECTION =
+						RawContactsEntity.MIMETYPE + " IS '" +
+						CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+						+ "' AND "
+						+ CommonDataKinds.StructuredName.FAMILY_NAME
+						+ " IS '" + last + "'";
+				}
+			}
+			else if  ((last == null) || last.isEmpty())
+			{
+				CONTACT_SELECTION =
+					RawContactsEntity.MIMETYPE + " IS '" +
+					CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+					+ "' AND "
+					+ CommonDataKinds.StructuredName.GIVEN_NAME
+					+ " IS '" + first + "'";
+			}
+			else
+			{
+				CONTACT_SELECTION =
+					RawContactsEntity.MIMETYPE + " IS '" +
+					CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+					+ "' AND "
+					+ CommonDataKinds.StructuredName.GIVEN_NAME
+					+ " IS '" + first + "'"
+					+ " AND "
+					+ CommonDataKinds.StructuredName.FAMILY_NAME
+					+ " IS '" + last + "'";
+			}
+			Cursor b;
+			b = me.getContentResolver().query(
+				RawContactsEntity.CONTENT_URI,
+				CONTACT_PROJECTION,
+				CONTACT_SELECTION,
+				null,
+				null);
+			if (b.getCount() == 0) { return null; }
+			strings = new ArrayList<>();
+			while (b.moveToNext())
+			{
+				long contactId = b.getLong(0);
+				Cursor c;
+				c = me.getContentResolver()
+					  .query(RawContactsEntity.CONTENT_URI,
+							 new String[] {
+								 RawContactsEntity._ID,
+								 RawContactsEntity.CONTACT_ID,
+								 RawContactsEntity.MIMETYPE,
+								 RawContactsEntity.DATA1,
+								 RawContactsEntity.DATA2,
+								 RawContactsEntity.DATA3,
+								 RawContactsEntity.DATA4,
+								 RawContactsEntity.DATA5,
+								 RawContactsEntity.DATA6,
+								 RawContactsEntity.DATA7,
+								 RawContactsEntity.DATA8,
+								 RawContactsEntity.DATA9,
+								 RawContactsEntity.DATA10,
+								 RawContactsEntity.DATA11,
+								 RawContactsEntity.DATA12,
+								 RawContactsEntity.DATA13,
+								 RawContactsEntity.DATA14,
+								 RawContactsEntity.DATA15
+							 }, null, null, null);
+				strings.ensureCapacity(c.getCount() * 18);
+				while (c.moveToNext())
+				{
+					Cursor c1;
+					c1 = me.getContentResolver()
+						   .query(ContactsContract.RawContacts.CONTENT_URI,
+								  new String[] {
+									  ContactsContract.RawContacts.ACCOUNT_NAME,
+									  ContactsContract.RawContacts.ACCOUNT_TYPE
+								  }, ContactsContract.RawContacts._ID
+									 + " IS "
+									 + String.valueOf(c.getLong(0)),
+								  null, null);
+					if (c1.moveToFirst())
+					{
+						dumpSingle(strings, c, c1);
+					}
+				}
+			}
+			return strings;
+		}
+		return null;
+	}
+
+    // show the entire contacts list in a scrolling view
+	// only used for debugging
+    public ArrayList<String> dumpAllContacts() {
+		ArrayList<String> strings;
+		if (BuildConfig.DEBUG)
+		{
+			strings = new ArrayList<>();
 			Cursor c;
 			c = me.getContentResolver()
 			   .query(RawContactsEntity.CONTENT_URI,
@@ -948,49 +1544,11 @@ public class ContactCreator {
 								   null, null);
 				if (c1.moveToFirst())
 				{
-					strings.add("RawContactsEntity row:");
-					strings.add("ACCOUNT NAME=" + c1.getString(0));
-					strings.add("ACCOUNT TYPE=" + c1.getString(1));
-					strings.add("CONTACT_ID=" + c.getString(1));
-					strings.add("MIMETYPE=" + c.getString(2));
-					for (int i = 3; i < c.getColumnCount(); ++i)
-					{
-						switch (c.getType(i))
-						{
-							case Cursor.FIELD_TYPE_NULL:
-								strings.add("DATA"
-									 + String.valueOf(i - 2)
-									 + " is null");
-								break;
-							case Cursor.FIELD_TYPE_INTEGER:
-								strings.add("DATA"
-									 + String.valueOf(i - 2)
-									 + " is "
-									 + String.valueOf(c.getLong(i)));
-								break;
-							case Cursor.FIELD_TYPE_FLOAT:
-								strings.add("DATA"
-									 + String.valueOf(i - 2)
-									 + " is "
-									 + String.valueOf(c.getFloat(i)));
-								break;
-							case Cursor.FIELD_TYPE_STRING:
-								strings.add("DATA"
-									 + String.valueOf(i - 2)
-									 + " is "
-									 + c.getString(i));
-								break;
-							case Cursor.FIELD_TYPE_BLOB:
-								strings.add("DATA"
-									 + String.valueOf(i - 2)
-									 + " is a blob");
-								break;
-						}
-					}
-					strings.add("");
+					dumpSingle( strings, c, c1);
 				}
 			}
+			return strings;
 		}
-		return strings;
+		return null;
 	}
 }
