@@ -122,6 +122,36 @@
             android:layout_height="wrap_content"
             android:id="@+id/resetbutton"/>
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/save_settings"
+                android:layout_gravity="left"
+                android:clickable="true"
+                android:enabled="true"
+                android:gravity="left"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/load_settings"
+                android:layout_gravity="right"
+                android:gravity="right"
+                android:clickable="true"
+                android:enabled="true"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/savefiletext"/>
     </LinearLayout>
 
 </ScrollView>

@@ -9,8 +9,14 @@ import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.media.AudioManager;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -1128,5 +1134,343 @@ public class PrefsManager {
 		SharedPreferences prefs
 			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		removeClass(prefs, getClassNum(prefs, name));
+	}
+
+	private static void saveClassSettings(
+		Context context, PrintStream out, int i) {
+		SharedPreferences prefs =
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		out.printf("Class=%s\n", PrefsManager.getClassName(context, i));
+		out.printf("eventName=%s\n",
+				   PrefsManager.getEventName(context, i));
+		out.printf("eventLocation=%s\n",
+				   PrefsManager.getEventLocation(context, i));
+		out.printf("eventDescription=%s\n",
+				   PrefsManager.getEventDescription(context, i));
+		out.printf("eventColour=%s\n",
+				   PrefsManager.getEventColour(context, i));
+		String prefName = AGENDAS + String.valueOf(i);
+		out.printf("agendas=%s\n", prefs.getString(prefName, ""));
+		out.printf("whetherBusy=%d\n",
+				   PrefsManager.getWhetherBusy(context, i));
+		out.printf("whetherRecurrent=%d\n",
+				   PrefsManager.getWhetherRecurrent(context, i));
+		out.printf("whetherOrganiser=%d\n",
+				   PrefsManager.getWhetherOrganiser(context, i));
+		out.printf("whetherPublic=%d\n",
+				   PrefsManager.getWhetherPublic(context, i));
+		out.printf("whetherAttendees=%d\n",
+				   PrefsManager.getWhetherAttendees(context, i));
+		out.printf("ringerAction=%d\n",
+				   PrefsManager.getRingerAction(context, i));
+		out.printf("restoreRinger=%s\n",
+				   getRestoreRinger(context, i) ? "true" : "false");
+		out.printf("afterMinutes=%d\n",
+				   PrefsManager.getAfterMinutes(context, i));
+		out.printf("beforeMinutes=%d\n",
+				   PrefsManager.getBeforeMinutes(context, i));
+		out.printf("afterOrientation=%d\n",
+				   PrefsManager.getAfterOrientation(context, i));
+		out.printf("beforeOrientation=%d\n",
+				   PrefsManager.getBeforeOrientation(context, i));
+		out.printf("afterconnection=%d\n",
+				   PrefsManager.getAfterConnection(context, i));
+		out.printf("beforeconnection=%d\n",
+				   PrefsManager.getBeforeConnection(context, i));
+		out.printf("afterSteps=%d\n",
+				   PrefsManager.getAfterSteps(context, i));
+		out.printf("afterMetres=%d\n",
+				   PrefsManager.getAfterMetres(context, i));
+		out.printf("notifyStart=%s\n",
+				   getNotifyStart(context, i) ? "true" : "false");
+		out.printf("notifyEnd=%s\n",
+				   getNotifyEnd(context, i) ? "true" : "false");
+		out.printf("playsoundStart=%s\n",
+				   getPlaysoundStart(context, i) ? "true" : "false");
+		out.printf("playsoundEnd=%s\n",
+				   getPlaysoundEnd(context, i) ? "true" : "false");
+		out.printf("soundfileStart=%s\n",
+				   PrefsManager.getSoundFileStart(context, i));
+		out.printf("soundfileEnd=%s\n",
+				   PrefsManager.getSoundFileEnd(context, i));
+	}
+
+	public static void saveSettings(Context context, PrintStream out) {
+		try
+		{
+			PackageInfo packageInfo = context.getPackageManager()
+											 .getPackageInfo(
+												 context.getPackageName(),
+												 PackageManager.GET_SIGNATURES);
+			for (Signature signature : packageInfo.signatures)
+			{
+				out.printf("Signature=%s\n", signature.toCharsString());
+			}
+		} catch (Exception e) {
+			String s = R.string.packageinfofail + " " +
+					 e.getCause().toString() + " " +
+					 e.getMessage();
+			Toast.makeText(context, s, Toast.LENGTH_LONG).show();
+		}
+		out.printf("logging=%s\n",
+				   PrefsManager.getLoggingMode(context) ? "true" : "false");
+		out.printf("nextLocation=%s\n",
+				   getNextLocationMode(context) ? "true" : "false");
+		int num = PrefsManager.getNumClasses(context);
+		for (int i = 0; i < num; ++i) {
+			if (PrefsManager.isClassUsed(context, i))
+			{
+				saveClassSettings(context, out, i);
+			}
+		}
+	}
+
+	// We only try to read what we wrote, so we mostly ignore anything that
+	// we don't understand, and we only check if booleans are "true" or not
+	public static void loadSettings(Context context, BufferedReader in) {
+		SharedPreferences prefs =
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		prefs.edit().clear().commit();
+		int i = 0;
+		try {
+			while (true) {
+				String s = in.readLine();
+				if (s == null) {break; }
+				String[] parts = s.split("=", 2);
+				if (parts[0].compareTo("logging") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setLoggingMode(context,true);
+					}
+					else
+					{
+						PrefsManager.setLoggingMode(context,false);
+					}
+				}
+				else if (parts[0].compareTo("nextLocation") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setNextLocationMode(context,true);
+					}
+					else
+					{
+						PrefsManager.setNextLocationMode(context,false);
+					}
+				}
+				else if (parts[0].compareTo("Class") == 0)
+				{
+					i = PrefsManager.getNewClass(context);
+					PrefsManager.setClassName(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("eventName") == 0)
+				{
+					PrefsManager.setEventName(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("eventLocation") == 0)
+				{
+					PrefsManager.setEventLocation(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("eventDescription") == 0)
+				{
+					PrefsManager.setEventDescription(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("eventColour") == 0)
+				{
+					PrefsManager.setEventColour(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("agendas") == 0)
+				{
+					prefs.edit().putString(
+						AGENDAS + String.valueOf(i), parts[1]).commit();
+				}
+				else if (parts[0].compareTo("whetherBusy") == 0)
+				{
+					try
+					{
+						PrefsManager.setWhetherBusy(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) { }
+				}
+				else if (parts[0].compareTo("whetherRecurrent") == 0)
+				{
+					try
+					{
+						
+						PrefsManager.setWhetherRecurrent(
+							context, i, Integer.valueOf(parts[1]));
+					}
+					catch (NumberFormatException e) { }
+				}
+				else if (parts[0].compareTo("whetherOrganiser") == 0)
+				{
+					try
+					{
+						PrefsManager.setWhetherOrganiser(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("whetherPublic") == 0)
+				{
+					try
+					{
+						
+						PrefsManager.setWhetherPublic(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("whetherAttendees") == 0)
+				{
+					try
+					{
+						
+						PrefsManager.setWhetherAttendees(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("ringerAction=") == 0)
+				{
+					try
+					{
+
+						PrefsManager.setRingerAction(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("restoreRinger=") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setRestoreRinger(context, i,true);
+					}
+					else
+					{
+						PrefsManager.setRestoreRinger(context, i,false);
+					}
+				}
+				else if (parts[0].compareTo("afterMinutes") == 0)
+				{
+					try
+					{
+						PrefsManager.setAfterMinutes(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("beforeMinutes") == 0)
+				{
+					try
+					{
+						PrefsManager.setBeforeMinutes(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("afterOrientation") == 0)
+				{
+					try
+					{
+						PrefsManager.setAfterOrientation(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("beforeOrientation") == 0)
+				{
+					try
+					{
+						PrefsManager.setBeforeOrientation(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("afterconnection") == 0)
+				{
+					try
+					{
+						PrefsManager.setAfterConnection(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("beforeconnection") == 0)
+				{
+					try
+					{
+						PrefsManager.setBeforeConnection(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("afterSteps") == 0)
+				{
+					try
+					{
+						PrefsManager.setAfterSteps(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("afterMetres") == 0)
+				{
+					try
+					{
+						PrefsManager.setAfterMetres(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("notifyStart") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setNotifyStart(context, i,true);
+					}
+					else
+					{
+						PrefsManager.setNotifyStart(context, i,false);
+					}
+				}
+				else if (parts[0].compareTo("notifyEnd=") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setNotifyEnd(context, i,true);
+					}
+					else
+					{
+						PrefsManager.setNotifyEnd(context, i,false);
+					}
+				}
+				else if (parts[0].compareTo("playsoundStart") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setPlaysoundStart(context, i,true);
+					}
+					else
+					{
+						PrefsManager.setPlaysoundStart(context, i,false);
+					}
+				}
+				else if (parts[0].compareTo("playsoundEnd") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setPlaysoundEnd(context, i,true);
+					}
+					else
+					{
+						PrefsManager.setPlaysoundEnd(context, i,false);
+					}
+				}
+				else if (parts[0].compareTo("soundfileStart") == 0)
+				{
+					PrefsManager.setSoundFileStart(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("soundfileEnd") == 0)
+				{
+					PrefsManager.setSoundFileEnd(context, i, parts[1]);
+				}
+			}
+		} catch (Exception e) {
+			String s = R.string.settingsfail
+					   + " " + e.getCause().toString()
+					   + " " + e.getMessage();
+			Toast.makeText(context, s, Toast.LENGTH_LONG).show();
+		}
 	}
 }

@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.support.v4.app.NotificationCompat;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
@@ -32,48 +31,87 @@ public class MyLog extends Object {
 	public static String LogFileName() {
 		return LOGFILE;
 	}
-	public MyLog(Context c, String s) {
-		if (PrefsManager.getLoggingMode(c))
+	public static String SettingsFileName() {
+		return LOGFILEDIRECTORY + "/CalendarTriggerSettings.txt";
+	}
+
+	public static boolean ensureLogDirectory(Context context, String type) {
+		File logdir = new File(LOGFILEDIRECTORY);
+		if (logdir.exists())
 		{
+			if (!(logdir.isDirectory()))
+			{
+				Resources res = context.getResources();
+				NotificationCompat.Builder builder
+					= new NotificationCompat.Builder(context)
+					.setSmallIcon(R.drawable.notif_icon)
+					.setContentTitle(res.getString(R.string.lognodir, type))
+					.setContentText(LOGFILEDIRECTORY
+										.concat(" ")
+										.concat(res.getString(
+											R.string.lognodirdetail)));
+				// Show notification
+				NotificationManager notifManager = (NotificationManager)
+					context.getSystemService(Context.NOTIFICATION_SERVICE);
+				notifManager.notify(NOTIFY_ID, builder.build());
+				return false;
+			}
+		}
+		else if (!(logdir.mkdir()))
+		{
+			Resources res = context.getResources();
+			NotificationCompat.Builder builder
+				= new NotificationCompat.Builder(context)
+				.setSmallIcon(R.drawable.notif_icon)
+				.setContentTitle(res.getString(R.string.lognodir, type))
+				.setContentText(LOGFILEDIRECTORY
+									.concat(" ")
+									.concat(res.getString(
+										R.string.nocreatedetail)));
+			// Show notification
+			NotificationManager notifManager = (NotificationManager)
+				context.getSystemService(Context.NOTIFICATION_SERVICE);
+			notifManager.notify(NOTIFY_ID, builder.build());
+			return false;
+		}
+		return true;
+	}
+	
+	public MyLog(Context context, String s, boolean noprefix) {
+		if (PrefsManager.getLoggingMode(context))
+		{
+			String type = context.getResources().getString(R.string.typelog);
+			if (ensureLogDirectory(context, type))
 			try
 			{
-				File logdir = new File(LOGFILEDIRECTORY);
-				if (logdir.exists()) {
-					if(!(logdir.isDirectory())) {
-						throw new notDirectoryException();
-					}
+				FileOutputStream out = new FileOutputStream(LOGFILE, true);
+				PrintStream log = new PrintStream(out);
+				if (noprefix)
+				{
+					log.printf("%s\n", s);
 				}
 				else
 				{
-					if (!(logdir.mkdir()))
-					{
-						throw new cannotCreateException();
-					}
+					log.printf("CalendarTrigger %s: %s\n",
+						DateFormat.getDateTimeInstance().format(new Date()), s);
 				}
-				FileOutputStream out = new FileOutputStream(LOGFILE, true);
-				PrintStream log = new PrintStream(out);
-				log.printf("CalendarTrigger %s: %s\n",
-						   DateFormat.getDateTimeInstance().format(new Date()), s);
 				log.close();
-			} catch (FileNotFoundException e) {
-				// do nothing
-			} catch (notDirectoryException e) {
-				Resources res = c.getResources();
+			} catch (Exception e) {
+				Resources res = context.getResources();
 				NotificationCompat.Builder builder
-					= new NotificationCompat.Builder(c)
+					= new NotificationCompat.Builder(context)
 					.setSmallIcon(R.drawable.notif_icon)
-					.setContentTitle(res.getString(R.string.lognodir))
-					.setContentText(LOGFILEDIRECTORY
-									.concat(" ")
-									.concat(res.getString(
-										R.string.lognodirdetail)));
+					.setContentTitle(res.getString(R.string.nowrite, type))
+					.setContentText(LOGFILE + ": " + e.getMessage());
 				// Show notification
 				NotificationManager notifManager = (NotificationManager)
-					c.getSystemService(Context.NOTIFICATION_SERVICE);
+					context.getSystemService(Context.NOTIFICATION_SERVICE);
 				notifManager.notify(NOTIFY_ID, builder.build());
-			} catch (cannotCreateException e) {
-				// do nothing
+
 			}
 		}
+	}
+	public MyLog(Context context, String s) {
+		new MyLog(context, s, false);
 	}
 }

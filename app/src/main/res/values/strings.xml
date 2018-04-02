@@ -7,6 +7,12 @@
 
     <string name="app_name">Calendar Trigger</string>
     <string name="servicename">Calendar Trigger Background Server</string>
+    <string name="typelog">log</string>
+    <string name="typesettings">settings</string>
+    <string name="lognodir">Cannot create %s file</string>
+    <string name="lognodirdetail">exists but is a plain file</string>
+    <string name="nocreatedetail">does not exist and cannot be created</string>
+    <string name="nowrite">Cannot open %s file</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
@@ -48,16 +54,24 @@
     <string name="LoggingOff">Off</string>
     <string name="loggingOffHelp">This disables logging. The log file if it
 		exists is not cleared.</string>
-    <string name="lognodir">Cannot create log directory</string>
-    <string name="lognodirdetail">exists but is a plain file</string>
     <string name="clearLog">Clear Log</string>
     <string name="clearLogHelp">This button deletes the log file. The next
         attempt to write to the log will automatically recreate it, so this
         effectively clears the log.</string>
+    <string name="noclearLogHelp">CalendarTrigger cannot clear the log because
+        it does not have permission to write to external storage. You can enable
+        this permission from the device\'s Settings tool by selecting the
+        Application Manager.
+    </string>
     <string name="logCleared">Log cleared</string>
     <string name="showLog">Show Log</string>
     <string name="showLogHelp">This button displays the log file in a scrolling
         window: press the back button to return to this screen.</string>
+    <string name="noshowLogHelp">CalendarTrigger cannot show the log because
+        it does not have permission to read external storage. You can enable
+        this permission from the device\'s Settings tool by selecting the
+        Application Manager.
+    </string>
     <string name="nologfile">No log file (did you clear it?)</string>
     <string name="reset">Reset</string>
     <string name="resethelp">This button forces all classes to be inactive and
@@ -68,7 +82,7 @@
         again.</string>
     <string name="nextLocationLabel">Enable next location</string>
     <string name="nextLocationHelp">If checked, this option causes
-        CalendarTrigger to create a virtual contact $Next $Location
+        CalendarTrigger to create a virtual contact !NextEventLocation
         whose address is always the location of the next event in your
         calendar which has a nonempty location. This can be useful if
         you have a satnav which can navigate to the address of a
@@ -78,6 +92,28 @@
         requires read and write permission on your contacts list, and cannot
         be enabled because CalendarTrigger does not have that permission.
         </string>
+    <string name="savesettings">Save Settings</string>
+    <string name="loadsettings">Load Settings</string>
+    <string name="settingsfail">Exception opening settings file</string>
+    <string name="saveSettingsHelp">This button writes CalendarTrigger\'s
+        settings to a file.
+    </string>
+    <string name="noSaveSettingsHelp">CalendarTrigger cannot save
+        settings because it does not have permission to write to
+        external storage. You can enable this permission from the device\'s
+        Settings tool by selecting the Application Manager.
+    </string>
+    <string name="loadSettingsHelp">This button deletes all of 
+        CalendarTrigger\'s current settings and replaces them with the
+        settings from the Settings file.
+    </string>
+    <string name="noLoadSettingsHelp">CalendarTrigger cannot load
+        settings because it does not have permission to read from
+        external storage. You can enable this permission from the device\'s
+        Settings tool by selecting the Application Manager.
+    </string>
+    <string name="settingsfile">Settings file %s</string>
+    <string name="packageinfofail">Exception getting signature</string>
     <string name="edit_event_class">Edit class %s</string>
     <string name="longpresslabel">Long press here for help information.</string>
     <string name="editclassHelp">This screen allows you to define the

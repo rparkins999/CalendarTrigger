@@ -6,6 +6,13 @@
 <resources>
     <string name="app_name">Calendar Trigger</string>
     <string name="servicename">Calendar Trigger Serveur d\'arrière-plan</string>
+    <string name="typelog">journal</string>
+    <string name="typesettings">paramètres</string>
+    <string name="lognodir">Impossible de créer fichier %s</string>
+    <string name="lognodirdetail">existe comme simple fichier</string>
+    <string name="nocreatedetail">n\'existe pas at ne peut pas être créé
+    </string>
+    <string name="nowrite">Impossible d\'ouvrir %s file</string>
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
@@ -44,22 +51,29 @@
     </string>
     <string name="cantLogHelp">Journal ne peut pas être activé parce que
         CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE. Vous
-        pouvez activer cette permission en employant l\'outil \'Paramètres\'
+        pouvez activer cette permission en employant l\'outil \'Paramètres\'.
     </string>string>
     <string name="LoggingOff">Non</string>
     <string name="loggingOffHelp">Désactiver journal. Le fichier journal s\'il
 		existe ne sera pas vidé.</string>
-    <string name="lognodir">Impossible de créer répertoire journal</string>
-    <string name="lognodirdetail">existe comme simple fichier</string>
     <string name="clearLog">Faire vider fichier journal</string>
     <string name="clearLogHelp">Ce bouton détruit le fichier journal. Le
         prochain écriture recréera le fichier, alors en effet ce bouton le
-        fait vider.</string>
+        fait vider.
+    </string>
+    <string name="noclearLogHelp">Journal ne peut pas être vidé parce que
+    CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE. Vous
+    pouvez activer cette permission en employant l\'outil \'Paramètres\'.
+    </string>
     <string name="logCleared">Fichier journal vidé</string>
     <string name="showLog">Exposer fichier journal</string>
     <string name="showLogHelp">Ce bouton expose le fichier journal dans une
         fenêtre défilante: touchez le bouton de retour pour revoir l\'ecran
         de debogage.</string>
+    <string name="noshowLogHelp">Journal ne peut pas être exposé parce que
+    CalendarTrigger n\'a pas la permission READ_EXTERNAL_STORAGE. Vous
+    pouvez activer cette permission en employant l\'outil \'Paramètres\'.
+    </string>
     <string name="nologfile">Fichier journal n\'existe pas (l\'avez-vous vidé?)
         </string>
     <string name="reset">Réinitialiser</string>
@@ -82,6 +96,28 @@
         WRITE_CONTACTS. Vous pouvez activer cette permission en employant
         l\'outil \'Paramètres\'.
         </string>
+    <string name="savesettings">Save Settings</string>
+    <string name="loadsettings">Load Settings</string>
+    <string name="settingsfail">Exception en ouvrant fichier de paramètres
+    </string>
+    <string name="saveSettingsHelp">Ce bouton écrit les paramètres de
+        CalendarTrigger dans un fichier.
+    </string>
+    <string name="noSaveSettingsHelp">CalendarTrigger ne peut pas écrire ses
+        paramètres parce que CalendarTrigger n\'a pas la permission
+        WRITE_EXTERNAL_STORAGE. Vous pouvez activer cette permission en
+        employant l\'outil \'Paramètres\'
+    </string>
+    <string name="loadSettingsHelp">Ce bouton détruit les paramètres de
+        CalendarTrigger el le replace avec les les paramètres lus du fichier.
+    </string>
+    <string name="noLoadSettingsHelp">CalendarTrigger ne peut pas lire ses
+        paramètres parce que CalendarTrigger n\'a pas la permission
+        READ_EXTERNAL_STORAGE. Vous pouvez activer cette permission en
+        employant l\'outil \'Paramètres\'
+    </string>
+    <string name="settingsfile">Fichier paramètres %s</string>
+    <string name="packageinfofail">Exception obtenant signature</string>
     <string name="edit_event_class">Changer classe %s</string>
     <string name="longpresslabel">Longue toucher ici pour un message
         d\'assistance.</string>
@@ -101,11 +137,11 @@
         classe. En ce cas les actions seront déclenchées pour toutes les classes
         auxquelles l\'évènement appartient.</string>
     <string name="defineclasspopup">Définir quand un évènement calendrier
-        appartient à une classe. Tous les conditions doivent être réalisé afin
-        que l\'évènement appartient à la classe, mais pour chaque condition il
-        y a une valeur par défaut qui est réalisé par tous évènements. Quand
-        vous avez fini, touchez \'fin\'. Une longue touche d\'une commande
-        montrera un message d\'assistance.</string>
+        appartient à une classe %s. Tous les conditions doivent être réalisé
+        afin que l\'évènement appartient à la classe, mais pour chaque 
+        condition il y a une valeur par défaut qui est réalisé par tous
+        évènements. Quand vous avez fini, touchez \'fin\'. Une longue touche
+        d\'une commande montrera un message d\'assistance.</string>
     <string name="defineclasslist">Un évènement appartient à classe %s
         si:-</string>
     <string name="ifanycalendar">l\'évènement appartient à quelconque

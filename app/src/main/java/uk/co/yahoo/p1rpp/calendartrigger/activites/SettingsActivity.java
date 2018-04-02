@@ -25,7 +25,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.text.DateFormat;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
@@ -106,7 +108,6 @@ public class SettingsActivity extends Activity {
                     = new BufferedReader(
                     new InputStreamReader(
                         new FileInputStream(MyLog.LogFileName())));
-                String s = "";
                 String line;
                 while ((line = in.readLine()) != null)
                 {
@@ -242,10 +243,12 @@ public class SettingsActivity extends Activity {
         boolean canStore = PackageManager.PERMISSION_GRANTED ==
                            PermissionChecker.checkSelfPermission(
                                me, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int colour = canStore ? 0xFF000000 : 0x80000000;
+        boolean canRead = PackageManager.PERMISSION_GRANTED ==
+                           PermissionChecker.checkSelfPermission(
+                               me, Manifest.permission.READ_EXTERNAL_STORAGE);
         final RadioGroup rg = (RadioGroup)findViewById(R.id.radioGroupLogging);
         Button b = (Button)findViewById(R.id.radioLoggingOn);
-        b.setTextColor(colour);
+        b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
         if (canStore)
         {
             b.setOnClickListener(new View.OnClickListener() {
@@ -296,36 +299,76 @@ public class SettingsActivity extends Activity {
                  ? R.id.radioLoggingOn : R.id.radioLoggingOff);
         b = (Button)findViewById(R.id.clear_log);
         b.setText(R.string.clearLog);
-        b.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                (new File(MyLog.LogFileName())).delete();
-                Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
-                     .show();
-            }
-        });
-        b.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.clearLogHelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
+        if (canStore)
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    (new File(MyLog.LogFileName())).delete();
+                    Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
+                         .show();
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.clearLogHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        else
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // do nothing;
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.noclearLogHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
         b = (Button)findViewById(R.id.show_log);
         b.setText(R.string.showLog);
-        b.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                showLog();
-            }
-        });
-        b.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.showLogHelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        b.setTextColor(canRead ? 0xFF000000 : 0x80000000);
+        if (canRead)
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    showLog();
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.showLogHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        else
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // do nothing;
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.noshowLogHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
         nextLocation = (CheckBox)findViewById(R.id.nextlocationbox);
         nextLocation.setText(R.string.nextLocationLabel);
         nextLocation.setOnClickListener(new View.OnClickListener() {
@@ -353,6 +396,117 @@ public class SettingsActivity extends Activity {
                 return true;
             }
         });
+        b = (Button)findViewById(R.id.save_settings);
+        b.setText(R.string.savesettings);
+        b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
+        if (canStore)
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    String type = me.getResources().getString(R.string.typelog);
+                    if (MyLog.ensureLogDirectory(me, type))
+                    {
+                        try
+                        {
+                            FileOutputStream f =
+                                new FileOutputStream(MyLog.SettingsFileName());
+                            PrintStream out = new PrintStream(f);
+                            PrefsManager.saveSettings(me, out);
+                        }
+                        catch (Exception e)
+                        {
+                            Toast.makeText(
+                                me,
+                                me.getResources().getString(
+                                    R.string.nowrite, type)
+                                    + ", "
+                                    + MyLog.SettingsFileName()
+                                    + ":"
+                                    + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.saveSettingsHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        else
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // do nothing
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.noSaveSettingsHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        b = (Button)findViewById(R.id.load_settings);
+        b.setText(R.string.loadsettings);
+        b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
+        if (canStore)
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    try
+                    {
+                        BufferedReader in
+                            = new BufferedReader(
+                            new InputStreamReader(
+                                new FileInputStream(MyLog.SettingsFileName())));
+                        PrefsManager.loadSettings(me, in);
+                        in.close();
+                    }
+                    catch (Exception e)
+                    {
+                        String s = R.string.settingsfail
+                                   + " " + e.getCause().toString()
+                                   + " " + e.getMessage();
+                        Toast.makeText(me, s, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.loadSettingsHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        else
+        {
+            b.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    // do nothing
+                }
+            });
+            b.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(me, R.string.noLoadSettingsHelp,
+                                   Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+        }
+        tv = (TextView)findViewById(R.id.savefiletext);
+        s = MyLog.SettingsFileName();
+        tv.setText(getString(R.string.settingsfile, s));
         if (BuildConfig.DEBUG)
         {
             if (fakecontact == null)

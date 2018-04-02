@@ -83,6 +83,13 @@ public class FakeContact extends Activity {
         }
     }
 
+    void doLogAll() {
+        if (BuildConfig.DEBUG)
+        {
+            new ContactCreator(this).logAllContacts();
+        }
+    }
+
     void doDumpAll() {
         if (BuildConfig.DEBUG)
         {
@@ -281,6 +288,15 @@ public class FakeContact extends Activity {
                 @Override
                 public void onClick(View v) {
                     doDumpAll();
+                }
+            });
+            lll.addView(b);
+            b = new Button(this);
+            b.setText("dump all to log");
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doLogAll();
                 }
             });
             lll.addView(b);
