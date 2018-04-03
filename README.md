@@ -33,7 +33,7 @@ This is the screen to define what event start actions CalendarTrigger does
 
 At a fixed interval (possibly zero) after the end of an event, CalendarTrigger can restore the original ringer state, or show a notification and optionally play a sound. If the event end action does not change the ringer state or play a sound, no notification will be shown. Again I may add other actions in the future. Event end actions can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter) or until the device is in a particular orientation. This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the room or leave the building or pick the device up.
 
-The duration of an event should be greater than zero: if it is zero, Android may awaken CalendarTrigger a short times before or after the start time of the event, and CalendarTrigger cannot tell whether the event has been dealt with or not.
+The duration of an event should be greater than zero: if it is zero, Android may awaken CalendarTrigger a short time before or after the start and end time of the event, and CalendarTrigger cannot tell whether the event has been dealt with or not.
 
 This is the screen to define when CalendarTrigger does event end actions: the step counter option is disabled because the emulator on which these screen shots were generated doesn't emulate a step counter
 ![CalendarTrigger](./assets/EndConditionScreen.png)
@@ -52,7 +52,7 @@ The UI is available in English and French: the French version could probably be 
 Help with the French translations would be welcome, as would UI translations for other languages.
 
 ## Help information
-CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system or hardware does not support it, a long press will say so.
+CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system or hardware does not support it, a long press will dispaly a message saying so.
 
 This is a Screen showing a help information popup
 ![CalendarTrigger](./assets/StartHelpScreen.png)
@@ -65,54 +65,40 @@ Some more complicated behaviours are described in this README file.
 
 Some satnav systems can connect via Bluetooth to your phone, read your contact list, and navigate to the address of a selected contact. Unfortunately satnav
 systems are a bit picky about address formats, and some can't decode the
-unstructured string address of the contact. If you have a contacts manager which allows you to put in the address in separate fields for street address,
+unstructured string address of the contact. If you have a contacts manager which allows you to put in the address with separate fields for street address,
 city, postcode, and country, you will get better results.
 
-It would be nice if the satnav could navigate to the address of the next appointment in your calendar too, but there isn't a Bluetooth protocol for it to read your calendar. The next location feature in CalendarTrigger, which can be enabled from the debugging screen, attempts to work around this. It creates a virtual contact called !NextEventLocation (the ! makes it appear at the top of the list) and arranges for its address to always be the location of the next event in your calendar which has a location. The Location field in a calendar event is an unstructured string: CalendarTrigger does its best to decode this into its component parts. You can help it by using standard format addresses:
+It would be nice if the satnav could navigate to the address of the next appointment in your calendar too, but there isn't a Bluetooth protocol for it to read your calendar. The next location feature in CalendarTrigger, which can be enabled from the debugging screen, attempts to work around this. It creates a virtual contact called !NextEventLocation (the ! makes it appear at the top of the list) and arranges for its address to always be the location of the next event in your calendar which has a location. The Location field in a calendar event is an unstructured string: CalendarTrigger does its best to decode this into its component parts.
 
-_20 Dean's Yard, London SW1P 3PA, England_  
+What it likes is a comma-separated list starting with a street name with a house number, followed by a town name with a postcode, followed by a country name. It will ignore a building name or a company name (but not both) provided that it can identify a street name after it. A street name without a house number (unfortunately quite common usage in the UK) is accepted if it can identify a town name with a postcode after it. If the street name has a house number, a neighbourhood name can appear between the street name and the town name. A US state name or a UK county name or their standard abbreviations can appear before the country name. The common UK usage of putting a comma between the house number and the street name is also accepted, as is the common US usage putting the zip code after the state instead of after the town name. A comma can be present between the town name and the postcode. The continental European format of a country abbreviation hyphenated before the postcode is also accepted as long as your satnav can recognise the country abbreviation.
 
-or  
+If it finds a country name, anything after a comma following it is ignored: you can put class flags there. If you leave out the country name, and it can't guess USA or UK from the presence of a state or county name, it will assume the country in which the phone currently is, as determined by the Mobile Country Code of the cellular network to which it is currently connected, if any.
 
-_Westminster Abbey, 20, Dean's Yard, London, SW1P 3PA, England_  
+Anything else in the address can be hidden from its decoder by enclosing it in () or [] or {} or <>. In particular apartment or flat numbers *must* be hidden in this way, since it can't distinguish those from the usage in some continental European countries of putting the house number after the street name. You don't have to hide the commas: it will disregard a comma after a field containing only hidden text.
 
-should work. It tries to handle neighbourhood names, but doesn't always succeed unless it can find a street number and a postcode and a country name as well:..
-
-_Westminster Abbey, 20 Dean's Yard, City of Westminster, London SW1P 3PA, England_  
-
-should work. If you're in Europe,  
+So all of the following should work:-  
 
 _6 parvis Notre-Dame - Place John Paul II, F-75004 Paris_  
-or..
+
+_Westminster Abbey, 20, Dean's Yard, City of Westminster, London, SW1P 3PA, England_  
+
 _Groenplaats 21, 2000 Antwerpen, Belgium_..
 
-should work. In the USA  
+_Onze-Lieve-Vrouwekathedraal, Groenplaats 21, B-2000 Antwerpen_..
 
-_1600 Pennsylvania Avenue NW, Washington, DC 20500, USA_  
-
-should work as well. It knows the state names and abbreviations for the USA, so you can leave out the USA for American addresses (as Americans usually do): the format  
+_The White House, 1600 Pennsylvania Avenue NW, Washington, DC 20500, USA_  
 
 _1600 Pennsylvania Avenue NW, Washington 20500, District of Columbia_  
 
-is also accepted.
-
-If you leave out the country name for other countries, CalendarTrigger will assume that it is the country in which the phone currently is, as determined by the Mobile Country code of the cellular network to which it is currently connected, if any.
-
-Flat or apartment numbers or rooms or PO boxes within a building will probably confuse it, because it can't tell "Apartment 17" from a street address in those countries where it's normal to put the house number after the street name.
-
-Calendar Trigger will ignore anything in () or [] or {} or <>, so  
-
-_(West Wing), 1600 Pennsylvania Avenue NW, Washington 20500, DC_  
-
-will work: this is the best way of attaching sub-building information or company names to an address. Tags used to identify event classes can also be hidden from the address decoder in this way, for example  
+_(Apartment 5A), 129 West 81st Street, New York, NY 10024_..
 
 _Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}_  
 
 where presumably you have an event class which includes events whose location contains {mute inside}.
 
-If the location of the event is of the form..
+If the location of the event, instead of being an address, is of the form..
 _@label firstname lastname_..
-where _label_ is empty or _HOME_ or _WORK_ or_OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
+where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
 
 ## Signing and saving settings
 Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the apk file dowloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
@@ -121,7 +107,7 @@ Having multiple signing keys causes problems if you have previously installed on
 
 If Android will still not install a new version even after uninstalling the old one, this may be because the old `.apk` file is still present, which confuses the installer. Finding the old `.apk` file and deleting it should help.
 
-In order save the applications's data, CalendarTrigger now allows you to save its settings to a (fixed) file or to replace the current settings by those from the file: there are buttons to do these actions in the Debugging screen. This can be used to save the settings before uninstalling, or to transfer your settings to a different device.
+In order keep the its data, CalendarTrigger now allows you to save its settings to a (fixed) file or to replace the current settings by those from the file: there are buttons to do these actions in the Debugging screen. This can be used to save the settings before uninstalling, or to transfer your settings to a different device.
 
 ## Permissions
 CalendarTrigger uses the following permissions:-

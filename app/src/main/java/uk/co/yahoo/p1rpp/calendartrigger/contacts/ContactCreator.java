@@ -1202,6 +1202,16 @@ public class ContactCreator {
 				country = s;
 			}
 		}
+		if ((streetAddress.isEmpty()) && !(buildingName.isEmpty()))
+		{
+			// We got a building name but no street address. It might actually
+			// have been a street name with no number: it might also really
+			// have been a building name, and there was no street address. We
+			// can't tell which, but the former is more common, so we guess that
+			// and hope that if the address really had a building name with no
+			// street, the user will have done as we ask and hidden it.
+			streetAddress = buildingName;
+		}
 		String formattedAddress = "";
 	    if (!streetAddress.isEmpty())
 	    {
