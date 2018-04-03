@@ -4,7 +4,7 @@ Trigger actions on your Android device based on calendar events
 
 This program is a generalisation of RemiNV/CalendarMute.
 
-It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file.
+It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file and a settings file.
 
 This is the screen displayed when you start up the UI
 ![CalendarTrigger](./assets/StartScreen.png)
@@ -56,8 +56,6 @@ CalendarTrigger uses the convention that a long press on a user interface object
 
 This is a Screen showing a help information popup
 ![CalendarTrigger](./assets/StartHelpScreen.png)
-
-If you want to report a bug, please provide a log file and a settings file
 
 Some more complicated behaviours are described in this README file.
 
