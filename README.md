@@ -94,12 +94,14 @@ _Shakespeare’s Globe, 21 New Globe Walk, London SE1 9DT, England {mute inside}
 
 where presumably you have an event class which includes events whose location contains {mute inside}.
 
-If the location of the event, instead of being an address, is of the form..
-_@label firstname lastname_..
+If the location of the event, instead of being an address, is of the form
+
+_@label firstname lastname_
+
 where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
 
 ## Signing and saving settings
-Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the apk file dowloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
+Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file dowloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
 
 Having multiple signing keys causes problems if you have previously installed one version and want to install a newer version of the same application signed with a different key: Android does not allow this, and you have to uninstall the old application before installing the new one This deletes the application's data, which means for CalendarTrigger that you lose all its settings including all of your class definitions.
 
@@ -133,7 +135,7 @@ WRITE_CONTACTS
 These are needed to make the Next Location feature work. CalendarTrigger only reads and write its own !NextEventLocation contact and does not read or write any other contacts (it is open source so you can check this). If this permission is denied, the Next Location feature is not available and the checkbox for it is disabled on the debugging screen: CalendarTrigger will otherwise work normally.
 
 WRITE_EXTERNAL_STORAGE
-This is needed to enable CalendarTrigger to write a log file or a settings file. If you never enable logging or save settings, it isn't needed; if this permission is denied, logging cannot be enabled and settings cannot be saved. If you enable logging, you need to clear the log file from time to time, otehrwise it will fill up memory.
+This is needed to enable CalendarTrigger to write a log file or a settings file. If you never enable logging or save settings, it isn't needed; if this permission is denied, logging cannot be enabled and settings cannot be saved. If you enable logging, you need to clear the log file from time to time, otherwise it will fill up memory.
 
 ACCESS_FINE_LOCATION
 This is needed to enable CalendarTrigger to detect when the device has moved by a sufficient distance after the end of an event: if this permission is denied, the option is disabled, but CalendarTrigger will otherwise work normally.
