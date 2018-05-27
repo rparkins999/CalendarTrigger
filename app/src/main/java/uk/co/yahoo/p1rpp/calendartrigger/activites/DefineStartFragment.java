@@ -7,6 +7,7 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +75,9 @@ public class DefineStartFragment extends Fragment {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
+        InputFilter lf[] = {
+            new InputFilter.LengthFilter(6)
+        };
         LinearLayout ll =
             (LinearLayout)ac.findViewById(R.id.definestartlayout);
         ll.removeAllViews();
@@ -98,6 +102,7 @@ public class DefineStartFragment extends Fragment {
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         minutesEditor = new EditText(ac);
         minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        minutesEditor.setFilters(lf);
         Integer i =
             new Integer(PrefsManager.getBeforeMinutes(ac, classNum));
         minutesEditor.setText(i.toString(), TextView.BufferType.EDITABLE);

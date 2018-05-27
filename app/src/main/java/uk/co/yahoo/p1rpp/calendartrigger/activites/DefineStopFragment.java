@@ -10,6 +10,7 @@ import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.content.PermissionChecker;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,6 +86,9 @@ public class DefineStopFragment extends Fragment {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
+        InputFilter lf[] = {
+            new InputFilter.LengthFilter(6)
+        };
         LinearLayout ll =
             (LinearLayout)ac.findViewById(R.id.definestoplayout);
         ll.removeAllViews();
@@ -109,6 +113,7 @@ public class DefineStopFragment extends Fragment {
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         minutesEditor = new EditText(ac);
         minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        minutesEditor.setFilters(lf);
         Integer i =
             new Integer(PrefsManager.getAfterMinutes(ac, classNum));
         minutesEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
@@ -164,6 +169,7 @@ public class DefineStopFragment extends Fragment {
         stepCountEditor = new EditText(ac);
         stepCountEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
+        stepCountEditor.setFilters(lf);
         i = haveStepCounter ? PrefsManager.getAfterSteps(ac, classNum) : 0;
         stepCountEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         stepCountEditor.setEnabled(true);
@@ -199,6 +205,7 @@ public class DefineStopFragment extends Fragment {
         metresEditor = new EditText(ac);
         metresEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
+        metresEditor.setFilters(lf);
         i = havelocation ? PrefsManager.getAfterMetres(ac, classNum) : 0;
         metresEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         metresEditor.setEnabled(havelocation);
