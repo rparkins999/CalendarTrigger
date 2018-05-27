@@ -33,7 +33,7 @@ public class PrefsManager {
 
 	public static final String getDefaultDir(Context context) {
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getString(PREF_DEFAULTDIRECTORY, "/");
+					  .getString(PREF_DEFAULTDIRECTORY, null);
 	}
 
 	private static final String PREF_LOGGING = "logging";

@@ -69,11 +69,7 @@ public class FileListView extends ListView implements AdapterView
 	 * @param path root directory
 	 */
 	public void init(File path) {
-		if(path != null) {
-			adapter.setPath(path);
-		} else {
-			adapter.setPath(Environment.getExternalStorageDirectory());
-		}
+		adapter.setPath(path);
 
 		if(!adapter.hasExtentions()) {
 			setDefaultFileExtentions();

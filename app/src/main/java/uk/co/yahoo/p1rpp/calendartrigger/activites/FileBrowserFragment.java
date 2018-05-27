@@ -6,6 +6,7 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,8 +62,12 @@ public class FileBrowserFragment extends Fragment {
 
 		TextView textViewFile = (TextView) v.findViewById(R.id.textViewFile);
 		fileList.setTextViewFile(textViewFile);
-
-		fileList.init(new File (mOwner.getDefaultDir()));
+		String s = mOwner.getDefaultDir();
+		if (s != null) {
+			fileList.init(new File (s));
+		} else {
+			fileList.init(Environment.getExternalStorageDirectory());
+		}
 	}
 }
 
