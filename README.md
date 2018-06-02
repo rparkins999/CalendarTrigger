@@ -6,6 +6,10 @@ This program is a generalisation of RemiNV/CalendarMute.
 
 It is open source, free, and does not display adverts or pester you for a donation. This will never change as long as I am maintaining it. If you want to report a problem, please enable logging and provide a log file and a settings file.
 
+[<img src="https://f-droid.org/badge/get-it-on.png"
+      alt="Get it on F-Droid"
+      height="80">](https://f-droid.org/packages/uk.co.yahoo.p1rpp.calendartrigger/)
+
 This is the screen displayed when you start up the UI
 ![CalendarTrigger](./assets/StartScreen.png)
 
