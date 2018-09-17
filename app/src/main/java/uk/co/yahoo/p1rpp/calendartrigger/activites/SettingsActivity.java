@@ -41,6 +41,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
  */
 public class SettingsActivity extends Activity {
     private CheckBox nextLocation;
+    private CheckBox logCycling;
     public SettingsActivity settingsActivity;
     private Button fakecontact;
     private ListView log;
@@ -369,6 +370,62 @@ public class SettingsActivity extends Activity {
                 }
             });
         }
+        logCycling = (CheckBox)findViewById(R.id.logcyclebox);
+        logCycling.setText(R.string.logcyclinglabel);
+        if (canRead && canStore)
+        {
+            logCycling.setTextColor(0xFF000000);
+        }
+        else
+        {
+            logCycling.setTextColor(0x80000000);
+            PrefsManager.setLogCycleMode(me, false);
+        }
+        logCycling.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CheckBox cb = (CheckBox)v;
+                boolean state;
+                boolean localStore = PackageManager.PERMISSION_GRANTED ==
+                           PermissionChecker.checkSelfPermission(
+                               me, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                boolean localRead = PackageManager.PERMISSION_GRANTED ==
+                          PermissionChecker.checkSelfPermission(
+                              me, Manifest.permission.READ_EXTERNAL_STORAGE);
+                if (localStore && localRead)
+                {
+                    state = cb.isChecked();
+                }
+                else {
+                    state = false;
+                    cb.setChecked(state);
+                }
+                PrefsManager.setLogCycleMode(me, state);
+            }
+        });
+        logCycling.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                boolean localStore = PackageManager.PERMISSION_GRANTED ==
+                         PermissionChecker.checkSelfPermission(
+                             me, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                boolean localRead = PackageManager.PERMISSION_GRANTED ==
+                        PermissionChecker.checkSelfPermission(
+                            me, Manifest.permission.READ_EXTERNAL_STORAGE);
+                if (localStore && localRead)
+                {
+                    Toast.makeText(me, R.string.logcyclinghelp,
+                                   Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    Toast.makeText(me, R.string.logcyclingnotallowed,
+                                   Toast.LENGTH_LONG).show();
+                }
+                return true;
+            }
+        });
+        logCycling.setChecked(PrefsManager.getLogcycleMode(this));
         nextLocation = (CheckBox)findViewById(R.id.nextlocationbox);
         nextLocation.setText(R.string.nextLocationLabel);
         nextLocation.setOnClickListener(new View.OnClickListener() {
@@ -381,6 +438,21 @@ public class SettingsActivity extends Activity {
         });
         setNextLocationState(nextLocation,
                              PrefsManager.getNextLocationMode(this));
+        b = (Button)findViewById(R.id.resetbutton);
+        b.setText(R.string.reset);
+        b.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                doReset();
+            }
+        });
+        b.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(me, R.string.resethelp,
+                               Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         b = (Button)findViewById(R.id.resetbutton);
         b.setText(R.string.reset);
         b.setOnClickListener(new View.OnClickListener() {
@@ -550,5 +622,4 @@ public class SettingsActivity extends Activity {
             super.onBackPressed();
         }
     }
-
 }

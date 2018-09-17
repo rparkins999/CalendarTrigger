@@ -73,6 +73,17 @@
         Application Manager.
     </string>
     <string name="nologfile">No log file (did you clear it?)</string>
+    <string name="logcyclinglabel">Enable log cycling</string>
+    <string name="logcyclinghelp">If checked, this option causes
+        CalendarTrigger to once per day delete all log entries
+        older than 24 hours. This can be used to leave logging active
+        over along period without the log file getting too big.
+    </string>
+    <string name="logcyclingnotallowed">Log cycling cannot be enabled because
+        CalendarTrigger does not have permission to read and write external
+        storage. You can enable these permissions from the device\'s Settings
+        tool by selecting the Application Manager.</string>
+    <string name="logcyclingerror">Error cycling log</string>
     <string name="reset">Reset</string>
     <string name="resethelp">This button forces all classes to be inactive and
         stops all temporary waits. It is for use if the application gets stuck

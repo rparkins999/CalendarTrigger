@@ -48,6 +48,30 @@ public class PrefsManager {
 					  .getBoolean(PREF_LOGGING, false);
 	}
 
+	private static final String PREF_LOGCYCLE = "logcycle";
+
+	public static void setLogCycleMode(Context context, boolean IsOn) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putBoolean(PREF_LOGCYCLE, IsOn).commit();
+	}
+
+	public static boolean getLogcycleMode(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getBoolean(PREF_LOGCYCLE, false);
+	}
+
+	private static final String PREF_LASTCYCLEDATE = "lastcycledate";
+
+	public static void setLastCycleDate(Context context, long date) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putLong(PREF_LASTCYCLEDATE, date).commit();
+	}
+
+	public static long getLastcycleDate(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getLong(PREF_LASTCYCLEDATE, 0);
+	}
+
 	private static final String PREF_NEXT_LOCATION = "nextLocation";
 
 	public static void setNextLocationMode(Context context, boolean IsOn) {

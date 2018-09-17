@@ -76,6 +76,19 @@
     </string>
     <string name="nologfile">Fichier journal n\'existe pas (l\'avez-vous vidé?)
         </string>
+    <string name="logcyclinglabel">Activer recyclage du fichier journal</string>
+    <string name="logcyclinghelp">Si coché, CalendarTrigger effacera chaque
+        jour toutes les entrées du fichier journal plus anciens que
+        vingt-quatre heures. Ce contact peut être utile pour laisser le journal
+        activé en évitant que le fichier devient trop grand.
+    </string>
+    <string name="logcyclingerror">Faute pendant recyclage du fichier journal
+    </string>
+    <string name="logcyclingnotallowed">Cette option n\'est pas permise parce
+        que CalendarTrigger n\'a pas les permissions READ_EXTERNAL_STORAGE et
+        WRITE_EXTERNAL_STORAGE Vous pouvez activer ces permissions en employant
+        l\'outil \'Paramètres\'.
+    </string>
     <string name="reset">Réinitialiser</string>
     <string name="resethelp">Ce bouton contraint tous les classes de devenir
         inactives et termine tous les delais temporaires. Il faut le toucher si
@@ -93,7 +106,7 @@
     </string>
     <string name="nextLocationNotAllowed">Cette option n\'est pas permise parce
         que CalendarTrigger n\'a pas les permissions READ_CONTACTS et
-        WRITE_CONTACTS. Vous pouvez activer cette permission en employant
+        WRITE_CONTACTS. Vous pouvez activer ces permissions en employant
         l\'outil \'Paramètres\'.
         </string>
     <string name="savesettings">Save Settings</string>

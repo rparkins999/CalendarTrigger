@@ -22,10 +22,11 @@ public class MyLog extends Object {
 	private class notDirectoryException extends Exception {}
 	private class cannotCreateException extends Exception {}
 
-	private static final int NOTIFY_ID = 1427;
+	public static final int NOTIFY_ID = 1427;
 	private static final String LOGFILEDIRECTORY
 		= Environment.getExternalStorageDirectory().getPath()
 					 .concat("/data");
+	public static final String LOGPREFIX = "CalendarTrigger ";
 	private static final String LOGFILE
 		= LOGFILEDIRECTORY.concat("/CalendarTriggerLog.txt");
 	public static String LogFileName() {
@@ -92,7 +93,7 @@ public class MyLog extends Object {
 				}
 				else
 				{
-					log.printf("CalendarTrigger %s: %s\n",
+					log.printf(LOGPREFIX + "%s: %s\n",
 						DateFormat.getDateTimeInstance().format(new Date()), s);
 				}
 				log.close();

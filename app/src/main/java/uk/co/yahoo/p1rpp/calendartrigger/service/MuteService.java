@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -38,12 +39,22 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.PermissionChecker;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.widget.RemoteViews;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.text.DateFormat;
+import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -305,6 +316,75 @@ public class MuteService extends IntentService
 			}
 		}
 		return phoneState;
+	}
+
+	// Do log cycling if it is enabled and needed now
+	private void doLogCycling(long time)
+	{
+		if (!PrefsManager.getLogcycleMode(this))
+		{
+			return; // not enabled
+		}
+		final long ONEDAY = 1000*60*60*24;
+		long next = PrefsManager.getLastcycleDate(this);
+		next = next + ONEDAY;
+		next -= next % ONEDAY;
+		if (time < next)
+		{
+			return; // not time to do it yet
+		}
+		next = time - time % ONEDAY;
+		PrefsManager.setLastCycleDate(this, next);
+		ArrayList<String> log = new ArrayList<String>();
+		try
+		{
+			boolean inBlock = false;
+			DateFormat df = DateFormat.getDateTimeInstance();
+			int pp = MyLog.LOGPREFIX.length();
+			File f= new File(MyLog.LogFileName());
+			BufferedReader in = new BufferedReader(new FileReader(f));
+			String line;
+			while ((line = in.readLine()) != null)
+			{
+				if (line.startsWith(MyLog.LOGPREFIX))
+				{
+					Date dd = df.parse(line, new ParsePosition(pp));
+					inBlock = dd.getTime() > time - ONEDAY;
+				}
+				if (inBlock)
+				{
+					log.add(line); // keep if < 1 day old
+				}
+			}
+			in.close();
+			f.delete();
+			BufferedWriter out = new BufferedWriter(new FileWriter(f));
+			for (String s : log)
+			{
+				out.write(s);
+				out.newLine();
+			}
+			out.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			return; // no log file is OK if user just flushed it
+		}
+		catch (java.io.IOException e)
+		{
+			Resources res = getResources();
+			NotificationCompat.Builder builder
+				= new NotificationCompat.Builder(this)
+				.setSmallIcon(R.drawable.notif_icon)
+				.setContentTitle(getString(R.string.logcyclingerror))
+				.setContentText(e.toString());
+			// Show notification
+			NotificationManager notifManager = (NotificationManager)
+				getSystemService(Context.NOTIFICATION_SERVICE);
+			notifManager.notify(MyLog.NOTIFY_ID, builder.build());
+			return;
+		}
+		
 	}
 
     // FIXME can we use a similar power saving trick as accelerometer?
@@ -775,6 +855,7 @@ public class MuteService extends IntentService
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
+		doLogCycling(currentTime);
 		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
