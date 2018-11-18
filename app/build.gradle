@@ -28,9 +28,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                           'proguard-rules.pro'
             signingConfig signingConfigs.config
+            resValue("string", 'build_time', "${(new Date()).toString()}")
         }
         debug {
             signingConfig signingConfigs.config
+            resValue("string", 'build_time', "${(new Date()).toString()}")
         }
     }
     sourceSets {
@@ -39,7 +41,11 @@ android {
                     ['src/main/java']
         }
     }
+    lintOptions {
+        disable("ExpiredTargetSdkVersion")
+    }
 }
+
 
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
