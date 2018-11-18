@@ -145,7 +145,11 @@ public class SettingsActivity extends Activity {
         {
             PackageInfo pi = pm.getPackageInfo(
                 "uk.co.yahoo.p1rpp.calendartrigger", 0);
-            tv.setText("CalendarTrigger ".concat(pi.versionName));
+            tv.setText("CalendarTrigger "
+                           .concat(pi.versionName)
+                           .concat(" built ")
+                           .concat(getString(R.string.build_time))
+                      );
         }
         catch (PackageManager.NameNotFoundException e)
         {
