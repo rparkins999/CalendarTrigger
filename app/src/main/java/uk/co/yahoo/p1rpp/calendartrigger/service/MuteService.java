@@ -70,26 +70,39 @@ public class MuteService extends IntentService
 	public static final String MUTESERVICE_RESET =
 		"CalendarTrigger.MuteService.Reset";
 
-	// five minutes in milliseconds
+	// some times in milliseconds
+    private static final int SIXTYONE_SECONDS = 61 * 1000;
 	private static final int FIVE_MINUTES = 5 * 60 * 1000;
+
+	private static final int MODE_WAIT = 0;
+    private static final int DELAY_WAIT = 1;
 
 	public MuteService() {
 		super("CalendarTriggerService");
 		mHandler = new Handler() {
 			@Override
 			public void handleMessage(Message inputMessage) {
-				Context owner = (Context)inputMessage.obj;
-				int mode = PrefsManager.getCurrentMode(owner);
-				int wantedMode = PrefsManager.getLastRinger(owner);
-				if (wantedMode == PrefsManager.RINGER_MODE_MUTED)
+                Context owner = (Context)inputMessage.obj;
+				if (inputMessage.arg1 == MODE_WAIT)
 				{
-					PrefsManager.setMuteResult(owner, mode);
+					int mode = PrefsManager.getCurrentMode(owner);
+					int wantedMode = PrefsManager.getLastRinger(owner);
+					if (wantedMode == PrefsManager.RINGER_MODE_MUTED)
+					{
+						PrefsManager.setMuteResult(owner, mode);
+					}
+					new MyLog(owner,
+							  "Handler got mode "
+							  + PrefsManager.getEnglishStateName(owner, mode));
+					PrefsManager.setLastRinger(owner, mode);
 				}
-				new MyLog(owner,
-						  "Handler got mode "
-						  + PrefsManager.getEnglishStateName(owner, mode));
-				PrefsManager.setLastRinger(owner, mode);
-				unlock();
+				else if (inputMessage.arg1 == DELAY_WAIT)
+				{
+                    new MyLog(owner, "DELAY_WAIT message received");
+                    startIfNecessary(owner, "DELAY_WAIT message");
+					return;
+				}
+                unlock("handleMessage");
 			}
 		};
 	}
@@ -115,11 +128,12 @@ public class MuteService extends IntentService
 			PowerManager powerManager
 				= (PowerManager)getSystemService(POWER_SERVICE);
 			wakelock = powerManager.newWakeLock(
-				PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger");
+				PowerManager.PARTIAL_WAKE_LOCK, "CalendarTrigger:");
 			wakelock.acquire();
 		}
 	}
-	private void unlock() { // release the wake lock if we no longer need it
+	private void unlock(String s) { // release the wake lock if we no longer
+		// need it
 		int lcs = PrefsManager.getStepCount(this);
 		int orientation = PrefsManager.getOrientationState(this);
 		if (wakelock != null)
@@ -130,18 +144,18 @@ public class MuteService extends IntentService
 				&& ((mHandler == null)
 					|| !mHandler.hasMessages(what)))
 			{
-				new MyLog(this, "Releasing lock");
+				new MyLog(this, "End of " + s + ", releasing lock\n");
 				wakelock.release();
 				wakelock = null;
 			}
 			else
 			{
-				new MyLog(this, "Retaining lock");
+				new MyLog(this, "End of " + s + ", retaining lock\n");
 			}
 		}
 		else
 		{
-			new MyLog(this, "No lock");
+			new MyLog(this, "End of " + s + ", no lock\n");
 		}
 	}
 
@@ -323,6 +337,8 @@ public class MuteService extends IntentService
 	{
 		if (!PrefsManager.getLogcycleMode(this))
 		{
+			new MyLog(this,
+					  "Exited doLogCycling because log cycling disabled");
 			return; // not enabled
 		}
 		final long ONEDAY = 1000*60*60*24;
@@ -331,6 +347,8 @@ public class MuteService extends IntentService
 		next -= next % ONEDAY;
 		if (time < next)
 		{
+			new MyLog(this,
+					  "Exited doLogCycling because not time yet");
 			return; // not time to do it yet
 		}
 		next = time - time % ONEDAY;
@@ -385,11 +403,11 @@ public class MuteService extends IntentService
 			NotificationManager notifManager = (NotificationManager)
 				getSystemService(Context.NOTIFICATION_SERVICE);
 			notifManager.notify(MyLog.NOTIFY_ID, builder.build());
-			new MyLog(this, "Exited doLogCycling because of exception "
-							+ e.toString());
- 			return;
+			new MyLog(this,
+					  "Exited doLogCycling because of exception "
+						+ e.toString());
+			return;
 		}
-		
 	}
 
     // FIXME can we use a similar power saving trick as accelerometer?
@@ -843,8 +861,8 @@ public class MuteService extends IntentService
 		// Some versions of Android give us a mode different from the one that
 		// we asked for, and some versions of Android take a while to do it.
 		// We use a Handler to delay getting the mode actually set.
-		boolean result = mHandler.sendMessageDelayed(
-			mHandler.obtainMessage(what, this), 1000);
+		mHandler.sendMessageDelayed(
+			mHandler.obtainMessage(what, MODE_WAIT, 0, this), 1000);
 		new MyLog(this,
 				  "mHandler.hasMessages() returns "
 				  + (mHandler.hasMessages(what) ? "true" : "false"));
@@ -1325,6 +1343,9 @@ public class MuteService extends IntentService
 				String path = PrefsManager.getSoundFileEnd(
 					this, endClassNum);
 				emitNotification(longText, path);
+				new MyLog(this,
+						  "Playing sound for end of event "
+						  + endEvent + " of class " + endClassName);
 			}
 			else if (changed && (wantedMode < current)) {
 				emitNotification(longText, "");
@@ -1345,6 +1366,9 @@ public class MuteService extends IntentService
 				String path = PrefsManager.getSoundFileStart(
 					this, startClassNum);
 				emitNotification(longText, path);
+				new MyLog(this,
+						  "Playing sound for start of event "
+						  + startEvent + " of class " + startClassName);
 			}
 			else if (changed) {
 				emitNotification(longText, "");
@@ -1388,34 +1412,51 @@ public class MuteService extends IntentService
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager alarmManager = (AlarmManager)
 			getSystemService(Context.ALARM_SERVICE);
-		// Update alarm if it has changed
-		// Avoid recreating alarm if it has not changed because Android can
-		// silently fail to do so if the alarm time is too soon
-		if (PrefsManager.getLastAlarmTime(this) != nextAlarmTime)
+		if (nextAlarmTime == Long.MAX_VALUE)
 		{
-			if (nextAlarmTime == Long.MAX_VALUE)
-			{
-				alarmManager.cancel(pIntent);
-				new MyLog(this, "Alarm cancelled");
-			}
-			else
-			{
-				if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
-				{
-					alarmManager.setExactAndAllowWhileIdle(
-						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-				}
-				else
-				{
-					alarmManager.setExact(
-						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-				}
-				DateFormat df = DateFormat.getDateTimeInstance();
-				new MyLog(this, "Alarm time set to "
-					.concat(df.format(nextAlarmTime))
-					.concat(alarmReason));
-				PrefsManager.setLastAlarmTime(this, nextAlarmTime);
-			}
+			alarmManager.cancel(pIntent);
+			new MyLog(this, "Alarm cancelled");
+		}
+		else
+		{
+			// Sometimes Android delivers an alarm a few seconds early. In that
+			// case we don't do the actions for the alarm (because it isn't
+			// time for it yet), but we used not to set the alarm if it had not
+			// changed. This resulted in the actions getting lost until we got
+			// called again for some reason. However Android also won't set an
+            // alarm for less than 1 minute in the future, so in this case we
+            // use a handler to schedule another invocation instead.
+            long delay = nextAlarmTime - System.currentTimeMillis();
+            DateFormat df = DateFormat.getDateTimeInstance();
+            if (delay < SIXTYONE_SECONDS)
+            {
+                // If we took a long time executing this procedure, we may have
+                // gone past the next alarm time: in that case we reschedule
+                // with a zero delay.
+                if (delay < 0) { delay = 0; }
+                mHandler.sendMessageDelayed(
+                    mHandler.obtainMessage(what, DELAY_WAIT, 0, this), delay);
+                lock();
+                new MyLog(this, "Delayed messaage set for "
+                    .concat(df.format(nextAlarmTime))
+                    .concat(alarmReason));
+            }
+            else
+            {
+                if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
+                {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+                } else
+                {
+                    alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+                }
+                new MyLog(this, "Alarm time set to "
+                    .concat(df.format(nextAlarmTime))
+                    .concat(alarmReason));
+            }
+            PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		}
 
 		PrefsManager.setLastInvocationTime(this, currentTime);
@@ -1438,7 +1479,7 @@ public class MuteService extends IntentService
 				LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 			}
 		}
-		unlock();
+		unlock("updateState");
 	}
 
 // Commented out as we don't want this debugging code in the real app
