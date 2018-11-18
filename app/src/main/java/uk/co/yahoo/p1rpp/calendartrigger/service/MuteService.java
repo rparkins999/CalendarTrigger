@@ -349,7 +349,10 @@ public class MuteService extends IntentService
 				if (line.startsWith(MyLog.LOGPREFIX))
 				{
 					Date dd = df.parse(line, new ParsePosition(pp));
-					inBlock = dd.getTime() > time - ONEDAY;
+					if (dd != null)
+					{
+						inBlock = dd.getTime() > time - ONEDAY;
+					}
 				}
 				if (inBlock)
 				{
@@ -370,7 +373,7 @@ public class MuteService extends IntentService
 		{
 			return; // no log file is OK if user just flushed it
 		}
-		catch (java.io.IOException e)
+		catch (Exception e)
 		{
 			Resources res = getResources();
 			NotificationCompat.Builder builder
@@ -382,7 +385,9 @@ public class MuteService extends IntentService
 			NotificationManager notifManager = (NotificationManager)
 				getSystemService(Context.NOTIFICATION_SERVICE);
 			notifManager.notify(MyLog.NOTIFY_ID, builder.build());
-			return;
+			new MyLog(this, "Exited doLogCycling because of exception "
+							+ e.toString());
+ 			return;
 		}
 		
 	}
