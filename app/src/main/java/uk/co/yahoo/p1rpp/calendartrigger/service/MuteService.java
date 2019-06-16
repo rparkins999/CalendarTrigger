@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
@@ -189,40 +190,27 @@ public class MuteService extends IntentService
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
-		switch(sensorEvent.sensor.getType())
-		{
-			case Sensor.TYPE_STEP_COUNTER:
-                {
-                    int newCounterSteps = (int)sensorEvent.values[0];
-                    if (newCounterSteps != PrefsManager.getStepCount(this))
-                    {
-                        PrefsManager.setStepCount(this, newCounterSteps);
-                        startIfNecessary(this, "Step counter changed");
-                    }
-                }
-				break;
+		switch (sensorEvent.sensor.getType()) {
+			case Sensor.TYPE_STEP_COUNTER: {
+				int newCounterSteps = (int) sensorEvent.values[0];
+				if (newCounterSteps != PrefsManager.getStepCount(this)) {
+					PrefsManager.setStepCount(this, newCounterSteps);
+					startIfNecessary(this, "Step counter changed");
+				}
+			}
+			break;
 			case Sensor.TYPE_ACCELEROMETER:
-				SensorManager sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+				SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 				sm.unregisterListener(this);
 				accelerometerX = sensorEvent.values[0];
 				accelerometerY = sensorEvent.values[1];
 				accelerometerZ = sensorEvent.values[2];
 				PrefsManager.setOrientationState(this,
-												 PrefsManager.ORIENTATION_DONE);
+						PrefsManager.ORIENTATION_DONE);
 				startIfNecessary(this, "Accelerometer event");
 				break;
 			default:
 				// do nothing, should never happen
-		}
-	}
-
-	public static class StartServiceReceiver
-		extends WakefulBroadcastReceiver {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			intent.setClass(context, MuteService.class);
-			startWakefulService(context, intent);
 		}
 	}
 
@@ -330,6 +318,33 @@ public class MuteService extends IntentService
 			}
 		}
 		return phoneState;
+	}
+
+	// Check if the time zone has changed.
+	// If it has, we wait a bit for the CalendarProvider to update before undoing
+	// its changes for any floating time events.
+	private int CheckTimeZone(long currentTime) {
+		int lastOffset = PrefsManager.getLastTimezoneOffset(this);
+		int seenOffset = PrefsManager.getLastSeenOffset(this);
+		int currentOffset = TimeZone.getDefault().getOffset(currentTime);
+		if (currentOffset != lastOffset)
+		{
+			if (currentOffset != seenOffset) {
+				PrefsManager.setLastSeenOffset(this, currentOffset);
+				PrefsManager.setUpdateTime(
+						this, currentTime + FIVE_MINUTES);
+				return 0;
+			}
+			else if (PrefsManager.getUpdateTime(this) <= currentTime)
+			{
+				// At least 5 minutes since last time zone change
+				PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
+				PrefsManager.setLastTimezoneOffset(this, currentOffset);
+				return currentOffset - lastOffset;
+			}
+			// else fall through to return 0
+		}
+		return 0;
 	}
 
 	// Do log cycling if it is enabled and needed now
@@ -878,6 +893,7 @@ public class MuteService extends IntentService
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
+		int tzOffset = CheckTimeZone(currentTime);
 		doLogCycling(currentTime);
 		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
@@ -912,6 +928,7 @@ public class MuteService extends IntentService
 					  + PrefsManager.getEnglishStateName(this, user));
 		}
 		long nextAlarmTime = Long.MAX_VALUE;
+		String alarmReason = "";
 		nextAccelTime = Long.MAX_VALUE;
 		int classNum;
 		String startEvent = "";
@@ -920,7 +937,6 @@ public class MuteService extends IntentService
 		String endEvent = "";
 		String endClassName = "";
 		int endClassNum = 0;
-		String alarmReason = "";
 		boolean startNotifyWanted = false;
 		boolean endNotifyWanted = false;
 		int phoneState = UpdatePhoneState(intent);
@@ -943,10 +959,16 @@ public class MuteService extends IntentService
 		CalendarProvider provider = new CalendarProvider(this);
 		for (classNum = 0; classNum < n; ++classNum)
 		{
+			if (   (tzOffset != 0)
+				&& PrefsManager.getFloatingTime(this, classNum))
+			{
+				provider.doTimeZoneAdjustment(this, classNum, tzOffset);
+			}
 			if (PrefsManager.isClassUsed(this, classNum))
 			{
 				String className = PrefsManager.getClassName(this, classNum);
-				int ringerAction = PrefsManager.getRingerAction(this, classNum);
+				int ringerAction = PrefsManager.getRingerAction(
+						this, classNum);
 				CalendarProvider.startAndEnd result
 					= provider.nextActionTimes(this, currentTime, classNum);
 
@@ -1412,6 +1434,12 @@ public class MuteService extends IntentService
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager alarmManager = (AlarmManager)
 			getSystemService(Context.ALARM_SERVICE);
+		long updateTime = PrefsManager.getUpdateTime(this);
+		if (updateTime < nextAlarmTime)
+		{
+			nextAlarmTime = updateTime;
+			alarmReason = " for time zone change";
+		}
 		if (nextAlarmTime == Long.MAX_VALUE)
 		{
 			alarmManager.cancel(pIntent);
@@ -1435,9 +1463,10 @@ public class MuteService extends IntentService
                 // with a zero delay.
                 if (delay < 0) { delay = 0; }
                 mHandler.sendMessageDelayed(
-                    mHandler.obtainMessage(what, DELAY_WAIT, 0, this), delay);
+                    mHandler.obtainMessage(
+                    		what, DELAY_WAIT, 0, this), delay);
                 lock();
-                new MyLog(this, "Delayed messaage set for "
+                new MyLog(this, "Delayed message set for "
                     .concat(df.format(nextAlarmTime))
                     .concat(alarmReason));
             }
@@ -1447,7 +1476,8 @@ public class MuteService extends IntentService
                 {
                     alarmManager.setExactAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-                } else
+                }
+                else
                 {
                     alarmManager.setExact(
                         AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
@@ -1681,7 +1711,17 @@ public class MuteService extends IntentService
 		updateState(intent);
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}
-	
+
+	public static class StartServiceReceiver
+			extends WakefulBroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			intent.setClass(context, MuteService.class);
+			startWakefulService(context, intent);
+		}
+	}
+
 	public static void startIfNecessary(Context c, String caller) {
 			c.startService(new Intent(caller, null, c, MuteService.class));
 	}

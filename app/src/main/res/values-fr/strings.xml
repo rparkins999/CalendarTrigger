@@ -155,6 +155,10 @@
         condition il y a une valeur par défaut qui est réalisé par tous
         évènements. Quand vous avez fini, touchez \'fin\'. Une longue touche
         d\'une commande montrera un message d\'assistance.</string>
+    <string name="floatingtimelabel">Classe avec heure flottant</string>
+    <string name="floatingtimehelp">Si coché, évènements appartenant à cette classe
+        conservent le même temps d\'horloge quand le fuseau horaire de l\'appareil
+        change.</string>
     <string name="defineclasslist">Un évènement appartient à classe %s
         si:-</string>
     <string name="ifanycalendar">l\'évènement appartient à quelconque

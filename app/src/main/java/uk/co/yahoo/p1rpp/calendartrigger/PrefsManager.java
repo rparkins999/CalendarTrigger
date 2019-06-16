@@ -84,6 +84,47 @@ public class PrefsManager {
 					  .getBoolean(PREF_NEXT_LOCATION, false);
 	}
 
+	// This is the last timezone offset that we adjusted for.
+	private static final String PREF_LAST_TIMEZONE_OFFSET = "timezoneOffset";
+
+	public static void setLastTimezoneOffset(Context context, int millis) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			   .putInt(PREF_LAST_TIMEZONE_OFFSET, millis).commit();
+	}
+
+	public static int getLastTimezoneOffset(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				      .getInt(PREF_LAST_TIMEZONE_OFFSET, 0);
+	}
+
+	// This is the last timezone offset that we saw,
+	// but we may not have adjusted for it yet because we wait a bit.
+	private static final String PREF_LAST_SEEN_OFFSET = "seenOffset";
+
+	public static void setLastSeenOffset(Context context, int millis) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+				.putInt(PREF_LAST_SEEN_OFFSET, millis).commit();
+	}
+
+	public static int getLastSeenOffset(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.getInt(PREF_LAST_SEEN_OFFSET, 0);
+	}
+
+	// This is used to record when we should update for a time zone change.
+	// We wait a bit to allow the Calendar Provider to settle.
+	private static final String PREF_TIMEZONE_CHANGED = "timeToUpdate";
+
+	public static void setUpdateTime(Context context, long millis) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+		       .putLong(PREF_TIMEZONE_CHANGED, millis).commit();
+	}
+
+	public static long getUpdateTime(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+					  .getLong(PREF_TIMEZONE_CHANGED, 0);
+	}
+
 
 	// This works around a nastiness in some Android versions:
 	// If we try to mute the ringer, the behaviour depends on the previous state
@@ -474,6 +515,21 @@ public class PrefsManager {
 
 	public static int getClassNum(Context context, String className) {
 		return getClassNum(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE), className);
+	}
+
+	// True for floating time class
+	private static final String FLOATING_TIME = "floatingTime";
+
+	public static void setFloatingTime(Context context, int classNum, boolean val) {
+		String prefName = FLOATING_TIME + String.valueOf(classNum);
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.edit().putBoolean(prefName, val).commit();
+	}
+
+	public static boolean getFloatingTime(Context context, int classNum) {
+		String prefName = FLOATING_TIME + String.valueOf(classNum);
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				      .getBoolean(prefName, false);
 	}
 
 	// string required in names of events which can be in class

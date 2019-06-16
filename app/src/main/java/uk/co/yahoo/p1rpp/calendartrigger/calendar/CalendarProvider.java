@@ -10,6 +10,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract.Calendars;
+import android.provider.CalendarContract.Events;
 import android.provider.CalendarContract.Instances;
 
 import java.util.ArrayList;
@@ -305,6 +306,38 @@ public class CalendarProvider {
 		else
 		{
 			return null;
+		}
+	}
+
+	private static final String[] TIMEZONE_PROJECTION = new String[] {
+			Instances.BEGIN,
+			Instances.END,
+			Instances.END_DAY,
+			Instances.END_MINUTE,
+			Instances.START_DAY,
+			Instances.START_MINUTE,
+			Events.EVENT_END_TIMEZONE,
+			Events.EVENT_TIMEZONE
+	};
+
+	private static final int TIMEZONE_PROJECTION_BEGIN_INDEX = 0;
+	private static final int TIMEZONE_PROJECTION_END_INDEX = 1;
+	private static final int TIMEZONE_PROJECTION_END_DAY_INDEX = 2;
+	private static final int TIMEZONE_PROJECTION_END_MINUTE_INDEX = 3;
+	private static final int TIMEZONE_PROJECTION_START_DAY_INDEX = 4;
+	private static final int TIMEZONE_PROJECTION_START_MINUTE_INDEX = 5;
+	private static final int TIMEZONE_PROJECTION_END_TIMEZONE_INDEX = 6;
+	private static final int TIMEZONE_PROJECTION_START_TIMEZONE_INDEX = 7;
+
+	public void doTimeZoneAdjustment(Context context, int classNum, int tzOffset) {
+		ContentResolver cr = context.getContentResolver();
+		StringBuilder selClause = selection(context, classNum);
+		Cursor cur = cr.query(getInstancesQueryUri(), TIMEZONE_PROJECTION,
+							  selection(context, classNum).toString(),
+				null, null);
+		while (cur.moveToNext())
+		{
+
 		}
 	}
 }

@@ -148,6 +148,10 @@
         has a default option which is satisfied by any event. When you have
         done, press the back button. A long press on any of the controls below
         will bring up some help information about it.</string>
+    <string name="floatingtimelabel">Floating time class</string>
+    <string name="floatingtimehelp">If this is checked, events in this class
+        retain the same wall clock time when the device\'s time zone changes.
+    </string>
     <string name="defineclasslist">An event is in class %s if:-</string>
     <string name="ifanycalendar">the event is in any of the calendars
         below which is checked</string>

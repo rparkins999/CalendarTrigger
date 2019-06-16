@@ -29,11 +29,13 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.text.DateFormat;
+import java.util.ArrayList;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarDumper;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 
 /**
@@ -59,6 +61,46 @@ public class SettingsActivity extends Activity {
         startService(new Intent(
             MuteService.MUTESERVICE_RESET, null, this, MuteService.class));
 
+    }
+
+    void doDumpCalendar() {
+        if (BuildConfig.DEBUG)
+        {
+            ArrayAdapter<String> adapter
+                    = new ArrayAdapter<>(
+                    this, R.layout.activity_text_viewer);
+            CalendarDumper cd = new CalendarDumper(this, adapter);
+        }
+    }
+
+    void doLogCalendar() {
+        if (BuildConfig.DEBUG)
+        {
+            CalendarDumper cd =
+                    new CalendarDumper(this, null);
+        }
+    }
+
+    public void doneCalendar(ArrayAdapter<String> adapter) {
+        if (BuildConfig.DEBUG)
+        {
+            if (adapter == null) { return; }
+            if (adapter.getCount() == 0)
+            {
+                Toast.makeText(this,
+                        "No calendar entries match",
+                        Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                ListView lv = new ListView(this);
+                lv.setAdapter(adapter);
+                lv.setFastScrollEnabled(true);
+                lv.setFastScrollAlwaysVisible(true);
+                lv.setDivider(null);
+                setContentView(lv);
+            }
+        }
     }
 
     private void setNextLocationState(CheckBox v, boolean nl) {
@@ -102,7 +144,8 @@ public class SettingsActivity extends Activity {
         {
             log = new ListView(this);
             ArrayAdapter<String> adapter
-                = new ArrayAdapter<String> (this, R.layout.activity_text_viewer);
+                = new ArrayAdapter<String> (
+                        this, R.layout.activity_text_viewer);
             try
             {
                 BufferedReader in
@@ -585,6 +628,8 @@ public class SettingsActivity extends Activity {
         tv.setText(getString(R.string.settingsfile, s));
         if (BuildConfig.DEBUG)
         {
+            LinearLayout ll =
+                    (LinearLayout)findViewById(R.id.edit_activity_container);
             if (fakecontact == null)
             {
                 fakecontact = new Button(this);
@@ -596,10 +641,29 @@ public class SettingsActivity extends Activity {
                         startActivity(it);
                     }
                 });
-                LinearLayout ll =
-                    (LinearLayout)findViewById(R.id.edit_activity_container);
                 ll.addView(fakecontact);
             }
+            LinearLayout lll = new LinearLayout(this);
+            lll.setOrientation(LinearLayout.HORIZONTAL);
+            b = new Button(this);
+            b.setText("dump calendar");
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doDumpCalendar();
+                }
+            });
+            lll.addView(b);
+            b = new Button(this);
+            b.setText("dump calendar to log");
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doLogCalendar();
+                }
+            });
+            lll.addView(b);
+            ll.addView(lll);
         }
     }
 
