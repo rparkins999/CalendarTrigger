@@ -29,9 +29,9 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.text.DateFormat;
-import java.util.ArrayList;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
+import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -151,7 +151,7 @@ public class SettingsActivity extends Activity {
                 BufferedReader in
                     = new BufferedReader(
                     new InputStreamReader(
-                        new FileInputStream(MyLog.LogFileName())));
+                        new FileInputStream(DataStore.LogFileName())));
                 String line;
                 while ((line = in.readLine()) != null)
                 {
@@ -286,7 +286,7 @@ public class SettingsActivity extends Activity {
             }
         });
         tv = (TextView)findViewById(R.id.logfiletext);
-        String s = MyLog.LogFileName();
+        String s = DataStore.LogFileName();
         tv.setText(getString(R.string.Logging, s));
         boolean canStore = PackageManager.PERMISSION_GRANTED ==
                            PermissionChecker.checkSelfPermission(
@@ -352,7 +352,7 @@ public class SettingsActivity extends Activity {
         {
             b.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    (new File(MyLog.LogFileName())).delete();
+                    (new File(DataStore.LogFileName())).delete();
                     Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
                          .show();
                 }
@@ -522,13 +522,13 @@ public class SettingsActivity extends Activity {
         {
             b.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    String type = me.getResources().getString(R.string.typelog);
-                    if (MyLog.ensureLogDirectory(me, type))
+                    String type = me.getResources().getString(R.string.typesettings);
+                    if (DataStore.ensureDataDirectory(me, type, false))
                     {
                         try
                         {
                             FileOutputStream f =
-                                new FileOutputStream(MyLog.SettingsFileName());
+                                new FileOutputStream(DataStore.SettingsFileName());
                             PrintStream out = new PrintStream(f);
                             PrefsManager.saveSettings(me, out);
                         }
@@ -539,7 +539,7 @@ public class SettingsActivity extends Activity {
                                 me.getResources().getString(
                                     R.string.nowrite, type)
                                     + ", "
-                                    + MyLog.SettingsFileName()
+                                    + DataStore.SettingsFileName()
                                     + ":"
                                     + e.getMessage(),
                                 Toast.LENGTH_LONG).show();
@@ -585,7 +585,7 @@ public class SettingsActivity extends Activity {
                         BufferedReader in
                             = new BufferedReader(
                             new InputStreamReader(
-                                new FileInputStream(MyLog.SettingsFileName())));
+                                new FileInputStream(DataStore.SettingsFileName())));
                         PrefsManager.loadSettings(me, in);
                         in.close();
                     }
@@ -624,7 +624,7 @@ public class SettingsActivity extends Activity {
             });
         }
         tv = (TextView)findViewById(R.id.savefiletext);
-        s = MyLog.SettingsFileName();
+        s = DataStore.SettingsFileName();
         tv.setText(getString(R.string.settingsfile, s));
         if (BuildConfig.DEBUG)
         {

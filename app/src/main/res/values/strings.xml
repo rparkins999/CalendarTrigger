@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Released under GPL V3 or later
+    Copyright (c) 2016. Richard P. Parkins, M. A.
+    Released under GPL V3 or later
   -->
 
 <resources>
@@ -13,9 +14,27 @@
     <string name="lognodirdetail">exists but is a plain file</string>
     <string name="nocreatedetail">does not exist and cannot be created</string>
     <string name="nowrite">Cannot open %s file</string>
+    <string name="databasefail">Cannot access floating time event database</string>
+    <string name="tablecreatefail">Cannot create table FLOATINGEVENTS</string>
+    <string name="nomodifypermission">CalendarTrigger cannot set events to floating
+        time because it does not have permission to modify calendars.
+        You can enable this permission from the device\'s Settings tool by selecting
+        the Application Manager.</string>
+    <string name="eventdate">Event date</string>
+    <string name="noevents">No events on</string>
+    <string name="checkfloat">Check box for floating time</string>
+    <string name="checkfloathelp">If a box is checked, the event will retain the same
+        wall clock time if the device\'s time zone changes. Changing a recurring
+        event (shown in red) will change all instances.</string>
+    <string name="checkfloatnormalhelp">If this box is checked, the event will
+        retain the same wall clock time if the device\'s time zone changes."</string>
+    <string name="checkfloatrecurringhelp">If this box is checked, all instances of
+        this recurring event will retain the same wall clock time if the device\'s
+        time zone changes."</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
+    <string name="floating">Make Events Floating</string>
     <string name="settings">Debugging</string>
     <string name="lastcalldetail">Last called at %s</string>
     <string name="lastCallHelp">This is the time at which CalendarTrigger was
@@ -148,10 +167,6 @@
         has a default option which is satisfied by any event. When you have
         done, press the back button. A long press on any of the controls below
         will bring up some help information about it.</string>
-    <string name="floatingtimelabel">Floating time class</string>
-    <string name="floatingtimehelp">If this is checked, events in this class
-        retain the same wall clock time when the device\'s time zone changes.
-    </string>
     <string name="defineclasslist">An event is in class %s if:-</string>
     <string name="ifanycalendar">the event is in any of the calendars
         below which is checked</string>
@@ -433,4 +448,5 @@
     <string name="readphonefailbig">CalendarTrigger no longer has permission
 		READ_PHONE_STATE. It needs this permission to prevent it from muting
         while a call is active.</string>
+    <string name="action_settings">Settings</string>
 </resources>

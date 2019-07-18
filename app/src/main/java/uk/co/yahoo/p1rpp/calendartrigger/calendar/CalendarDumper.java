@@ -74,7 +74,8 @@ public class CalendarDumper implements OnDateSetListener {
             CalendarContract.Events.HAS_ATTENDEE_DATA,
             CalendarContract.Events.ORGANIZER,
             CalendarContract.Events.EVENT_LOCATION,
-            CalendarContract.Events.DESCRIPTION
+            CalendarContract.Events.DESCRIPTION,
+            CalendarContract.Events.RRULE
     };
 
     private static final int INDEX_CALENDAR_DISPLAY_NAME = 0;
@@ -97,6 +98,7 @@ public class CalendarDumper implements OnDateSetListener {
     private static final int INDEX_ORGANIZER = 17;
     private static final int INDEX_LOCATION = 18;
     private static final int INDEX_DESCRIPTION = 19;
+    private static final int INDEX_RRULE = 20;
 
     private void doOne(Cursor cu)
     {
@@ -156,6 +158,15 @@ public class CalendarDumper implements OnDateSetListener {
                     "LOCATION %s", cu.getString(INDEX_LOCATION)));
             putline(String.format(
                     "DESCRIPTION %s", cu.getString(INDEX_DESCRIPTION)));
+            String rrule = cu.getString(INDEX_RRULE);
+            if (rrule == null)
+            {
+                putline("RRULE is null");
+            }
+            else
+            {
+                putline(String.format("RRULE %s", rrule));
+            }
             putline("");
         }
     }

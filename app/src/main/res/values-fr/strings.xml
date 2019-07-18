@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Released under GPL V3 or later
+    Copyright (c) 2016. Richard P. Parkins, M. A.
+    Released under GPL V3 or later
   -->
 
 <resources>
@@ -13,9 +14,28 @@
     <string name="nocreatedetail">n\'existe pas at ne peut pas être créé
     </string>
     <string name="nowrite">Impossible d\'ouvrir %s file</string>
+    <string name="databasefail">Impossible d\'ouvrir base de données pour
+        évènements d\'heure flottante</string>
+    <string name="tablecreatefail">Impossible de créer table FLOATINGEVENTS</string>
+    <string name="nomodifypermission">CalendarTrigger ne peut pas fixer aucun
+        évènements comme heure flottante parce que CalendarTrigger n\'a pas la
+        permission WRITE_CALENDAR. Vous pouvez activer cette permission en employant
+        l\'outil \'Paramètres\'.</string>
+    <string name="eventdate">Date de l\'évènement</string>
+    <string name="noevents">Pas d\'évènements à la date</string>
+    <string name="checkfloat">Cocher pour heure flottante</string>
+    <string name="checkfloathelp">Si coché, l\'évènement retiendra la même heure
+        locale si le fuseau horaire de l\'appareil est changé. Si l\'évènement est
+        récurrent, tous les exemples seront affectés.</string>
+    <string name="checkfloatnormalhelp">Si coché, l\'évènement retiendra la même heure
+        locale si le fuseau horaire de l\'appareil est changé."</string>
+    <string name="checkfloatrecurringhelp">Si coché, tous les exemples de
+        l\'évènement retiendront la même heure locale si le fuseau horaire de
+        l\'appareil est changé."</string>
     <string name="new_event_class">Nouvelle Classe d\'évènements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
+    <string name="floating">Flotter évènements</string>
     <string name="settings">Débogage</string>
     <string name="lastcalldetail">Dernier appel à %s</string>
     <string name="lastCallHelp">Ceci est l\'heure quand CalendarTrigger a été
@@ -155,10 +175,6 @@
         condition il y a une valeur par défaut qui est réalisé par tous
         évènements. Quand vous avez fini, touchez \'fin\'. Une longue touche
         d\'une commande montrera un message d\'assistance.</string>
-    <string name="floatingtimelabel">Classe avec heure flottant</string>
-    <string name="floatingtimehelp">Si coché, évènements appartenant à cette classe
-        conservent le même temps d\'horloge quand le fuseau horaire de l\'appareil
-        change.</string>
     <string name="defineclasslist">Un évènement appartient à classe %s
         si:-</string>
     <string name="ifanycalendar">l\'évènement appartient à quelconque
@@ -432,4 +448,5 @@
 		READ_PHONE_STATE. Cette permission est nécessaire pour éviter de mettre
 		le téléphone en sourdine quand vous êtes au milieu d\'un appel.
         </string>
+    <string name="action_settings">Paramètres</string>
 </resources>

@@ -48,7 +48,6 @@ public class DefineClassFragment extends Fragment {
     public static final int CALENDAR_PROJECTION_ID_INDEX = 0;
     public static final int CALENDAR_PROJECTION_DISPLAY_NAME_INDEX = 1;
 
-    private CheckBox floatingCheckBox;
     private class calendarCheck extends CheckBox {
         public long id;
         calendarCheck(Context context, long calId) {
@@ -123,18 +122,6 @@ public class DefineClassFragment extends Fragment {
             }
         });
         ll.addView(tv, ww);
-        floatingCheckBox = new CheckBox(ac);
-        floatingCheckBox.setText(R.string.floatingtimelabel);
-        floatingCheckBox.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.floatingtimehelp,
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-        floatingCheckBox.setChecked(PrefsManager.getFloatingTime(ac, classNum));
-        ll.addView(floatingCheckBox, ww);
         tv = new TextView(ac);
         tv.setText(fromHtml(getString(R.string.defineclasslist, className)));
         ll.addView(tv, ww);
@@ -459,7 +446,6 @@ public class DefineClassFragment extends Fragment {
                 checkedCalendarIds.add(ctv.id);
             }
         }
-        PrefsManager.setFloatingTime(ac, classNum, floatingCheckBox.isChecked());
         PrefsManager.putCalendars(ac, classNum, checkedCalendarIds);
         PrefsManager.setEventName(
             ac, classNum, String.valueOf(nameEditor.getText()));

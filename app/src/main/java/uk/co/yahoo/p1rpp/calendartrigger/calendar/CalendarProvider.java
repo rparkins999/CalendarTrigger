@@ -6,16 +6,23 @@ package uk.co.yahoo.p1rpp.calendartrigger.calendar;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
 import android.provider.CalendarContract.Instances;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
+import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
+import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 
 public class CalendarProvider {
@@ -308,36 +315,109 @@ public class CalendarProvider {
 			return null;
 		}
 	}
-
+	
 	private static final String[] TIMEZONE_PROJECTION = new String[] {
-			Instances.BEGIN,
-			Instances.END,
-			Instances.END_DAY,
-			Instances.END_MINUTE,
-			Instances.START_DAY,
-			Instances.START_MINUTE,
-			Events.EVENT_END_TIMEZONE,
-			Events.EVENT_TIMEZONE
+		Events.DURATION,
+		Events.RRULE,
+		Events.EVENT_TIMEZONE,
+		Events.ALL_DAY,
+		Events.TITLE
 	};
 
-	private static final int TIMEZONE_PROJECTION_BEGIN_INDEX = 0;
-	private static final int TIMEZONE_PROJECTION_END_INDEX = 1;
-	private static final int TIMEZONE_PROJECTION_END_DAY_INDEX = 2;
-	private static final int TIMEZONE_PROJECTION_END_MINUTE_INDEX = 3;
-	private static final int TIMEZONE_PROJECTION_START_DAY_INDEX = 4;
-	private static final int TIMEZONE_PROJECTION_START_MINUTE_INDEX = 5;
-	private static final int TIMEZONE_PROJECTION_END_TIMEZONE_INDEX = 6;
-	private static final int TIMEZONE_PROJECTION_START_TIMEZONE_INDEX = 7;
+	private static final int TIMEZONE_DURATION_INDEX = 0;
+	private static final int TIMEZONE_RRULE_INDEX = 1;
+	private static final int TIMEZONE_EVENT_TIMEZONE_INDEX = 2;
+	private static final int TIMEZONE_EVENT_ALL_DAY_INDEX = 3;
+	private static final int TIMEZONE_EVENT_TITLE_INDEX = 4;
 
-	public void doTimeZoneAdjustment(Context context, int classNum, int tzOffset) {
-		ContentResolver cr = context.getContentResolver();
-		StringBuilder selClause = selection(context, classNum);
-		Cursor cur = cr.query(getInstancesQueryUri(), TIMEZONE_PROJECTION,
-							  selection(context, classNum).toString(),
-				null, null);
-		while (cur.moveToNext())
+	/* update a single event for time zone change
+	 * c1 is the row in floatingEvents
+	 * c2 is the data read from the existing events table
+	 */
+	private void updateEvent(
+		Context context, ContentResolver cr,
+		Uri uri, int tzOffset, Cursor c1, Cursor c2)
+	{
+		String title = c2.getString(TIMEZONE_EVENT_TITLE_INDEX);
+		ContentValues cv = new ContentValues();
+		long dtstart = c1.getLong(1) - tzOffset;
+		cv.put(Events.DTSTART, dtstart);
+		DateFormat dtf = DateFormat.getDateTimeInstance();
+		dtf.setTimeZone(TimeZone.getTimeZone("GMT"));
+		cv.put(Events.EVENT_TIMEZONE, c2.getString(TIMEZONE_EVENT_TIMEZONE_INDEX));
+		String rrule = c2.getString(TIMEZONE_RRULE_INDEX);
+		if ((rrule == null) || rrule.isEmpty())
 		{
+			// not a recurrent event
+			long dtend = c1.getLong(2) - tzOffset;
+			cv.put(Events.DTEND, dtend);
+			cv.put(Events.DURATION, (String) null);
+			new MyLog(context,
+				"Non-recurring event " + title
+					+ " setting start time to " + dtf.format(dtstart)
+					+ "UTC and end time to " + dtf.format(dtend));
+		}
+		else
+        {
+            // recurrent event
+            cv.put(Events.DTEND, (String) null);
+            String duration = c2.getString(TIMEZONE_DURATION_INDEX);
+            cv.put(Events.DURATION, duration);
+			cv.put(Events.RRULE, rrule);
+			new MyLog(context,
+				"Recurring event " + title
+					+ " setting start time to " + dtf.format(dtstart)
+					+ " UTC and duration to " + duration
+					+ " and rrule to " + rrule);
+        }
+		cr.update(uri, cv, null, null);
+	}
 
+	public void doTimeZoneAdjustment(Context context, int tzOffset) {
+		SQLiteDatabase floatingEvents = DataStore.getFloatingEvents(
+			context, true);
+		new MyLog(context, "doTimeZoneAdjustment");
+		if (floatingEvents != null)
+		{
+			Cursor c1 = floatingEvents.rawQuery(
+				"SELECT EVENT_ID, START_WALLTIME_MILLIS,"
+					+ "END_WALLTIME_MILLIS FROM FLOATINGEVENTS", null);
+			while (c1.moveToNext()) {
+				long eventId = c1.getLong(0);
+				ContentResolver cr = context.getContentResolver();
+				Uri uri = ContentUris.withAppendedId
+					(CalendarContract.Events.CONTENT_URI, eventId);
+				Cursor c2 = cr.query(uri, TIMEZONE_PROJECTION,
+					null,null, null);
+				if (c2.moveToNext()) {
+					// All day events are done by the Calendar Provider
+                    if (c2.getInt(TIMEZONE_EVENT_ALL_DAY_INDEX) == 0)
+                    {
+                        updateEvent(context, cr, uri, tzOffset, c1, c2);
+                    }
+                    else
+					{
+						new MyLog(context,
+							"Event "
+								+ c2.getString(TIMEZONE_EVENT_TITLE_INDEX)
+								+ " is all day, handled in provider");
+					}
+				}
+				else
+				{
+					// The event no longer exists, remove from our database
+					String[] args = new String[] { String.valueOf(eventId) };
+					floatingEvents.delete("FLOATINGEVENTS",
+						"EVENT_ID IS ?", args);
+					new MyLog(context,
+						"Event "
+						+ c2.getString(TIMEZONE_EVENT_TITLE_INDEX)
+						+ " no longer exists, deleted");
+				}
+				c2.close();
+			}
+			c1.close();
+			floatingEvents.close();
 		}
 	}
 }

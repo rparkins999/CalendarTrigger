@@ -94,6 +94,41 @@ This is a Screen showing a help information popup:
 
 Some more complicated behaviours are described in this README file.
 
+## Floating time events
+
+If your device moves to a different time zone, the absolute time of events
+in its calendar remains the same but the displayed local time (also known as
+wall clock time) changes. Some Android devices allow you to specify that the
+local time remains the same instead, but this is a global setting for all
+events, which is not usually what you want. CalendarTrigger allows you specify
+floating time for individual events. This can be useful if for example you want
+your phone not to ring at night while you are asleep: normally you will sleep
+during the same period of local time regardless of which time zone you are
+currently in. The floating time feature can be accessed from the main menu.
+It asks you to select a date and displays all the events on that day. Each one
+has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time
+as it had when you checked the box. If you uncheck the box it will keep the
+same absolute time as it had when you unchecked the box.
+
+Setting or clearing the floating time property for a recurrent event sets or
+clears it for all occurrences. Recurrent events are displayed in red to remind
+you of this.
+
+CalendarTrigger waits about five minutes after a time zone change before
+adjusting events, in order to allow the calendar provider's background process
+to settle.
+
+Note that it only catches time zone changes, and not switches into or out of
+Summer time / Daylight Saving Time, because Android doesn't tell me about
+those. So you should make sure that your events declare a real time zone (in
+which case Android handles keeping the same wall clock time across switches
+into or out of Summer time / Daylight Saving Time) and not raw GMT offsets.
+
+This feature has not been thoroughly tested (I don't do that much long haul
+travel) and should be regarded as Beta. You are welcome to try it,
+preferably with logging and log cycling enabled. If it goes wrong, please
+send me the log and I will try to fix it.
+
 ## Next Location feature
 
 Some satnav systems can connect via Bluetooth to your phone, read your contact list, and navigate to the address of a selected contact. Unfortunately satnav
@@ -136,6 +171,7 @@ _@label firstname lastname_
 where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
 
 ## Signing and saving settings
+
 Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file dowloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
 
 Having multiple signing keys causes problems if you have previously installed one version and want to install a newer version of the same application signed with a different key: Android does not allow this, and you have to uninstall the old application before installing the new one This deletes the application's data, which means for CalendarTrigger that you lose all its settings including all of your class definitions.
@@ -145,10 +181,14 @@ If Android will still not install a new version even after uninstalling the old 
 In order keep the its data, CalendarTrigger now allows you to save its settings to a (fixed) file or to replace the current settings by those from the file: there are buttons to do these actions in the Debugging screen. This can be used to save the settings before uninstalling, or to transfer your settings to a different device.
 
 ## Permissions
+
 CalendarTrigger uses the following permissions:-
 
 READ_CALENDAR
 This is needed for CalendarTrigger to work at all: if this permission is denied, the User Interface will appear to work, but attempts to read the calendar will return nothing, so it will not do anything in response to calendar events.
+
+WRITE_CALENDAR
+This in only needed for floating time events: if this permission is denied, you cannot set events to floating time, but CalendarTrigger will otherwise work normally.
 
 READ_PHONE_STATE
 This is needed to enable CalendarTrigger to avoid muting the audio during a call: if this permission is denied and an event calls for the audio to be muted, it may mute the audio even if a call is in progress. If it notices that this permission was previously granted but has been removed, it will display a notification (only once each time the permission state changes).

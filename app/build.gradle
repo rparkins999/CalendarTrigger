@@ -19,14 +19,14 @@ android {
         applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 7
-        versionName "2.2"
+        versionCode 8
+        versionName "3.0beta"
     }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                          'proguard-rules.pro'
+                    'proguard-rules.pro'
             signingConfig signingConfigs.config
             resValue("string", 'build_time', "${(new Date()).toString()}")
         }

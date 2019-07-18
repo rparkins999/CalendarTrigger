@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -320,13 +321,32 @@ public class MuteService extends IntentService
 		return phoneState;
 	}
 
+	private String logOffset(long offset) {
+		DateFormat df = DateFormat.getTimeInstance();
+		df.setTimeZone(TimeZone.getTimeZone("GMT"));
+		if (offset > 0)
+		{
+			return df.format(offset);
+		}
+		else
+		{
+			return "-".concat(df.format(-offset));
+		}
+	}
+
 	// Check if the time zone has changed.
 	// If it has, we wait a bit for the CalendarProvider to update before undoing
 	// its changes for any floating time events.
 	private int CheckTimeZone(long currentTime) {
 		int lastOffset = PrefsManager.getLastTimezoneOffset(this);
+		new MyLog(this, "CheckTimeZone: lastoffset is "
+			+ logOffset(lastOffset));
 		int seenOffset = PrefsManager.getLastSeenOffset(this);
+		new MyLog(this, "CheckTimeZone: seenoffset is "
+			+ logOffset(seenOffset));
 		int currentOffset = TimeZone.getDefault().getOffset(currentTime);
+		new MyLog(this, "CheckTimeZone: currentoffset is "
+			+ logOffset(currentOffset));
 		if (currentOffset != lastOffset)
 		{
 			if (currentOffset != seenOffset) {
@@ -340,9 +360,14 @@ public class MuteService extends IntentService
 				// At least 5 minutes since last time zone change
 				PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 				PrefsManager.setLastTimezoneOffset(this, currentOffset);
-				return currentOffset - lastOffset;
+				return currentOffset;
 			}
 			// else fall through to return 0
+		}
+		else
+		{
+			PrefsManager.setLastSeenOffset(this, currentOffset);
+			PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 		}
 		return 0;
 	}
@@ -373,13 +398,13 @@ public class MuteService extends IntentService
 		{
 			boolean inBlock = false;
 			DateFormat df = DateFormat.getDateTimeInstance();
-			int pp = MyLog.LOGPREFIX.length();
-			File f= new File(MyLog.LogFileName());
+			int pp = DataStore.DATAPREFIX.length();
+			File f= new File(DataStore.LogFileName());
 			BufferedReader in = new BufferedReader(new FileReader(f));
 			String line;
 			while ((line = in.readLine()) != null)
 			{
-				if (line.startsWith(MyLog.LOGPREFIX))
+				if (line.startsWith(DataStore.DATAPREFIX))
 				{
 					Date dd = df.parse(line, new ParsePosition(pp));
 					if (dd != null)
@@ -417,7 +442,7 @@ public class MuteService extends IntentService
 			// Show notification
 			NotificationManager notifManager = (NotificationManager)
 				getSystemService(Context.NOTIFICATION_SERVICE);
-			notifManager.notify(MyLog.NOTIFY_ID, builder.build());
+			notifManager.notify(DataStore.NOTIFY_ID, builder.build());
 			new MyLog(this,
 					  "Exited doLogCycling because of exception "
 						+ e.toString());
@@ -895,6 +920,11 @@ public class MuteService extends IntentService
 		long currentTime = System.currentTimeMillis();
 		int tzOffset = CheckTimeZone(currentTime);
 		doLogCycling(currentTime);
+		CalendarProvider provider = new CalendarProvider(this);
+		if (tzOffset != 0)
+		{
+			provider.doTimeZoneAdjustment(this, tzOffset);
+		}
 		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
@@ -956,14 +986,8 @@ public class MuteService extends IntentService
 			new MyLog(this, "Step counter running");
 		}
 		int n = PrefsManager.getNumClasses(this);
-		CalendarProvider provider = new CalendarProvider(this);
 		for (classNum = 0; classNum < n; ++classNum)
 		{
-			if (   (tzOffset != 0)
-				&& PrefsManager.getFloatingTime(this, classNum))
-			{
-				provider.doTimeZoneAdjustment(this, classNum, tzOffset);
-			}
 			if (PrefsManager.isClassUsed(this, classNum))
 			{
 				String className = PrefsManager.getClassName(this, classNum);

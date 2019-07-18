@@ -59,6 +59,7 @@ public class MainActivity extends Activity {
 		menu.clear();
 		super.onPrepareOptionsMenu(menu);
 		MenuItem mi;
+		mi = menu.add(Menu.NONE, -3, Menu.NONE, R.string.floating);
 		mi = menu.add(Menu.NONE, -2, Menu.NONE, R.string.settings);
 		mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
 		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -87,7 +88,12 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int i = item.getItemId();
-		if (i == -2)
+		if (i == -3)
+		{
+			Intent it = new Intent(this, FloatActivity.class);
+			startActivity(it);
+		}
+		else if (i == -2)
 		{
 			Intent it = new Intent(this, SettingsActivity.class);
 			startActivity(it);
