@@ -8,6 +8,8 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -23,6 +25,41 @@ import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
 
 public class MainActivity extends Activity {
+
+	// At the moment we have only one possible version upgrade,
+	// so "was" is unused.
+	private void UpdatePrefs (String was, String now) {
+		// Check for 3.0 comparisons and convert to 3.1.
+		int n = PrefsManager.getNumClasses(this);
+		for (int classNum = 0; classNum < n; ++classNum) {
+			if (PrefsManager.isClassUsed(this, classNum)) {
+				String eventName = PrefsManager.getEventName(this, classNum);
+				int andIndex = 0;
+				if (eventName.length() > 0) {
+					PrefsManager.setEventComparison(this, classNum, andIndex,
+						0, 0, 0, eventName);
+					++andIndex;
+					PrefsManager.removeEventName(this, classNum);
+				}
+				String eventLocation = PrefsManager.getEventLocation(this, classNum);
+				if (eventLocation.length() > 0) {
+					PrefsManager.setEventComparison(this, classNum, andIndex,
+						0, 1, 0, eventLocation);
+					++andIndex;
+					PrefsManager.removeEventLocation(this, classNum);
+				}
+				String eventDescription
+					= PrefsManager.getEventDescription(this, classNum);
+				if (eventDescription.length() > 0) {
+					PrefsManager.setEventComparison(this, classNum, andIndex,
+						0, 2, 0, eventDescription);
+					++andIndex;
+					PrefsManager.removeEventDescription(this, classNum);
+				}
+			}
+		}
+		PrefsManager.setPrefVersionCode(this, now);
+	}
 
 	@TargetApi(android.os.Build.VERSION_CODES.M)
 	@Override
@@ -44,6 +81,24 @@ public class MainActivity extends Activity {
 				intent.setData(Uri.parse("package:" + packageName));
 				startActivity(intent);
 			}
+		}
+		PackageManager pm = getPackageManager();
+		String was = PrefsManager.getPrefVersionCode(this);
+		try
+		{
+			PackageInfo pi = pm.getPackageInfo(
+				"uk.co.yahoo.p1rpp.calendartrigger", 0);
+			String now = pi.versionName;
+			if (now.compareTo(was) > 0)
+			{
+				UpdatePrefs(was, now);
+			}
+		}
+		catch (PackageManager.NameNotFoundException e)
+		{
+			// If we can't find a version name, update anyway for safety
+			// It does nothing if we already have version 3.1 or later prefs
+			UpdatePrefs(was, was);
 		}
 	}
 

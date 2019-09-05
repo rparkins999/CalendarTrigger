@@ -88,26 +88,51 @@ public class CalendarProvider {
 		}
 		selClause.append(Instances.ALL_DAY)
 				 .append(" = 0");
-		String s = PrefsManager.getEventName(context, classNum);
-		if (!s.isEmpty())
-		{
-			selClause.append(" AND ").append(Instances.TITLE)
-					 .append(likeQuote(s));
-		}
-		s = PrefsManager.getEventLocation(context, classNum);
-		if (!s.isEmpty())
-		{
-			selClause.append(" AND ").append(Instances.EVENT_LOCATION)
-					 .append(likeQuote(s));
-		}
-		s = PrefsManager.getEventDescription(context, classNum);
-		if (!s.isEmpty())
-		{
-			selClause.append(" AND ").append(Instances.DESCRIPTION)
-					 .append(likeQuote(s));
+		for (int andIndex = 0; true; ++andIndex) {
+			int orIndex = 0;
+			for (; true; ++orIndex) {
+				String[] sa = PrefsManager.getEventComparison(
+					context, classNum, andIndex, orIndex);
+				if (sa[2].length() == 0)
+				{
+					if (orIndex != 0)
+					{
+						selClause.append(" )");
+					}
+					break;
+				}
+				if (orIndex == 0)
+				{
+					selClause.append(" AND ( ( ");
+				}
+				else
+				{
+					selClause.append(" OR ( ");
+				}
+				switch (Integer.valueOf(sa[0])) {
+					case 0:
+						selClause.append(Instances.TITLE);
+						break;
+					case 1:
+						selClause.append(Instances.EVENT_LOCATION);
+						break;
+					case 2:
+						selClause.append(Instances.DESCRIPTION);
+						break;
+				}
+				if (sa[1].compareTo("0") == 0)
+				{
+					selClause.append(" NOT");
+				}
+				selClause.append(likeQuote(sa[2]));
+				selClause.append(" )");
+			}
+			if (orIndex == 0) {
+				break;
+			}
 		}
 		// Event colour is not currently selectable from the UI
-		s = PrefsManager.getEventColour(context, classNum);
+		String s = PrefsManager.getEventColour(context, classNum);
 		if (!s.isEmpty())
 		{
 			selClause.append(" AND ").append(Instances.EVENT_COLOR)

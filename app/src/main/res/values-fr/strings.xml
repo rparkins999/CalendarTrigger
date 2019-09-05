@@ -184,21 +184,37 @@
         Ce n\'est pas la même chose que cocher tous le calendriers: si on
         ajoute un nouveau calendrier plus tard, il ne sera pas coché jusqu\'à
         ce que vous le cochez en changeant la classe.</string>
-    <string name="eventnamehelp">Choisir évènements dont le nom contient
+    <string name="and">et</string>
+    <string name="or">ou</string>
+    <string name="nametypeevent">le nom de l\'évènement</string>
+    <string name="eventnameconthelp">Choisir évènements dont le nom contient
+        certains caractères. Une chaîne de caractères vide correspond
+        à tous évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="eventnamenothelp">Choisir évènements dont le nom ne contient pas
+        certains caractères. Une chaîne de caractères vide correspond
+        à tous évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="nametypelocation">le lieu de l\'évènement</string>
+    <string name="locationconthelp">Choisir évènements dont le lieu contient
         certains caractères. Une chaîne de caractères vide correspond à tous
-        évènements.</string>
-    <string name="eventnamefirst">le nom de l\'évènement contient</string>
-    <string name="eventnamenotfirst">et le nom de l\'évènement contient</string>
-    <string name="locationhelp">Choisir évènements dont le lieu contient
+        évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="locationnothelp">Choisir évènements dont le lieune contient pas
         certains caractères. Une chaîne de caractères vide correspond à tous
-        évènements.</string>
-    <string name="locationfirst">le lieu de l\'évènement contient</string>
-    <string name="locationnotfirst">et le lieu de l\'évènement contient</string>
-    <string name="descriptionlabel">et le description de l\'évènement
-        contient</string>
-    <string name="descriptionhelp">Choisir évènements dont le description
+        évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="nametypedescription">le description de l\'évènement</string>
+    <string name="descriptionconthelp">Choisir évènements dont le description
         contient certains caractères. Une chaîne de caractères vide
-        correspond à tous évènements.</string>
+        correspond à tous évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="descriptionnothelp">Choisir évènements dont le description
+        ou ne contient pas certains caractères. Une chaîne de caractères vide
+        correspond à tous évènements. Si la chaîne est longue, vous pouvez traîner
+        la ligne vers la gauche ou la droite.</string>
+    <string name="contains">contient</string>
+    <string name="doesnotcontain">ne contient pas</string>
     <string name="busyhelp">Choisir évènements qui sont occupés, libres, ou
         n\'importe lequel.</string>
     <string name="busylabel">et l\'évènement est</string>

@@ -16,17 +16,20 @@ import android.provider.CalendarContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import uk.co.yahoo.p1rpp.calendartrigger.Layouts.AndList;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
@@ -36,9 +39,11 @@ import static android.text.TextUtils.htmlEncode;
 /**
  * Created by rparkins on 01/07/16.
  */
-public class DefineClassFragment extends Fragment {
+public class DefineClassFragment extends Fragment
+    implements AdapterView.OnItemSelectedListener {
     private static final String ARG_CLASS_NAME = "class name";
     private float scale;
+    private AndList comparisons;
 
     // Projection for calendar queries
     public static final String[] CALENDAR_PROJECTION = new String[] {
@@ -56,9 +61,7 @@ public class DefineClassFragment extends Fragment {
         }
     }
     private ArrayList<calendarCheck> calChecks;
-    private EditText nameEditor;
-    private EditText locationEditor;
-    private EditText descriptionEditor;
+    private TextView invisible;
     private RadioGroup busyState;
     private RadioGroup recurrentState;
     private RadioGroup organiserState;
@@ -76,6 +79,14 @@ public class DefineClassFragment extends Fragment {
         return fragment;
     }
 
+    public void onItemSelected(AdapterView<?> parent, View view,
+            int pos, long id) {
+        String item = parent.getItemAtPosition(pos).toString();
+        Toast.makeText(getActivity(), item, Toast.LENGTH_LONG).show();
+    }
+
+    public void onNothingSelected (AdapterView<?> parent) {}
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
@@ -84,6 +95,17 @@ public class DefineClassFragment extends Fragment {
                 R.layout.fragment_define_class, container, false);
         scale = getResources().getDisplayMetrics().density;
         return rootView;
+    }
+
+    // This prevents a button from getting focussed
+    public void forceTouchMode() {
+        invisible.requestFocus();
+    }
+
+    public LinearLayout makeComparisons(EditActivity ac, int classNum, boolean first) {
+        comparisons = new AndList(ac);
+        comparisons.setup(this, classNum, first);
+        return comparisons;
     }
 
     @Override
@@ -98,18 +120,19 @@ public class DefineClassFragment extends Fragment {
             "<i>" + htmlEncode(getArguments().getString(ARG_CLASS_NAME)) +
             "</i>";
         ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
+        boolean first = true;
+        calChecks = new ArrayList<>();
+        invisible = (TextView)ac.findViewById(R.id.defineinvisible);
         LinearLayout ll =
             (LinearLayout)ac.findViewById(R.id.defineclasslayout);
         ll.removeAllViews();
-        boolean first = true;
-        calChecks = new ArrayList<>();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -160,75 +183,8 @@ public class DefineClassFragment extends Fragment {
             }
             ll.addView(lll, ww);
         }
+        ll.addView(makeComparisons(ac, classNum, first));
         LinearLayout lll = new LinearLayout(ac);
-        lll.setOrientation(LinearLayout.HORIZONTAL);
-        lll.setPadding((int)(scale * 25.0), 0, 0, 0);
-        lll.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.eventnamehelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-        tv = new TextView(ac);
-        if (first) {
-            first = false;
-            tv.setText(R.string.eventnamefirst);
-        } else {
-            tv.setText(R.string.eventnamenotfirst);
-        }
-        lll.addView(tv, ww);
-        nameEditor = new EditText(ac);
-        nameEditor.setText(PrefsManager.getEventName(ac, classNum),
-                   TextView.BufferType.EDITABLE);
-        lll.addView(nameEditor, ww);
-        ll.addView(lll, ww);
-        lll = new LinearLayout(ac);
-        lll.setOrientation(LinearLayout.HORIZONTAL);
-        lll.setPadding((int)(scale * 25.0), 0, 0, 0);
-        lll.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.locationhelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-        tv = new TextView(ac);
-        if (first) {
-            first = false;
-            tv.setText(R.string.locationfirst);
-        } else {
-            tv.setText(R.string.locationnotfirst);
-        }
-        lll.addView(tv, ww);
-        locationEditor = new EditText(ac);
-        locationEditor.setText(PrefsManager.getEventLocation(ac, classNum),
-                   TextView.BufferType.EDITABLE);
-        lll.addView(locationEditor, ww);
-        ll.addView(lll, ww);
-        lll = new LinearLayout(ac);
-        lll.setOrientation(LinearLayout.HORIZONTAL);
-        lll.setPadding((int)(scale * 25.0), 0, 0, 0);
-        lll.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.descriptionhelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-        tv = new TextView(ac);
-        tv.setText(R.string.descriptionlabel);
-        lll.addView(tv, ww);
-        descriptionEditor = new EditText(ac);
-        descriptionEditor.setText(
-            PrefsManager.getEventDescription(ac, classNum),
-            TextView.BufferType.EDITABLE);
-        lll.addView(descriptionEditor, ww);
-        ll.addView(lll, ww);
-        lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
         tv.setText(R.string.busylabel);
@@ -447,12 +403,7 @@ public class DefineClassFragment extends Fragment {
             }
         }
         PrefsManager.putCalendars(ac, classNum, checkedCalendarIds);
-        PrefsManager.setEventName(
-            ac, classNum, String.valueOf(nameEditor.getText()));
-        PrefsManager.setEventLocation(
-            ac, classNum, String.valueOf(locationEditor.getText()));
-        PrefsManager.setEventDescription(
-            ac, classNum, String.valueOf(descriptionEditor.getText()));
+        comparisons.updatePreferences(classNum);
         int id = busyState.getCheckedRadioButtonId();
         int index;
         for (index = 0; index <= PrefsManager.BUSY_AND_NOT; ++index) {

@@ -24,6 +24,23 @@ public class PrefsManager {
 
 	private static final String PREFS_NAME = "mainPreferences";
 
+	private static final String PREF_VERSIONCODE = "PrefsVersion";
+
+	// This is the version code of the preferences, not the program.
+	// If we are a later program version, we will update the preferences
+	// and then update the prefs version to match the program version.
+	public static final void setPrefVersionCode(Context context, String v) {
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+			.putString(PREF_VERSIONCODE, v).commit();
+	}
+
+	// The default is the last program version before we started using a
+	// preferences version code.
+	public static final String getPrefVersionCode(Context context) {
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(PREF_VERSIONCODE, "3.0");
+	}
+
 	private static final String PREF_DEFAULTDIRECTORY = "DefaultDir";
 
 	public static final void setDefaultDir(Context context, String dir) {
@@ -227,57 +244,6 @@ public class PrefsManager {
 			.getInt(PREF_ORIENTATION_STATE, ORIENTATION_IDLE);
 	}
 
-	private static final String NUM_CLASSES = "numClasses";
-
-	private static int getNumClasses(SharedPreferences prefs) {
-		// hack for first use of new version only
-		if (prefs.contains("delay"))
-		{
-			// old style preferences, remove
-			prefs.edit().clear().commit();
-		}
-		return prefs.getInt(NUM_CLASSES, 0);
-	}
-
-	public static int getNumClasses(Context context) {
-		SharedPreferences prefs
-			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		return getNumClasses(prefs);
-	}
-
-	private static final String IS_CLASS_USED = "isClassUsed";
-
-	private static boolean isClassUsed(SharedPreferences prefs, int classNum) {
-		String prefName = IS_CLASS_USED + String.valueOf(classNum);
-		return prefs.getBoolean(prefName, false);
-	}
-
-	public static boolean isClassUsed(Context context, int classNum) {
-		SharedPreferences prefs
-			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		return isClassUsed(prefs, classNum);
-	}
-
-	public static int getNewClass(Context context) {
-		SharedPreferences prefs
-			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-		int n = getNumClasses(prefs);
-		StringBuilder builder = new StringBuilder(IS_CLASS_USED);
-		for (int classNum = 0; classNum < n; ++classNum)
-		{
-			if (!isClassUsed(prefs, classNum))
-			{
-				builder.append(classNum);
-				prefs.edit().putBoolean(builder.toString(), true).commit();
-				return classNum;
-			}
-		}
-		builder.append(n);
-		prefs.edit().putInt(NUM_CLASSES, n + 1)
-			 .putBoolean(builder.toString(), true).commit();
-		return n;
-	}
-
 	private static final String PREF_LAST_INVOCATION = "lastInvocationTime";
 
 		public static void setLastInvocationTime(Context context, long time) {
@@ -479,6 +445,57 @@ public class PrefsManager {
 		return lastRinger;
 	}
 
+	private static final String NUM_CLASSES = "numClasses";
+
+	private static int getNumClasses(SharedPreferences prefs) {
+		// hack for first use of new version only
+		if (prefs.contains("delay"))
+		{
+			// old style preferences, remove
+			prefs.edit().clear().commit();
+		}
+		return prefs.getInt(NUM_CLASSES, 0);
+	}
+
+	public static int getNumClasses(Context context) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		return getNumClasses(prefs);
+	}
+
+	private static final String IS_CLASS_USED = "isClassUsed";
+
+	private static boolean isClassUsed(SharedPreferences prefs, int classNum) {
+		String prefName = IS_CLASS_USED + String.valueOf(classNum);
+		return prefs.getBoolean(prefName, false);
+	}
+
+	public static boolean isClassUsed(Context context, int classNum) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		return isClassUsed(prefs, classNum);
+	}
+
+	public static int getNewClass(Context context) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		int n = getNumClasses(prefs);
+		StringBuilder builder = new StringBuilder(IS_CLASS_USED);
+		for (int classNum = 0; classNum < n; ++classNum)
+		{
+			if (!isClassUsed(prefs, classNum))
+			{
+				builder.append(classNum);
+				prefs.edit().putBoolean(builder.toString(), true).commit();
+				return classNum;
+			}
+		}
+		builder.append(n);
+		prefs.edit().putInt(NUM_CLASSES, n + 1)
+			.putBoolean(builder.toString(), true).commit();
+		return n;
+	}
+
 	// (optional) name of class
 	private static final String CLASS_NAME = "className";
 
@@ -514,22 +531,8 @@ public class PrefsManager {
 	}
 
 	public static int getClassNum(Context context, String className) {
-		return getClassNum(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE), className);
-	}
-
-	// True for floating time class
-	private static final String FLOATING_TIME = "floatingTime";
-
-	public static void setFloatingTime(Context context, int classNum, boolean val) {
-		String prefName = FLOATING_TIME + String.valueOf(classNum);
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-				.edit().putBoolean(prefName, val).commit();
-	}
-
-	public static boolean getFloatingTime(Context context, int classNum) {
-		String prefName = FLOATING_TIME + String.valueOf(classNum);
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-				      .getBoolean(prefName, false);
+		return getClassNum(context.getSharedPreferences(PREFS_NAME,
+			Context.MODE_PRIVATE), className);
 	}
 
 	// string required in names of events which can be in class
@@ -539,6 +542,12 @@ public class PrefsManager {
 		String prefName = EVENT_NAME + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 			   .edit().putString(prefName, eventName).commit();
+	}
+
+	public static void removeEventName(Context context, int classNum) {
+		String prefName = EVENT_NAME + String.valueOf(classNum) ;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().remove(prefName).commit();
 	}
 
 	public static String getEventName(Context context, int classNum) {
@@ -557,6 +566,13 @@ public class PrefsManager {
 			   .edit().putString(prefName, eventLocation).commit();
 	}
 
+	public static void removeEventLocation(
+		Context context, int classNum) {
+		String prefName = EVENT_LOCATION + String.valueOf(classNum) ;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().remove(prefName).commit();
+	}
+
 	public static String getEventLocation(Context context, int classNum) {
 		String prefName = EVENT_LOCATION + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -573,10 +589,62 @@ public class PrefsManager {
 			   .edit().putString(prefName, eventDescription).commit();
 	}
 
+	public static void removeEventDescription(
+		Context context, int classNum) {
+		String prefName = EVENT_DESCRIPTION + String.valueOf(classNum) ;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().remove(prefName).commit();
+	}
+
 	public static String getEventDescription(Context context, int classNum) {
 		String prefName = EVENT_DESCRIPTION + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 					  .getString(prefName, "");
+	}
+
+	// Comparisons - there may be several of these
+	private static final String EVENT_COMPARISON = "eventComparison";
+
+	public static void setEventComparison(
+		Context context, int classNum,
+		int andIndex, // the number of the AND group
+		int orIndex, // the number of the or item within the and group
+		int whichName, // 0-> event name, 1-> event location, 2-: event description
+		int containsornot, // 0-> contains, 1-> does not contain
+		String matchtext) {
+		String prefName = EVENT_COMPARISON + String.valueOf(classNum)
+			+ " " + String.valueOf(andIndex)
+			+ " " + String.valueOf(orIndex);
+		SharedPreferences.Editor spe
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
+		if (matchtext.isEmpty())
+		{
+			spe.remove(prefName);
+		}
+		else
+		{
+			spe.putString(prefName,
+				String.valueOf(whichName) + " " + String.valueOf(containsornot) + " "
+					+ matchtext);
+		}
+		spe.commit();
+	}
+	public static String[] getEventComparison(
+		Context context, int classNum, int andIndex, int orIndex) {
+		String prefName = EVENT_COMPARISON + String.valueOf(classNum)
+			+ " " + String.valueOf(andIndex)
+			+ " " + String.valueOf(orIndex);
+		String s = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, null);
+		if (s == null )
+		{
+			String t[] = {"0", "0", ""};
+			return t;
+		}
+		else
+		{
+			return s.split(" ", 3);
+		}
 	}
 
 	// colour of events which can be in class
@@ -1177,11 +1245,22 @@ public class PrefsManager {
 
 	private static void removeClass(SharedPreferences prefs, int classNum) {
 		String num = String.valueOf(classNum);
-		prefs.edit().putBoolean(IS_CLASS_USED + (num), false)
+		SharedPreferences.Editor editor = prefs.edit();
+		for (int andIndex = 0; true; ++andIndex) {
+			int orIndex;
+			for (orIndex = 0; true; ++orIndex) {
+				String prefName = EVENT_COMPARISON + String.valueOf(classNum)
+					+ " " + String.valueOf(andIndex)
+					+ " " + String.valueOf(orIndex);
+				String s = prefs.getString(prefName, null);
+				if (s == null) { break; }
+				editor.remove(prefName);
+				if (s.split(" ", 3)[2].isEmpty()) { break; }
+			}
+			if (orIndex == 0) {break; }
+		}
+		editor.putBoolean(IS_CLASS_USED + (num), false)
 			 .putString(CLASS_NAME + (num), "")
-			 .putString(EVENT_NAME + (num), "")
-			 .putString(EVENT_LOCATION + (num), "")
-			 .putString(EVENT_DESCRIPTION + (num), "")
 			 .putString(EVENT_COLOUR + (num), "")
 			 .putString(AGENDAS + (num), "")
 			 .putInt(WHETHER_BUSY + (num), BUSY_AND_NOT)
@@ -1216,17 +1295,24 @@ public class PrefsManager {
 		removeClass(prefs, getClassNum(prefs, name));
 	}
 
+	// We assume you don't reinstall when CalendarTrigger is doing something
+	// so some state variables which are stored in the preferences aren't
+	// saved and restored on a reinstall.
 	private static void saveClassSettings(
 		Context context, PrintStream out, int i) {
 		SharedPreferences prefs =
 			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		out.printf("Class=%s\n", PrefsManager.getClassName(context, i));
-		out.printf("eventName=%s\n",
-				   PrefsManager.getEventName(context, i));
-		out.printf("eventLocation=%s\n",
-				   PrefsManager.getEventLocation(context, i));
-		out.printf("eventDescription=%s\n",
-				   PrefsManager.getEventDescription(context, i));
+		for (int andIndex = 0; true; ++andIndex) {
+			int orIndex;
+			for (orIndex = 0; true; ++orIndex) {
+				String[] ec = getEventComparison(context, i, andIndex, orIndex);
+				if (ec[2].isEmpty()) { break; }
+				out.printf("eventComparison=%s %s %s %s %s %s\n", i, andIndex, orIndex,
+					Integer.valueOf(ec[0]), Integer.valueOf(ec[1]), ec[2]);
+			}
+			if (orIndex == 0) {break; }
+		}
 		out.printf("eventColour=%s\n",
 				   PrefsManager.getEventColour(context, i));
 		String prefName = AGENDAS + String.valueOf(i);
@@ -1259,20 +1345,30 @@ public class PrefsManager {
 				   PrefsManager.getBeforeConnection(context, i));
 		out.printf("afterSteps=%d\n",
 				   PrefsManager.getAfterSteps(context, i));
+		// targetSteps not preserved across reinstall
 		out.printf("afterMetres=%d\n",
 				   PrefsManager.getAfterMetres(context, i));
+		// latitude and longitude not preserved across reinstall
 		out.printf("notifyStart=%s\n",
 				   getNotifyStart(context, i) ? "true" : "false");
-		out.printf("notifyEnd=%s\n",
-				   getNotifyEnd(context, i) ? "true" : "false");
 		out.printf("playsoundStart=%s\n",
 				   getPlaysoundStart(context, i) ? "true" : "false");
+		out.printf("soundfileStart=%s\n",
+				   PrefsManager.getSoundFileStart(context, i));
+		out.printf("notifyEnd=%s\n",
+				   getNotifyEnd(context, i) ? "true" : "false");
 		out.printf("playsoundEnd=%s\n",
 				   getPlaysoundEnd(context, i) ? "true" : "false");
 		out.printf("soundfileStart=%s\n",
 				   PrefsManager.getSoundFileStart(context, i));
 		out.printf("soundfileEnd=%s\n",
 				   PrefsManager.getSoundFileEnd(context, i));
+		// isTriggered not preserved across reinstall
+		// lastTriggerEnd not preserved across reinstall
+		out.printf("isActive=%s\n",
+				   isClassActive(context, i));
+		// isWaiting not preserved across reinstall
+		// lastActiveEvent only used for debugging
 	}
 
 	public static void saveSettings(Context context, PrintStream out) {
@@ -1292,10 +1388,31 @@ public class PrefsManager {
 					 e.getMessage();
 			Toast.makeText(context, s, Toast.LENGTH_LONG).show();
 		}
+		// DefaultDir not preserved across reinstall
 		out.printf("logging=%s\n",
 				   PrefsManager.getLoggingMode(context) ? "true" : "false");
+		out.printf("logcycle=%s\n",
+			PrefsManager.getLogcycleMode(context) ? "true" : "false");
+		// lastcycledate will be rest to the Epoch
 		out.printf("nextLocation=%s\n",
 				   getNextLocationMode(context) ? "true" : "false");
+		out.printf("timezoneoffset=%d\n",
+				   getLastTimezoneOffset(context));
+		out.printf("seenOffset=%d\n",
+				   getLastSeenOffset(context));
+		// timeToUpdate reset to the epoch
+		// muteresult not preserved across reinstall
+		// phone state not preserved across reinstall
+		// notifiedCannotReadPhoneState not preserved across reinstall
+		// locationActive not preserved across reinstall
+		// stepCounter not preserved across reinstall
+		// orientationState not preserved across reinstall
+		// lastInvocationTime only used for debugging, not preserved
+		// lastAlarmTime only used for debugging, not preserved
+		out.printf("userringer=%d\n",
+				   getUserRinger(context));
+		out.printf("lastRinger=%d\n",
+			getLastRinger(context));
 		int num = PrefsManager.getNumClasses(context);
 		for (int i = 0; i < num; ++i) {
 			if (PrefsManager.isClassUsed(context, i))
@@ -1311,7 +1428,8 @@ public class PrefsManager {
 		SharedPreferences prefs =
 			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 		prefs.edit().clear().commit();
-		int i = 0;
+		int i = -1;
+		int andIndex = 0;
 		try {
 			while (true) {
 				String s = in.readLine();
@@ -1328,6 +1446,17 @@ public class PrefsManager {
 						PrefsManager.setLoggingMode(context,false);
 					}
 				}
+				if (parts[0].compareTo("logcycle") == 0)
+				{
+					if (parts[1].compareTo("true") == 0)
+					{
+						PrefsManager.setLogCycleMode(context,true);
+					}
+					else
+					{
+						PrefsManager.setLogCycleMode(context,false);
+					}
+				}
 				else if (parts[0].compareTo("nextLocation") == 0)
 				{
 					if (parts[1].compareTo("true") == 0)
@@ -1339,22 +1468,69 @@ public class PrefsManager {
 						PrefsManager.setNextLocationMode(context,false);
 					}
 				}
+				else if (parts[0].compareTo("timezoneoffset") == 0)
+				{
+					try {
+						PrefsManager.setLastTimezoneOffset(
+							context, Integer.decode(parts[1]));
+					} catch (NumberFormatException e) { /* just ignore it */ }
+				}
+				else if (parts[0].compareTo("seenOffset") == 0)
+				{
+					try {
+						PrefsManager.setLastSeenOffset(
+							context, Integer.decode(parts[1]));
+					} catch (NumberFormatException e) { /* just ignore it */ }
+				}
+				else if (parts[0].compareTo("userringer") == 0)
+				{
+					try {
+						PrefsManager.setUserRinger(
+							context, Integer.decode(parts[1]));
+					} catch (NumberFormatException e) { /* just ignore it */ }
+				}
+				else if (parts[0].compareTo("lastRinger") == 0)
+				{
+					try {
+						PrefsManager.setLastRinger(
+							context, Integer.decode(parts[1]));
+					} catch (NumberFormatException e) { /* just ignore it */ }
+				}
 				else if (parts[0].compareTo("Class") == 0)
 				{
+					++i;
 					i = PrefsManager.getNewClass(context);
 					PrefsManager.setClassName(context, i, parts[1]);
+					andIndex = 0;
 				}
 				else if (parts[0].compareTo("eventName") == 0)
 				{
-					PrefsManager.setEventName(context, i, parts[1]);
+					PrefsManager.setEventComparison(context, i, andIndex,
+						0, 0, 0, parts[1]);
+					++andIndex;
 				}
 				else if (parts[0].compareTo("eventLocation") == 0)
 				{
-					PrefsManager.setEventLocation(context, i, parts[1]);
+					PrefsManager.setEventComparison(context, i, andIndex,
+						0, 1, 0, parts[1]);
+					++andIndex;
 				}
 				else if (parts[0].compareTo("eventDescription") == 0)
 				{
-					PrefsManager.setEventDescription(context, i, parts[1]);
+					PrefsManager.setEventComparison(context, i, andIndex,
+						0, 2, 0, parts[1]);
+					++andIndex;
+				}
+				else if (parts[0].compareTo("eventComparison") == 0)
+				{
+					parts = parts[1].split(" ", 6);
+					PrefsManager.setEventComparison(context,
+						Integer.valueOf(parts[0]),
+						Integer.valueOf(parts[1]),
+						Integer.valueOf(parts[2]),
+						Integer.valueOf(parts[3]),
+						Integer.valueOf(parts[4]),
+						parts[5]);
 				}
 				else if (parts[0].compareTo("eventColour") == 0)
 				{
@@ -1545,6 +1721,8 @@ public class PrefsManager {
 				{
 					PrefsManager.setSoundFileEnd(context, i, parts[1]);
 				}
+				// Just ignore anything that we don't understand:
+				// probably someone has tampered with the file.
 			}
 		} catch (Exception e) {
 			String s = R.string.settingsfail

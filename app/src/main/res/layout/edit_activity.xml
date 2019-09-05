@@ -17,6 +17,18 @@
         android:layout_height="match_parent"
         android:layout_gravity="left|top">
 
+        <!-- This is an invisible view to request the focus when an EditText gets deleted
+             in order to stop Android highlighting something else.
+             It would be nicer to go back into touch mode,
+             but Android does not provide a way of doing that. -->
+        <TextView
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:text=""
+            android:alpha="0"
+            android:focusable="true"
+            android:id="@+id/editinvisible"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="0dp"

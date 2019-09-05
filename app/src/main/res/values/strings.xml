@@ -175,17 +175,37 @@
         different from checking all calendars: if a new calendar is
         added later, it will not be checked unless you explicitly edit the
         class again.</string>
-    <string name="eventnamehelp">An empty match string matches any
-        event name or an event with no name at all.</string>
-    <string name="eventnamefirst">the event name contains</string>
-    <string name="eventnamenotfirst">and the event name contains</string>
-    <string name="locationhelp">An empty match string matches any
-        event location or an event with no location at all.</string>
-    <string name="locationfirst">the event location contains</string>
-    <string name="locationnotfirst">and the event location contains</string>
-    <string name="descriptionlabel">and the event description contains</string>
-    <string name="descriptionhelp">An empty match string matches any
-        event description or an event with no description at all.</string>
+    <string name="and">and</string>
+    <string name="or">or</string>
+    <string name="nametypeevent">the event name</string>
+    <string name="eventnameconthelp">Choose events whose name contains
+        a specific character string. An empty match string matches any
+        event name or an event with no name at all. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="eventnamenothelp">Choose events whose name does not contain
+        a specific character string. An empty match string matches any
+        event name or an event with no name at all. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="nametypelocation">the event location</string>
+    <string name="locationconthelp">Choose events whose location contain
+        a specific character string. An empty match string matches any
+        event location or an event with no location at all. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="locationnothelp">Choose events whose location does not contain
+        a specific character string. An empty match string matches any
+        event location or an event with no location at all. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="nametypedescription">the event description</string>
+    <string name="descriptionconthelp">Choose events whose description contains
+        a specific character string. An empty match string matches any
+        event description or an event with no description at all. If the match string is
+         longyou can drag the line to the left or right.</string>
+    <string name="descriptionnothelp">Choose events whose description
+        does not contain a specific character string. An empty match string matches any
+        event description or an event with no description at all. If the match string is
+         longyou can drag the line to the left or right.</string>
+    <string name="contains">contains</string>
+    <string name="doesnotcontain">does not contain</string>
     <string name="busyhelp">Determine whether events which are busy, not busy,
         or either (the default), are in this class.</string>
     <string name="busylabel">and the event is:</string>

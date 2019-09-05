@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2016. Richard P. Parkins, M. A.
+    Released under GPL V3 or later
+  -->
+
+<resources>
+    <string-array name="nametypes">
+        <item>@string/nametypeevent</item>
+        <item>@string/nametypelocation</item>
+        <item>@string/nametypedescription</item>
+    </string-array>
+    <string-array name="containsornot">
+        <item>@string/contains</item>
+        <item>@string/doesnotcontain</item>
+    </string-array>
+</resources>

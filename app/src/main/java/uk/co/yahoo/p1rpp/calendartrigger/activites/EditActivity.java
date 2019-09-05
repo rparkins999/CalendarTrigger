@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
@@ -34,30 +35,35 @@ public class EditActivity extends Activity {
     }
 
     public void setButtonVisibility(int visibility) {
+        boolean visible = visibility == View.VISIBLE;
         TextView tv = (TextView)findViewById (R.id.backgroundtext);
-        tv.setEnabled(visibility == 0);
+        tv.setEnabled(visible);
         tv.setVisibility(visibility);
         Button b = (Button)findViewById(R.id.deleteclassbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.defineclassbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.definestartbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.actionstartbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.definestopbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.actionstopbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
         b = (Button)findViewById(R.id.eventnowbutton);
-        b.setEnabled(visibility == 0);
+        b.setEnabled(visible);
         b.setVisibility(visibility);
+        if (visible)
+        {
+            findViewById(R.id.editinvisible).requestFocus();
+        }
     }
 
     @Override
