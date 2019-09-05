@@ -68,9 +68,6 @@ public class OrItem extends HorizontalScrollView
     }
 
     public void onFocusChange(View v, boolean hasFocus) {
-        String s = ((EditText)v).getText().toString();
-        new MyLog(m_context, "EditText "
-            + s + (hasFocus ? "gains focus" : "loses focus"));
         if (!hasFocus)
         {
             fullScroll(View.FOCUS_LEFT);
