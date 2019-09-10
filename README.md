@@ -44,8 +44,8 @@ The screen to define the conditions for an event to be in a class allows you to 
 
 The items with dark triangles are drop-down selectors: touching one gives you a screen like this:
 
-<img src="./assets/DefineClassDropDownScreen.png"
-     alt="DefineClassDropDownScreen"
+<img src="./assets/DefineClassDropdownScreen.png"
+     alt="DefineClassDropdownScreen"
      height=600em>
 
 Now you can select the event name, location, or description in which to search. The other dropdown box selects match or non-match. The field to the right is a text input for the match string: an empty string means no test. As soon as you type something into the match string field, it add an OR condition and an AND condition, so that the screen looks like this:
