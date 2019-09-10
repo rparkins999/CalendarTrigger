@@ -1,4 +1,4 @@
-# CalendarTrigger
+﻿# CalendarTrigger
 
 Trigger actions on your Android device based on calendar events
 
@@ -8,7 +8,7 @@ It is open source, free, and does not display adverts or pester you for a donati
 
 [<img src="https://f-droid.org/badge/get-it-on.png"
       alt="Get it on F-Droid"
-      height="80">](https://f-droid.org/packages/uk.co.yahoo.p1rpp.calendartrigger/)
+ height="80">](https://f-droid.org/packages/uk.co.yahoo.p1rpp.calendartrigger/)
 
 This is the screen displayed when you start up the UI:
 
@@ -36,11 +36,25 @@ This is the screen displayed after creating a new class or if you select a class
      alt="ExampleScreen"
      height=600em>
 
-This is the screen to define the conditions for an event to be in a class:
+The screen to define the conditions for an event to be in a class allows you to specify any logical combination of matches and non-matches with the event name or the event location or the event description. It uses a dynamically expanding conjunctive canonical form: it doesn't matter if you don't know what that is. This can be combined with various other conditions. The initial screen when no matches have been specified looks like this:
 
-<img src="./assets/DefineClassScreen.png"
-     alt="DefineClassScreen"
+<img src="./assets/DefineClassBaseScreen.png"
+     alt="DefineClassBaseScreen"
      height=600em>
+
+The items with dark triangles are drop-down selectors: touching one gives you a screen like this:
+
+<img src="./assets/DefineClassDropDownScreen.png"
+     alt="DefineClassDropDownScreen"
+     height=600em>
+
+Now you can select the event name, location, or description in which to search. The other dropdown box selects match or non-match. The field to the right is a text input for the match string: an empty string means no test. As soon as you type something into the match string field, it add an OR condition and an AND condition, so that the screen looks like this:
+
+<img src="./assets/DefineClassConditionScreen.png"
+     alt="DefineClassConditionScreen"
+     height=600em>
+
+If you delete match strings, it will remove redundant condition lines. If the match string is long, you can scroll the line by dragging it to the left or to the right, although it will usually scroll for you in a sensible manner.
 
 At a fixed interval (possibly zero) before the start of an event, CalendarTrigger can set the ringer to mute or vibrate or set Do Not Disturb mode on Android versions which support it, or show a notification and optionally play a sound, or any combination of these actions. If the event start action does not change the ringer state or play a sound, no notification will be shown. I may add other actions in the future. Event start actions can be delayed until the device is in a particular orientation or being charged by a particular type of charger or not being charged at all. This can be useful to set a sleep mode at night. If the event start action mutes the audio, any sound played will of course not be audible. An event can be in more than one class, so it is possible to play an audio reminder a few minutes before the start of an event and then mute the audio.
 
@@ -84,9 +98,9 @@ Help with the French translations would be welcome, as would UI translations for
 
 ## Help information
 
-CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system or hardware does not support it, a long press will dispaly a message saying so.
+CalendarTrigger uses the convention that a long press on a user interface object (such as a button or a checkbox) will pop up some information (usually in a toast) explaining what it does. If an option is disabled because CalendarTrigger does not have the permissions it needs to do that function, a long press will explain which permission is needed to enable it. If an option is disabled because your device's operating system or hardware does not support it, a long press will display a message saying so.
 
-This is a Screen showing a help information popup:
+This is a screen showing a help information popup:
 
 <img src="./assets/StartHelpScreen.png"
      alt="StartHelpScreen"
@@ -121,7 +135,7 @@ to settle.
 Note that it only catches time zone changes, and not switches into or out of
 Summer time / Daylight Saving Time, because Android doesn't tell me about
 those. So you should make sure that your events declare a real time zone (in
-which case Android handles keeping the same wall clock time across switches
+which case Android itself handles keeping the same wall clock time across switches
 into or out of Summer time / Daylight Saving Time) and not raw GMT offsets.
 
 This feature has not been thoroughly tested (I don't do that much long haul

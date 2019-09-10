@@ -19,14 +19,11 @@ public class AndList extends LinearLayout {
     }
 
     public void setup(DefineClassFragment owner, int classNum, boolean first) {
-        new MyLog(m_context, "Andlist.setup(owner, "
-            + String.valueOf(classNum)
-            + (first ? ", true)" : ",false)"));
         m_owner = owner;
         m_classNum = classNum;
         removeAllViews();
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         setOrientation(LinearLayout.VERTICAL);
@@ -52,9 +49,6 @@ public class AndList extends LinearLayout {
     }
 
     public void setChildEmpty(int andIndex, boolean empty) {
-        new MyLog(m_context, "Andlist.setChildEmpty("
-            + String.valueOf(andIndex)
-            + (empty ? ", true)" : ",false)"));
         int n = getChildCount() - 1;
         if (empty)
         {
