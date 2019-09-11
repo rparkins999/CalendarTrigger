@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
@@ -217,6 +218,17 @@ public class OrItem extends HorizontalScrollView
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
+        AdapterView.OnItemSelectedListener listener
+            = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(
+                AdapterView<?> parent, View view, int position, long id) {
+                updateHelp();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        };
         m_layout.setOrientation(LinearLayout.HORIZONTAL);
         updatePrefix(prefix);
         ArrayAdapter<?> ad = ArrayAdapter.createFromResource(
@@ -232,7 +244,9 @@ public class OrItem extends HorizontalScrollView
         String[] sa = PrefsManager.getEventComparison(
         m_context, m_classNum, m_andIndex, m_orIndex);
         m_nameSelector.setSelection(Integer.decode(sa[0]));
+        m_nameSelector.setOnItemSelectedListener(listener);
         m_contSelector.setSelection(Integer.decode(sa[1]));
+        m_contSelector.setOnItemSelectedListener(listener);
         m_matchString.setText(sa[2]);
         m_wasEmpty = sa[2].isEmpty();
         m_matchString.addTextChangedListener(this);
