@@ -120,7 +120,7 @@ public class CalendarProvider {
 						selClause.append(Instances.DESCRIPTION);
 						break;
 				}
-				if (sa[1].compareTo("0") == 0)
+				if (sa[1].compareTo("0") != 0)
 				{
 					selClause.append(" NOT");
 				}
