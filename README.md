@@ -1,9 +1,5 @@
 ﻿# CalendarTrigger
 
-THE SOURCE CODE IS CURRENTLY BROKEN
-
-Release v3.0beta is still good
-
 Trigger actions on your Android device based on calendar events
 
 This program is a generalisation of RemiNV/CalendarMute.
