@@ -22,7 +22,7 @@ This is the screen displayed when you select Debugging from the menu:
      alt="DebuggingScreen"
      height=600em>
 
-CalendarTrigger supports classes of events. Events can be classified by the calendar which they are in, the presence of a specified string in the event name or the event location or the event description, whether the event is busy, whether the event is recurrent, whether the user is the event's organiser, whether the event is public or private, whether the event has attendees, or any combination of these conditions.
+CalendarTrigger supports classes of events. Events can be classified by the calendar which they are in, any combination of the presence or non-presence of specified strings in the event name or the event location or the event description, whether the event is busy, whether the event is recurrent, whether the user is the event's organiser, whether the event is public or private, whether the event has attendees, or any combination of these conditions.
 
 This is the screen displayed when you select NEW EVENT CLASS:
 
@@ -70,11 +70,11 @@ This is the screen to define what event start actions CalendarTrigger does:
      alt="StartActionScreen"
      height=600em>
 
-At a fixed interval (possibly zero) after the end of an event, CalendarTrigger can restore the original ringer state, or show a notification and optionally play a sound. If the event end action does not change the ringer state or play a sound, no notification will be shown. Again I may add other actions in the future. Event end actions can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter) or until the device is in a particular orientation. This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the room or leave the building or pick the device up.
+At a fixed interval (possibly zero) after the end of an event, CalendarTrigger can restore the original ringer state, or show a notification and optionally play a sound. If the event end action does not change the ringer state or play a sound, no notification will be shown. Again I may add other actions in the future. Event end actions can be delayed until the device has moved by a certain distance (if it has a location sensor) or until the person holding the device has taken a certain number of steps (if it has a step counter) or until the device is in a particular orientation. This can be useful if you don't know exactly when an event will end, and you want to unmute the ringer when you leave the building or leave the room or pick the device up.
 
 The duration of an event should be greater than zero: if it is zero, Android may awaken CalendarTrigger a short time before or after the start and end time of the event, and CalendarTrigger cannot tell whether the event has been dealt with or not.
 
-This is the screen to define when CalendarTrigger does event end actions (the step counter option is disabled because the emulator on which these screen shots were generated doesn't emulate a step counter):
+This is the screen to define when CalendarTrigger does event end actions (the step counter option is shown as disabled because the emulator on which these screen shots were generated doesn't emulate a step counter):
 
 <img src="./assets/EndConditionScreen.png"
      alt="EndConditionScreen"
@@ -113,16 +113,7 @@ Some more complicated behaviours are described in this README file.
 If your device moves to a different time zone, the absolute time of events
 in its calendar remains the same but the displayed local time (also known as
 wall clock time) changes. Some Android devices allow you to specify that the
-local time remains the same instead, but this is a global setting for all
-events, which is not usually what you want. CalendarTrigger allows you specify
-floating time for individual events. This can be useful if for example you want
-your phone not to ring at night while you are asleep: normally you will sleep
-during the same period of local time regardless of which time zone you are
-currently in. The floating time feature can be accessed from the main menu.
-It asks you to select a date and displays all the events on that day. Each one
-has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time
-as it had when you checked the box. If you uncheck the box it will keep the
-same absolute time as it had when you unchecked the box.
+local time remains the same instead (usually called floating time), but this is   CalendarTrigger allows you specify loating time for individual events. This can be useful if for example you want your phone not to ring at night while you are asleep: normally you will sleep during the same period of local time regardless of which time zone you are currently in. The floating time feature can be accessed from the main menu. It asks you to select a date and displays all the events on that day. Each one has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time as it had when you checked the box. If you uncheck the box it will keep the same absolute time as it had when you unchecked the box.
 
 Setting or clearing the floating time property for a recurrent event sets or
 clears it for all occurrences. Recurrent events are displayed in red to remind
@@ -135,8 +126,7 @@ to settle.
 Note that it only catches time zone changes, and not switches into or out of
 Summer time / Daylight Saving Time, because Android doesn't tell me about
 those. So you should make sure that your events declare a real time zone (in
-which case Android itself handles keeping the same wall clock time across switches
-into or out of Summer time / Daylight Saving Time) and not raw GMT offsets.
+which case Android itself handles keeping the same wall clock time across switches into or out of Summer time / Daylight Saving Time) and not raw GMT offsets.
 
 This feature has not been thoroughly tested (I don't do that much long haul
 travel) and should be regarded as Beta. You are welcome to try it,
@@ -186,13 +176,13 @@ where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _
 
 ## Signing and saving settings
 
-Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file dowloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
+Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file downloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
 
 Having multiple signing keys causes problems if you have previously installed one version and want to install a newer version of the same application signed with a different key: Android does not allow this, and you have to uninstall the old application before installing the new one This deletes the application's data, which means for CalendarTrigger that you lose all its settings including all of your class definitions.
 
-If Android will still not install a new version even after uninstalling the old one, this may be because the old `.apk` file is still present, which confuses the installer. Finding the old `.apk` file and deleting it should help.
+In order keep the its data, CalendarTrigger allows you to save its settings to a (fixed) file or to replace the current settings by those from the file: there are buttons to do these actions in the Debugging screen. This can be used to save the settings before uninstalling, or to transfer your settings to a different device.
 
-In order keep the its data, CalendarTrigger now allows you to save its settings to a (fixed) file or to replace the current settings by those from the file: there are buttons to do these actions in the Debugging screen. This can be used to save the settings before uninstalling, or to transfer your settings to a different device.
+If Android will still not install a new version even after uninstalling the old one, this may be because the old `.apk` file is still present, which confuses the installer. Finding the old `.apk` file and deleting it should help.
 
 ## Permissions
 
