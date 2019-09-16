@@ -21,6 +21,16 @@
         évènements comme heure flottante parce que CalendarTrigger n\'a pas la
         permission WRITE_CALENDAR. Vous pouvez activer cette permission en employant
         l\'outil \'Paramètres\'.</string>
+    <string name="floatnoreadpermission">CalendarTrigger ne peut pas fixer aucun
+        évènements comme heure flottante parce que CalendarTrigger n\'a pas la
+        permission READ_EXTERNAL_STORAGE.
+        Vous pouvez activer cette permission en employant
+        l\'outil \'Paramètres\'.</string>
+    <string name="floatnowritepermission">CalendarTrigger ne peut pas fixer aucun
+        évènements comme heure flottante parce que CalendarTrigger n\'a pas la
+        permission WRITE_EXTERNAL_STORAGE.
+        Vous pouvez activer cette permission en employant
+        l\'outil \'Paramètres\'.</string>
     <string name="eventdate">Date de l\'évènement</string>
     <string name="noevents">Pas d\'évènements à la date</string>
     <string name="checkfloat">Cocher pour heure flottante</string>

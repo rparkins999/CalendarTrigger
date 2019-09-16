@@ -20,6 +20,16 @@
         time because it does not have permission to modify calendars.
         You can enable this permission from the device\'s Settings tool by selecting
         the Application Manager.</string>
+    <string name="floatnoreadpermission">CalendarTrigger cannot set events to floating
+        time because it does not have permission to read from external storage
+        where it keeps its database of floating time eventss.
+        You can enable this permission from the device\'s Settings tool by selecting
+        the Application Manager.</string>
+    <string name="floatnowritepermission">CalendarTrigger cannot set events to floating
+        time because it does not have permission to write to external storage
+        where it keeps its database of floating time events.
+        You can enable this permission from the device\'s Settings tool by selecting
+        the Application Manager.</string>
     <string name="eventdate">Event date</string>
     <string name="noevents">No events on</string>
     <string name="checkfloat">Check box for floating time</string>

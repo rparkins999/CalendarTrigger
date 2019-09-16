@@ -11,6 +11,7 @@ import android.app.DatePickerDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -43,7 +44,8 @@ import static java.util.Calendar.MONTH;
 import static java.util.Calendar.YEAR;
 
 public class FloatActivity extends Activity
-        implements DatePickerDialog.OnDateSetListener {
+        implements DatePickerDialog.OnDateSetListener,
+        DatePickerDialog.OnCancelListener {
     public FloatActivity floatactivity;
     private SQLiteDatabase floatingTimeEvents;
 
@@ -63,6 +65,18 @@ public class FloatActivity extends Activity
             DataStore.getFloatingEvents(this, false);
     }
 
+    private void showDialog() {
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(YEAR);
+        int month = c.get(MONTH);
+        int day = c.get(DAY_OF_MONTH);
+        DatePickerDialog myDialog = new DatePickerDialog(
+            this, this, year, month, day);
+        myDialog.setOnCancelListener(this);
+        myDialog.setTitle(getString(R.string.eventdate));
+        myDialog.show();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -76,16 +90,29 @@ public class FloatActivity extends Activity
             tv.setText(getString(R.string.nomodifypermission));
             ll.addView(tv);
         }
+        else if (PackageManager.PERMISSION_GRANTED !=
+                PermissionChecker.checkSelfPermission(
+                        this, Manifest.permission.READ_EXTERNAL_STORAGE))
+        {
+            LinearLayout ll =
+                (LinearLayout)findViewById(R.id.float_activity_container);
+            TextView tv = new TextView(this);
+            tv.setText(getString(R.string.floatnoreadpermission));
+            ll.addView(tv);
+        }
+        else if (PackageManager.PERMISSION_GRANTED !=
+            PermissionChecker.checkSelfPermission(
+                this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+        {
+            LinearLayout ll =
+                (LinearLayout)findViewById(R.id.float_activity_container);
+            TextView tv = new TextView(this);
+            tv.setText(getString(R.string.floatnowritepermission));
+            ll.addView(tv);
+        }
         else
         {
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(YEAR);
-            int month = c.get(MONTH);
-            int day = c.get(DAY_OF_MONTH);
-            DatePickerDialog myDialog = new DatePickerDialog(
-                    this, this, year, month, day);
-            myDialog.setTitle(getString(R.string.eventdate));
-            myDialog.show();
+            showDialog();
         }
     }
 
@@ -172,6 +199,7 @@ public class FloatActivity extends Activity
         {
             tv.setText(getString(R.string.noevents) + " " + date);
             ll.addView(tv);
+            showDialog();
         }
         else
         {
@@ -215,6 +243,10 @@ public class FloatActivity extends Activity
                 ll.addView(cb);
             }
         }
+    }
+
+    public void onCancel(DialogInterface dialog) {
+        finish();
     }
 
     @Override
