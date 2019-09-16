@@ -113,7 +113,7 @@ Some more complicated behaviours are described in this README file.
 If your device moves to a different time zone, the absolute time of events
 in its calendar remains the same but the displayed local time (also known as
 wall clock time) changes. Some Android devices allow you to specify that the
-local time remains the same instead (usually called floating time), but this is   CalendarTrigger allows you specify loating time for individual events. This can be useful if for example you want your phone not to ring at night while you are asleep: normally you will sleep during the same period of local time regardless of which time zone you are currently in. The floating time feature can be accessed from the main menu. It asks you to select a date and displays all the events on that day. Each one has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time as it had when you checked the box. If you uncheck the box it will keep the same absolute time as it had when you unchecked the box.
+local time remains the same instead (usually called floating time), but this is not usually what you want.   CalendarTrigger allows you to specify floating time for individual events. This can be useful if for example you want your phone not to ring at night while you are asleep: normally you will sleep during the same period of local time regardless of which time zone you are currently in. The floating time feature can be accessed from the main menu. It asks you to select a date and displays all the events on that day. Each one has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time as it had when you checked the box. If you uncheck the box, after that the event will keep the same absolute time as it had when you unchecked the box.
 
 Setting or clearing the floating time property for a recurrent event sets or
 clears it for all occurrences. Recurrent events are displayed in red to remind
@@ -172,7 +172,7 @@ If the location of the event, instead of being an address, is of the form
 
 _@label firstname lastname_
 
-where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
+where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _LABEL_ of a _CUSTOM_ type address in your device's contact list, CalendarTrigger uses the first address of the corresponding type (or any type if _label_ is empty) that it finds in any contact matching _firstname_ and _lastname_. This enables you to specify an event at a contact's address without having to retype the address. It doesn't parse the address, so the contact's address in the phone needs to be understandable to your satnav. Note that this is an event location format specific to CalendarTrigger: other calendar tools are unlikely to understand it.
 
 ## Signing and saving settings
 
@@ -209,12 +209,11 @@ This is needed to enable CalendarTrigger to mute the ringer: currently this perm
 ACCESS_NOTIFICATION_POLICY
 This is needed to enable CalendarTrigger to set and clear Do Not Disturb mode on those versions of Android which support it: if this permission is denied, it will revert to the behaviour on earlier versions of Android which only allow it to set the ringer to vibrate or silent, and the Do Not Disturb options on the Event Start Action screen will be disabled.
 
-READ_CONTACTS
-WRITE_CONTACTS
-These are needed to make the Next Location feature work. CalendarTrigger only reads and write its own !NextEventLocation contact and does not read or write any other contacts (it is open source so you can check this). If this permission is denied, the Next Location feature is not available and the checkbox for it is disabled on the debugging screen: CalendarTrigger will otherwise work normally.
+READ_CONTACTS and WRITE_CONTACTS
+Normally Android grants or denies both of these permissions together. They are needed to make the Next Location feature work. CalendarTrigger only writes its own !NextEventLocation contact and does not write any other contacts (it is open soNormally Android grants or denies both of these permissions together. urce so you can check this). It may also read any other contact referred to by the _@label firstname lastname_ feature described above. If these permissions are denied, the Next Location feature is not available and the checkbox for it is disabled on the debugging screen: CalendarTrigger will otherwise work normally.
 
-WRITE_EXTERNAL_STORAGE
-This is needed to enable CalendarTrigger to write a log file or a settings file. If you never enable logging or save settings, it isn't needed; if this permission is denied, logging cannot be enabled and settings cannot be saved. If you enable logging, you need to clear the log file from time to time, otherwise it will fill up memory. If log cycling is enabled, CalendarTrigger will periodically delete log entries more than 24 hours old.
+READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE
+Normally Android grants or denies both of these permissions together. They are needed to enable CalendarTrigger to access a log file or a settings file or its database of floating time events. If you never enable logging or save settings, and do not use floating time events, they are not needed; if WRITE_EXTERNAL_STORAGE permission is denied, logging cannot be enabled, the log cannot be cycled, settings cannot be saved, and floating time events cannot be created. If READ_EXTERNAL_STORAGE permission is denied, the log cannot be shown, the log cannot be cycled, settings cannot be restored, and any previously created floating time events are ineffective. If you enable logging, you need to clear the log file from time to time, otherwise it will fill up memory. If log cycling is enabled, CalendarTrigger will periodically delete log entries more than 24 hours old.
 
 ACCESS_FINE_LOCATION
 This is needed to enable CalendarTrigger to detect when the device has moved by a sufficient distance after the end of an event: if this permission is denied, the option is disabled, but CalendarTrigger will otherwise work normally.
