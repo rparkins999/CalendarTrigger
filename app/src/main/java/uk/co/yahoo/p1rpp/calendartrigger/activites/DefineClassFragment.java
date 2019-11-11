@@ -161,8 +161,9 @@ public class DefineClassFragment extends Fragment
             tv.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac, R.string.allcalendars,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(ac,
+                        fromHtml(getString(R.string.allcalendars, className)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
@@ -191,8 +192,9 @@ public class DefineClassFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.busyhelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.busyhelp, className)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -231,8 +233,9 @@ public class DefineClassFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.recurrenthelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.recurrenthelp, className)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -271,8 +274,9 @@ public class DefineClassFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.organiserhelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.organiserhelp, className)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -311,7 +315,8 @@ public class DefineClassFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.privatehelp,
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.privatehelp, className)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -351,8 +356,9 @@ public class DefineClassFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.attendeeshelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.attendeeshelp, className)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });

@@ -150,7 +150,7 @@ public class MainActivity extends Activity {
 		int classNum = PrefsManager.getLastImmediate(mThis);
 		if (classNum >= 0) {
 			final String className = PrefsManager.getClassName(mThis, classNum);
-			String italicName = "<i>" + htmlEncode(className) + "</i>";
+			final String italicName = "<i>" + htmlEncode(className) + "</i>";
 			Button b = new Button(mThis);
 			b.setText(fromHtml(getString(
 				R.string.eventNowLabel, italicName)));
@@ -164,7 +164,8 @@ public class MainActivity extends Activity {
 			b.setOnLongClickListener(new View.OnLongClickListener() {
 				@Override
 				public boolean onLongClick(View v) {
-					Toast.makeText(mThis, R.string.eventNowHelp,
+					Toast.makeText(mThis, fromHtml(getString(
+						R.string.eventNowHelp, italicName)),
 						Toast.LENGTH_LONG).show();
 					return true;
 				}

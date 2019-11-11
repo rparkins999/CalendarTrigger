@@ -176,7 +176,7 @@
     </string>
     <string name="defineButtonLabel">Conditions pour classe %s</string>
     <string name="defineButtonHelp">Définir les conditions pour un évènement
-        d\'appartenir à la classe. Un évènement peut appartenir à plus q\'une
+        d\'appartenir à la classe %s. Un évènement peut appartenir à plus q\'une
         classe. En ce cas les actions seront déclenchées pour toutes les classes
         auxquelles l\'évènement appartient.</string>
     <string name="defineclasspopup">Définir quand un évènement calendrier
@@ -190,7 +190,7 @@
     <string name="ifanycalendar">l\'évènement appartient à quelconque
         calendrier en dessous qui est coché</string>
     <string name="allcalendars">Si aucun calendrier n\'est coché, l\'évènement
-        peu appartenir à la classe s\'il appartient à quelconque calendrier.
+        peu appartenir à la classe %s s\'il appartient à quelconque calendrier.
         Ce n\'est pas la même chose que cocher tous le calendriers: si on
         ajoute un nouveau calendrier plus tard, il ne sera pas coché jusqu\'à
         ce que vous le cochez en changeant la classe.</string>
@@ -225,33 +225,34 @@
         la ligne vers la gauche ou la droite.</string>
     <string name="contains">contient</string>
     <string name="doesnotcontain">ne contient pas</string>
-    <string name="busyhelp">Choisir évènements qui sont occupés, libres, ou
-        n\'importe lequel.</string>
+    <string name="busyhelp">Choisir évènements pour las classe %s qui sont occupés,
+        libres, ou n\'importe lequel.</string>
     <string name="busylabel">et l\'évènement est</string>
     <string name="onlybusy">occupé</string>
     <string name="onlynotbusy">libre</string>
     <string name="busyandnot">n\'importe</string>
-    <string name="recurrenthelp">Choisir évènements qui sont récurrentes, non
-        récurrentes, ou n\'importe lequel.</string>
+    <string name="recurrenthelp">Choisir évènements pour las classe %s qui sont
+        récurrentes, non récurrentes, ou n\'importe lequel.</string>
     <string name="recurrentlabel">et l\'évènement est:</string>
     <string name="onlyrecurrent">récurrente</string>
     <string name="onlynotrecurrent">non récurrente</string>
     <string name="recurrentandnot">n\'importe</string>
-    <string name="organiserhelp">Choisir évènements qui sont organisés par vous,
-        par autres (ou sans organisateur), ou n\'importe lequel.</string>
+    <string name="organiserhelp">Choisir évènements pour las classe %s qui sont
+        organisés par vous, par autres (ou sans organisateur), ou n\'importe lequel.
+    </string>
     <string name="organiserlabel">et l\'organisateur de l\'évènement:
     </string>
     <string name="onlyorganiser">est vous</string>
     <string name="onlynotorganiser">n\'est pas vous</string>
     <string name="organiserandnot">n\'importe</string>
-    <string name="privatehelp">Choisir évènements qui sont privés, publiciques,
-        ou n\'importe lequel.</string>
+    <string name="privatehelp">Choisir évènements pour las classe %s qui sont privés,
+        publiciques, ou n\'importe lequel.</string>
     <string name="privatelabel">et l\'évènement est:</string>
     <string name="onlyprivate">privé</string>
     <string name="onlynotprivate">publicique</string>
     <string name="privateandnot">n\'importe</string>
-    <string name="attendeeshelp">Choisir évènements qui ont participants, ou
-        n\'ont pas participants, ou n\'importe lequel.</string>
+    <string name="attendeeshelp">Choisir évènements pour las classe %s qui ont
+        participants, ou n\'ont pas participants, ou n\'importe lequel.</string>
     <string name="attendeeslabel">et l\'évènement:</string>
     <string name="onlyattendees">a participants</string>
     <string name="onlynoattendees">n\'a pas participants</string>
@@ -259,7 +260,7 @@
     <string name="defineStartLabel">Définition début d\'un évènement de la
         classe %s</string>
     <string name="defineStartHelp">Définir conditions requises pour déclencher
-        les actions à ou en avant du début d\'un évènement de la classe.
+        les actions à ou en avant du début d\'un évènement de la classe %s.
     </string>
     <string name="definestartpopup">Ici vous pouvez définir les conditions
         requises pour déclencher les actions du début d\'un évènement de la
@@ -310,7 +311,7 @@
     <string name="actionStartLabel">Action au début d\'un évènement de la classe
         %s</string>
     <string name="actionStartHelp">Définir action(s) déclenchées à ou en
-        avant du début d\'un évènement de la classe.</string>
+        avant du début d\'un évènement de la classe %s.</string>
     <string name="actionstartpopup">Ici vous pouvez définir les actions
         déclenchées au début d\'un évènement de la classe %s. Une longue
         touche d\'un bouton montrera un message d\'assistance.</string>
@@ -371,7 +372,7 @@
     <string name="defineStopLabel">Définition fin d\'un évènement de la classe
         %s</string>
     <string name="defineStopHelp">Définir conditions requises pour déclencher
-        les actions à ou après la fin d\'un évènement de la classe.</string>
+        les actions à ou après la fin d\'un évènement de la classe %s.</string>
     <string name="definestoppopup">Ici vous pouvez définir les conditions
         requises pour déclencher les actions à la fin d\'un évènement de la
         classe %s. Ceci peut être un certain nombre de minutes (défaut zéro)
@@ -418,7 +419,7 @@
     <string name="actionStopLabel">Action à la fin d\'un évènement de la classe
         %s</string>
     <string name="actionStopHelp">Définir action(s) déclenchées à ou après la
-        fin d\'un évènement de la classe.</string>
+        fin d\'un évènement de la classe %s.</string>
     <string name="actionstoppopup">Ici vous pouvez définir les actions
         déclenchées à la fin d\'un évènement de la classe %s. Une longue
         touche d\'un bouton montrera un message d\'assistance.</string>
@@ -436,7 +437,7 @@
         l\'usager.</string>
     <string name="eventNowLabel">Évènement instantané de classe %s</string>
     <string name="eventNowHelp">Ce bouton crée un évènement temporaire de la
-        classe qui commence tout de suite et puis finit tout de suite. Ceci
+        classe %s qui commence tout de suite et puis finit tout de suite. Ceci
         peut être utile quand la classe contient un delai de mouvement après
         la fin de l\'évènement, par example si vous entrez dans une chambre
         \'silence\' et vous voulez bloquer votre sonnerie jusq\'a ce que vouz

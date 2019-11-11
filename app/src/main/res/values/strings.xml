@@ -161,14 +161,14 @@
         the back button. A long press on any of the buttons below will bring up
         some help information about it.</string>
     <string name="deleteButtonLabel">Delete class %s (no undo)</string>
-    <string name="deleteButtonHelp">This button deletes the class and
+    <string name="deleteButtonHelp">This button deletes class %s and
         cancels any actions scheduled for calendar events in this class. This
         action cannot be undone. The events themselves are not affected.
     </string>
     <string name="defineButtonLabel">Conditions for a calendar event to be in
         class %s</string>
     <string name="defineButtonHelp">Define the conditions for a calendar event
-        to be in this class. An event can be in more than one class: in
+        to be in class %s. An event can be in more than one class: in
         that case it will trigger the action(s) for each class it belongs to.
     </string>
     <string name="defineclasspopup">This screen allows you to specify the
@@ -181,7 +181,7 @@
     <string name="ifanycalendar">the event is in any of the calendars
         below which is checked</string>
     <string name="allcalendars">If no calendar is checked, the event
-        can be in the class if it is in any calendar. Note that this is
+        can be in class %s if it is in any calendar. Note that this is
         different from checking all calendars: if a new calendar is
         added later, it will not be checked unless you explicitly edit the
         class again.</string>
@@ -217,32 +217,32 @@
     <string name="contains">contains</string>
     <string name="doesnotcontain">does not contain</string>
     <string name="busyhelp">Determine whether events which are busy, not busy,
-        or either (the default), are in this class.</string>
+        or either (the default), are in class %s.</string>
     <string name="busylabel">and the event is:</string>
     <string name="onlybusy">busy</string>
     <string name="onlynotbusy">not busy</string>
     <string name="busyandnot">either</string>
     <string name="recurrenthelp">Determine whether events which are recurrent,
-        not recurrent, or either (the default), are in this class.</string>
+        not recurrent, or either (the default), are in class %s.</string>
     <string name="recurrentlabel">and the event is:</string>
     <string name="onlyrecurrent">recurrent</string>
     <string name="onlynotrecurrent">not recurrent</string>
     <string name="recurrentandnot">either</string>
     <string name="organiserhelp">Determine whether events for which you are the
-        organiser, or not the organiser, or either (the default), are in this
-        class.</string>
+        organiser, or not the organiser, or either (the default), are in
+        class %s.</string>
     <string name="organiserlabel">and the event\'s organiser is:</string>
     <string name="onlyorganiser">you</string>
     <string name="onlynotorganiser">not you</string>
     <string name="organiserandnot">either</string>
     <string name="privatehelp">Determine whether events which are private,
-        public, or either (the default), are in this class.</string>
+        public, or either (the default), are in class %s.</string>
     <string name="privatelabel">and the event is:</string>
     <string name="onlyprivate">private</string>
     <string name="onlynotprivate">public</string>
     <string name="privateandnot">either</string>
     <string name="attendeeshelp">Determine whether events which have attendees,
-        or do not have attendees, or either (the default), are in this class.
+        or do not have attendees, or either (the default), are in class %s.
         </string>
     <string name="attendeeslabel">and the event has:</string>
     <string name="onlyattendees">attendees</string>
@@ -250,7 +250,7 @@
     <string name="attendeesandnot">either</string>
     <string name="defineStartLabel">Event start definition for class %s</string>
     <string name="defineStartHelp">Define the conditions for the event start
-        action(s) to be triggered for an event in this class.</string>
+        action(s) to be triggered for an event in class %s.</string>
     <string name="definestartpopup">This screen allows you to define when
         the start action(s) for an event in class %s will be triggered. This can
         be a set number of minutes (defaulting to zero) before the start time
@@ -313,7 +313,7 @@
         USB port and is not on a wireless charger either.</string>
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
-        triggered at or before the start of an event in this class.</string>
+        triggered at or before the start of an event in class %s.</string>
     <string name="actionstartpopup">This screen allows you to define what
         action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help
@@ -379,7 +379,7 @@
     </string>
     <string name="defineStopLabel">Event end definition for class %s</string>
     <string name="defineStopHelp">Define the conditions for the event end
-        action(s) to be triggered for an event in this class.</string>
+        action(s) to be triggered for an event in class %s.</string>
     <string name="definestoppopup">This screen allows you to define when
         the end action(s) for an event in class %s will be triggered. This can
         be a set number of minutes (defaulting to zero) after the end time
@@ -425,7 +425,7 @@
     <string name="lastlocationlabel">metres.</string>
     <string name="actionStopLabel">Event end action(s) for class %s</string>
     <string name="actionStopHelp">Define the action(s) to be
-        triggered at or after the end of an event in this class.</string>
+        triggered at or after the end of an event in class %s.</string>
     <string name="actionstoppopup">This screen allows you to define what
         actions are performed at the end of an event in class %s. A long
         press on any of the controls below will bring up some help
@@ -442,8 +442,8 @@
         notification is presented depends on the user\'s notification settings.
     </string>
     <string name="eventNowLabel">Immediate event of class %s</string>
-    <string name="eventNowHelp">This button triggers a temporary event of this
-        class which starts immediately and then ends immediately. It can be
+    <string name="eventNowHelp">This button triggers a temporary event of
+        class %s which starts immediately and then ends immediately. It can be
         useful when the class provides a movement delay on its end action, if
         for example you walk into a quiet room and want to mute your ringer
         until you leave the room again.</string>

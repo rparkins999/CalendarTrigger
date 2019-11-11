@@ -26,7 +26,6 @@ import static android.text.TextUtils.htmlEncode;
 public class EditActivity extends Activity {
 
     private String className;
-    private String italicName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,16 +71,14 @@ public class EditActivity extends Activity {
         super.onResume();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
-        italicName = "<i>" + htmlEncode(className) + "</i>";
+        final String italicName = "<i>" + htmlEncode(className) + "</i>";
         TextView tv = (TextView)findViewById (R.id.backgroundtext);
         tv.setText(R.string.longpresslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                               fromHtml(getString(R.string.editclassHelp,
-                                                  className)),
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac, fromHtml(getString(R.string.editclassHelp,
+                    italicName)), Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -98,8 +95,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.deleteButtonHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.deleteButtonHelp, italicName)),
+                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -119,8 +117,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.defineButtonHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.defineButtonHelp, italicName)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -140,8 +139,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.defineStartHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.defineStartHelp, italicName)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -161,8 +161,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.actionStartHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.actionStartHelp, italicName)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -182,8 +183,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.defineStopHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.defineStopHelp, italicName)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -203,8 +205,9 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.actionStopHelp,
-                               Toast.LENGTH_LONG).show();
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.actionStopHelp, italicName)),
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -222,7 +225,8 @@ public class EditActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.eventNowHelp,
+                Toast.makeText(ac, fromHtml(getString(
+                    R.string.eventNowHelp, italicName)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }
