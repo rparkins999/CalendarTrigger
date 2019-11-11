@@ -535,6 +535,31 @@ public class PrefsManager {
 			Context.MODE_PRIVATE), className);
 	}
 
+	private static final String LAST_IMMEDIATE = "lastImmediate";
+
+	// We store the class name so that we can behave correctly if the class gets deleted
+	// and the class number gets re-used.
+	public static void setLastImmediate(Context context, int classNum) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		if (isClassUsed(prefs, classNum))
+		{
+			String className = getClassName(prefs, classNum);
+			prefs.edit().putString(LAST_IMMEDIATE, className).commit();
+		}
+		else
+		{
+			prefs.edit().putString(LAST_IMMEDIATE, "").commit();
+		}
+	}
+
+	public static int getLastImmediate(Context context) {
+		SharedPreferences prefs
+			= context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+		String className = prefs.getString(LAST_IMMEDIATE, "");
+		return getClassNum(prefs, className);
+	}
+
 	// string required in names of events which can be in class
 	private static final String EVENT_NAME = "eventName";
 
@@ -1413,6 +1438,7 @@ public class PrefsManager {
 				   getUserRinger(context));
 		out.printf("lastRinger=%d\n",
 			getLastRinger(context));
+		out.printf("lastImmediate=%d", getLastImmediate(context));
 		int num = PrefsManager.getNumClasses(context);
 		for (int i = 0; i < num; ++i) {
 			if (PrefsManager.isClassUsed(context, i))
@@ -1494,6 +1520,12 @@ public class PrefsManager {
 					try {
 						PrefsManager.setLastRinger(
 							context, Integer.decode(parts[1]));
+					} catch (NumberFormatException e) { /* just ignore it */ }
+				}
+				else if (parts[0].compareTo("lastImmediate") == 0)
+				{
+					try {
+						PrefsManager.setLastImmediate(context, Integer.decode(parts[1]));
 					} catch (NumberFormatException e) { /* just ignore it */ }
 				}
 				else if (parts[0].compareTo("Class") == 0)

@@ -10,10 +10,16 @@ It is open source, free, and does not display adverts or pester you for a donati
       alt="Get it on F-Droid"
  height="80">](https://f-droid.org/packages/uk.co.yahoo.p1rpp.calendartrigger/)
 
-This is the screen displayed when you start up the UI:
+This is the screen displayed when you initially start up the UI:
 
 <img src="./assets/StartScreen.png"
      alt="StartScreen"
+     height=600em>
+
+This is the screen displayed when you start up the UI after you have triggered an immediate event of some class (in this case class test), and the class still exists:
+
+<img src="./assets/StartScreenWithButton.png"
+     alt="StartScreenWithButton"
      height=600em>
 
 This is the screen displayed when you select Debugging from the menu:
@@ -88,7 +94,7 @@ This is the screen to define what event end actions CalendarTrigger does:
 
 If events which set ringer modes overlap, the "quietest" one wins. If an event end action would restore the previous ringer state, and the user has in the meantime set a "quieter" state, the user's set state wins. The quietness order is as in the selection list for event start actions.
 
-CalendarTrigger also has immediate events, useful if you walk into a "quiet" building and want to mute your ringer until you leave.
+CalendarTrigger also has immediate events, useful if you walk into a "quiet" building and want to mute your ringer until you leave. A button to trigger the last used immediate event (if there is one) is also shown on the startup screen for quicker access.
 
 CalendarTrigger scans all of your calendars once for each event class every time anything happens which might cause it to take some action. This will not interfere with other applications because it happens in the background, but it does need the phone to wake up and use battery power, so you should not define too many event classes. Some Calendar Providers seem to generate many PROVIDER_CHANGED broadcasts even when nothing has actually changed, but CalendarTrigger needs to wake up for these broadcasts to determine whether in fact anything _has_ changed, so I can't do anything about this. You could try complaining to your phone manufacturer....
 

@@ -16,6 +16,10 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -25,6 +29,8 @@ import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
 
 public class MainActivity extends Activity {
+
+	private Activity mThis;
 
 	// At the moment we have only one possible version upgrade,
 	// so "was" is unused.
@@ -65,6 +71,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mThis = this;
 		int apiVersion = android.os.Build.VERSION.SDK_INT;
 		if (   (savedInstanceState == null)
 			&& (apiVersion >= android.os.Build.VERSION_CODES.M))
@@ -138,6 +145,32 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		invalidateOptionsMenu();
+		View v = getLayoutInflater().inflate(R.layout.fragment_action_stop, null);
+		setContentView(v);
+		int classNum = PrefsManager.getLastImmediate(mThis);
+		if (classNum >= 0) {
+			final String className = PrefsManager.getClassName(mThis, classNum);
+			String italicName = "<i>" + htmlEncode(className) + "</i>";
+			Button b = new Button(mThis);
+			b.setText(fromHtml(getString(
+				R.string.eventNowLabel, italicName)));
+			b.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					int classNum = PrefsManager.getClassNum(mThis, className);
+					PrefsManager.setClassTriggered(mThis, classNum, true);
+					MuteService.startIfNecessary(mThis, "Immediate Event");
+				}
+			});
+			b.setOnLongClickListener(new View.OnLongClickListener() {
+				@Override
+				public boolean onLongClick(View v) {
+					Toast.makeText(mThis, R.string.eventNowHelp,
+						Toast.LENGTH_LONG).show();
+					return true;
+				}
+			});
+			((ViewGroup)v).addView(b);
+		}
 	}
 
 	@Override

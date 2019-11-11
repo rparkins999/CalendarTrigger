@@ -213,9 +213,9 @@ public class EditActivity extends Activity {
             R.string.eventNowLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                PrefsManager.getClassNum(ac, className);
-                PrefsManager.setClassTriggered(
-                    ac, PrefsManager.getClassNum(ac, className), true);
+                int classNum = PrefsManager.getClassNum(ac, className);
+                PrefsManager.setLastImmediate(ac, classNum);
+                PrefsManager.setClassTriggered(ac, classNum, true);
                 MuteService.startIfNecessary(ac, "Immediate Event");
             }
         });
