@@ -9,7 +9,9 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.contacts;
 
+import android.app.Activity;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
@@ -17,6 +19,7 @@ import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.RawContactsEntity;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
@@ -1869,6 +1872,82 @@ public class ContactCreator {
 				}
 			}
 		}
+	}
+
+	private static final String[] DATA1_PROJECTION =
+		{
+			ContactsContract.RawContactsEntity.DATA1
+		};
+
+	// Check if s is the name of a contact and return a String[2]
+	// whose first element is the contact's email address or null
+	// and whose second element the contact's mobile number or null.
+	public static String[] getMessaging(Activity ac, String s) {
+		String[] result = new String[2];
+		String[] parts = s.split(" ");
+		if (parts.length == 2) {
+			ContentResolver cr = ac.getContentResolver();
+			String CONTACT_SELECTION =
+				ContactsContract.RawContactsEntity.MIMETYPE + " IS '" +
+					ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+					+ "' AND "
+					+ ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME
+					+ " IS '" + parts[0].replace("'", "''")
+					+ "' AND "
+					+ ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME
+					+ " IS '" + parts[1].replace("'", "''") + "'";
+			Cursor c = cr.query(
+				ContactsContract.RawContactsEntity.CONTENT_URI,
+				CONTACT_PROJECTION,
+				CONTACT_SELECTION,
+				null,
+				null);
+			while (c.moveToNext()) {
+				String PHONE_SELECTION =
+					ContactsContract.Data.CONTACT_ID
+						+ " = "
+						+ String.valueOf(c.getLong(0))
+						+ " AND "
+						+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
+						+ ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+						+ "' AND "
+						+ ContactsContract.CommonDataKinds.Phone.TYPE
+						+ " IS "
+						+ ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
+				Cursor c1 = cr.query(
+					ContactsContract.RawContactsEntity.CONTENT_URI,
+					DATA1_PROJECTION,
+					PHONE_SELECTION,
+					null,
+					null);
+				if (c1.moveToFirst()) {
+					result[0] = c1.getString(0);
+					break;
+				}
+			}
+			c.moveToPosition(-1);
+			while (c.moveToNext()) {
+				String EMAIL_SELECTION =
+					ContactsContract.Data.CONTACT_ID
+						+ " = "
+						+ String.valueOf(c.getLong(0))
+						+ " AND "
+						+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
+						+ ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+						+ "'";
+				Cursor c1 = cr.query(
+					ContactsContract.RawContactsEntity.CONTENT_URI,
+					DATA1_PROJECTION,
+					EMAIL_SELECTION,
+					null,
+					null);
+				if (c1.moveToFirst()) {
+					result[1] = c1.getString(0);
+					break;
+				}
+			}
+		}
+		return result;
 	}
 }
 

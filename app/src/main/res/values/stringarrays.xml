@@ -14,4 +14,8 @@
         <item>@string/contains</item>
         <item>@string/doesnotcontain</item>
     </string-array>
+    <string-array name="startorend">
+        <item>@string/start</item>
+        <item>@string/end</item>
+    </string-array>
 </resources>

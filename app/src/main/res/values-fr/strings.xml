@@ -369,6 +369,8 @@
     <string name="browsenofile">Navigation de fichiers</string>
     <string name="browsenofileHelp">Choisir un fichier de son</string>
     <string name="browsefileHelp">Choisir un autre fichier de son </string>
+    <string name="start">début</string>
+    <string name="end">fin</string>
     <string name="defineStopLabel">Définition fin d\'un évènement de la classe
         %s</string>
     <string name="defineStopHelp">Définir conditions requises pour déclencher

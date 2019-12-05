@@ -1183,6 +1183,248 @@ public class PrefsManager {
 					  .getString(prefName, "");
 	}
 
+	// Distinguish messages at start and end of events
+	public static final int SEND_MESSAGE_AT_START = 0;
+	public static final int SEND_MESSAGE_AT_END = 1;
+
+	// Message sending method(s)
+	private static final String SEND_MESSAGE = "SendMessage";
+	public static final int SEND_NO_MESSAGE = 0; // Don't send message
+	public static final int SEND_MESSAGE_NOWHERE = 1; // Send enabled but no method
+	public static final int SEND_MESSAGE_EMAIL = 2; // email
+	public static final int SEND_MESSAGE_EMAIL_OR_SMS = 3; // try email then SMS
+	public static final int SEND_MESSAGE_SMS = 4; // SMS
+	public static final int SEND_MESSAGE_SMS_OR_EMAIL = 5; // Try SMS tthen email
+
+	public static void setMessageType(
+		Context context, int classNum, int startOrEnd, int type) {
+		String prefName = SEND_MESSAGE + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, type).commit();
+	}
+
+	public static int getMessageType(Context context, int classNum, int startOrEnd) {
+		String prefName = SEND_MESSAGE + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, SEND_NO_MESSAGE);
+	}
+
+	// Message destinations
+	private static final String MESSAGE_ADDRESS = "MessageAddress";
+	private static final String MESSAGE_NUMBER = "MessageNumber";
+	private static final String MESSAGE_CONTACT = "MessageContact";
+	private static final String MESSAGE_EXTRACT = "MessageExtract";
+
+	// Details for extracting contact name from event name
+	private static final String MESSAGE_FIRST_COUNT = "MessageFirstCount";
+	private static final String MESSAGE_FIRST_DIRECTION
+		= "MessageFirstDirection";
+	private static final String MESSAGE_LAST_COUNT = "MessageLastCount";
+	private static final String MESSAGE_LAST_DIRECTION
+		= "MessageLastDirection";
+	private static final String MESSAGE_TRIM = "MessageTrim";
+	public static final int MESSAGE_DIRECTION_RIGHT = 0;
+	public static final int MESSAGE_DIRECTION_LEFT = 1;
+
+	public static void setMessageAddress(
+		Context context, int classNum, int startOrEnd, String addressee) {
+		String prefName = MESSAGE_ADDRESS + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putString(prefName, addressee).commit();
+	}
+
+	public static String getMessageAddress(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_ADDRESS + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, null);
+	}
+
+	public static void setMessageNumber(
+		Context context, int classNum, int startOrEnd, String addressee) {
+		String prefName = MESSAGE_NUMBER + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putString(prefName, addressee).commit();
+	}
+
+	public static String getMessageNumber(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_NUMBER + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, null);
+	}
+
+	public static void setMessageContact(
+		Context context, int classNum, int startOrEnd, String addressee) {
+		String prefName = MESSAGE_CONTACT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putString(prefName, addressee).commit();
+	}
+
+	public static String getMessageContact(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_CONTACT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, null);
+	}
+
+	public static void setMessageExtract(
+		Context context, int classNum, int startOrEnd, boolean enabled) {
+		String prefName = MESSAGE_EXTRACT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putBoolean(prefName, enabled).commit();
+	}
+
+	public static boolean getMessageExtract(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_EXTRACT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getBoolean(prefName, false);
+	}
+
+	public static void setMessageFirstCount(
+		Context context, int classNum, int startOrEnd, int count) {
+		String prefName = MESSAGE_FIRST_COUNT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, count).commit();
+	}
+
+	public static int getMessageFirstCount(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_FIRST_COUNT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, 0);
+	}
+
+	public static void setMessageLastCount(
+		Context context, int classNum, int startOrEnd, int count) {
+		String prefName = MESSAGE_LAST_COUNT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, count).commit();
+	}
+
+	public static int getMessageLastCount(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_LAST_COUNT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, 0);
+	}
+
+	public static void setMessageFirstDir(
+		Context context, int classNum, int startOrEnd, int dir) {
+		String prefName = MESSAGE_FIRST_DIRECTION + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, dir).commit();
+	}
+
+	public static int getMessageFirstDir(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_FIRST_DIRECTION + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, MESSAGE_DIRECTION_RIGHT);
+	}
+
+	public static void setMessageLastDir(
+		Context context, int classNum, int startOrEnd, int dir) {
+		String prefName = MESSAGE_LAST_DIRECTION + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, dir).commit();
+	}
+
+	public static int getMessageLastDir(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_LAST_DIRECTION + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, MESSAGE_DIRECTION_RIGHT);
+	}
+
+	// If true, trim "," or "'s" from first and last name extracted from event name
+	public static void setMessageTrim(
+		Context context, int classNum, int startOrEnd, boolean trim) {
+		String prefName = MESSAGE_TRIM + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putBoolean(prefName, trim).commit();
+	}
+
+	public static boolean getMessageTrim(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_TRIM + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getBoolean(prefName, false);
+	}
+
+	private static final String MESSAGE_TEXT_TYPE = "MessageTextType";
+	public static final int MESSAGE_TEXT_NONE = 0;
+	public static final int MESSAGE_TEXT_CLASSNAME = 1;
+	public static final int MESSAGE_TEXT_EVENTNAME = 2;
+	public static final int MESSAGE_TEXT_EVENTDESCRIPTION = 3;
+	public static final int MESSAGE_TEXT_LITERAL = 4;
+	private static final String MESSAGE_LITERAL_TEXT = "MessageLiteralText";
+
+	public static void setMessageTextType(
+		Context context, int classNum, int startOrEnd, int type) {
+		String prefName = MESSAGE_TEXT_TYPE + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, type).commit();
+	}
+
+	public static int getMessageTextType(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_TEXT_TYPE + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, MESSAGE_TEXT_NONE);
+	}
+
+	public static void setMessageLiteral(
+		Context context, int classNum, int startOrEnd, String data) {
+		String prefName = MESSAGE_LITERAL_TEXT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putString(prefName, data).commit();
+	}
+
+	public static String getMessageLiteral(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = MESSAGE_LITERAL_TEXT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, "");
+	}
+
+	private static final String SUBJECT_TEXT_TYPE = "SubjectTextType";
+	public static final int SUBJECT_TEXT_NONE = 0;
+	public static final int SUBJECT_TEXT_CLASSNAME = 1;
+	public static final int SUBJECT_TEXT_EVENTNAME = 2;
+	public static final int SUBJECT_TEXT_EVENTDESCRIPTION = 3;
+	public static final int SUBJECT_TEXT_LITERAL = 4;
+	private static final String SUBJECT_LITERAL_TEXT = "SubjectLiteralText";
+
+	public static void setSubjectTextType(
+		Context context, int classNum, int startOrEnd, int type) {
+		String prefName = SUBJECT_TEXT_TYPE + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, type).commit();
+	}
+
+	public static int getSubjectTextType(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = SUBJECT_TEXT_TYPE + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, SUBJECT_TEXT_NONE);
+	}
+
+	public static void setSubjectLiteral(
+		Context context, int classNum, int startOrEnd, String data) {
+		String prefName = SUBJECT_LITERAL_TEXT + classNum + "#" + startOrEnd;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putString(prefName, data).commit();
+	}
+
+	public static String getSubjectLiteral(
+		Context context, int classNum, int startOrEnd) {
+		String prefName = SUBJECT_LITERAL_TEXT + classNum + "#" + startOrEnd;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getString(prefName, "");
+	}
+
 	// is an immediate event of this class currently requested?
 	private static final String IS_TRIGGERED = "isTriggered";
 
@@ -1285,33 +1527,57 @@ public class PrefsManager {
 			if (orIndex == 0) {break; }
 		}
 		editor.putBoolean(IS_CLASS_USED + (num), false)
-			 .putString(CLASS_NAME + (num), "")
-			 .putString(EVENT_COLOUR + (num), "")
-			 .putString(AGENDAS + (num), "")
-			 .putInt(WHETHER_BUSY + (num), BUSY_AND_NOT)
-			 .putInt(WHETHER_RECURRENT + (num), RECURRENT_AND_NOT)
-			 .putInt(WHETHER_ORGANISER + (num), ORGANISER_AND_NOT)
-			 .putInt(WHETHER_PUBLIC + (num), PUBLIC_AND_PRIVATE)
-			 .putInt(WHETHER_ATTENDEES + (num), ATTENDEES_AND_NOT)
-			 .putInt(RINGER_ACTION + (num), RINGER_MODE_NONE)
-			 .putBoolean(RESTORE_RINGER + (num), false)
-			 .putInt(BEFORE_MINUTES + (num), 0)
-			 .putInt(BEFORE_ORIENTATION + (num), BEFORE_ANY_POSITION)
-			 .putInt(BEFORE_CONNECTION + (num), BEFORE_ANY_CONNECTION)
-			 .putInt(AFTER_MINUTES + (num), 0)
-			 .putInt(AFTER_STEPS + (num), 0)
-			 .putInt(TARGET_STEPS + (num), 0)
-			 .putInt(AFTER_METRES + (num), 0)
-			 .putString(LATITUDE + (num), "360.0")
-			 .putString(LONGITUDE + (num), "360.0")
-			 .putBoolean(NOTIFY_START + (num), false)
-			 .putBoolean(NOTIFY_END + (num), false)
-			 .putBoolean(IS_TRIGGERED + (num), false)
-			 .putLong(LAST_TRIGGER_END + (num), Long.MIN_VALUE)
-			 .putBoolean(IS_ACTIVE + (num), false)
-			 .putBoolean(IS_WAITING + (num), false)
-			 .putString(LAST_ACTIVE_EVENT + (num), "")
-			 .commit();
+			  .remove(CLASS_NAME + (num))
+			  .remove(EVENT_COLOUR + (num))
+			  .remove(AGENDAS + (num))
+			  .remove(WHETHER_BUSY + (num))
+			  .remove(WHETHER_RECURRENT + (num))
+			  .remove(WHETHER_ORGANISER + (num))
+			  .remove(WHETHER_PUBLIC + (num))
+			  .remove(WHETHER_ATTENDEES + (num))
+			  .remove(RINGER_ACTION + (num))
+			  .remove(RESTORE_RINGER + (num))
+			  .remove(BEFORE_MINUTES + (num))
+			  .remove(BEFORE_ORIENTATION + (num))
+			  .remove(BEFORE_CONNECTION + (num))
+			  .remove(AFTER_MINUTES + (num))
+			  .remove(AFTER_STEPS + (num))
+			  .remove(TARGET_STEPS + (num))
+			  .remove(AFTER_METRES + (num))
+			  .remove(LATITUDE + (num))
+			  .remove(LONGITUDE + (num))
+			  .remove(NOTIFY_START + (num))
+			  .remove(NOTIFY_END + (num))
+			  .remove(SEND_MESSAGE + (num) + "#0")
+			  .remove(SEND_MESSAGE + (num) + "#1")
+			  .remove(MESSAGE_ADDRESS + (num) + "#0")
+			  .remove(MESSAGE_ADDRESS + (num) + "#1")
+			  .remove(MESSAGE_NUMBER + (num) + "#0")
+			  .remove(MESSAGE_NUMBER + (num) + "#1")
+			  .remove(MESSAGE_CONTACT + (num) + "#0")
+			  .remove(MESSAGE_CONTACT + (num) + "#1")
+			  .remove(MESSAGE_EXTRACT + (num) + "#0")
+			  .remove(MESSAGE_EXTRACT + (num) + "#1")
+			  .remove(MESSAGE_FIRST_COUNT + (num) + "#0")
+			  .remove(MESSAGE_FIRST_COUNT + (num) + "#1")
+			  .remove(MESSAGE_LAST_COUNT + (num) + "#0")
+			  .remove(MESSAGE_LAST_COUNT + (num) + "#1")
+			  .remove(MESSAGE_FIRST_DIRECTION + (num) + "#0")
+			  .remove(MESSAGE_FIRST_DIRECTION + (num) + "#1")
+			  .remove(MESSAGE_LAST_DIRECTION + (num) + "#0")
+			  .remove(MESSAGE_LAST_DIRECTION + (num) + "#1")
+			  .remove(MESSAGE_TRIM + (num) + "#0")
+			  .remove(MESSAGE_TRIM + (num) + "#1")
+			  .remove(MESSAGE_TEXT_TYPE + (num) + "#0")
+			  .remove(MESSAGE_TEXT_TYPE + (num) + "#1")
+			  .remove(MESSAGE_LITERAL_TEXT + (num) + "#0")
+			  .remove(MESSAGE_LITERAL_TEXT + (num) + "#1")
+			  .remove(IS_TRIGGERED + (num))
+			  .remove(LAST_TRIGGER_END + (num))
+			  .remove(IS_ACTIVE + (num))
+			  .remove(IS_WAITING + (num))
+			  .remove(LAST_ACTIVE_EVENT + (num))
+			  .commit();
 	}
 
 	public static void removeClass(Context context, String name) {
@@ -1388,6 +1654,70 @@ public class PrefsManager {
 				   PrefsManager.getSoundFileStart(context, i));
 		out.printf("soundfileEnd=%s\n",
 				   PrefsManager.getSoundFileEnd(context, i));
+		out.printf("StartMessageType=%d\n",
+			PrefsManager.getMessageType(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageType=%d\n",
+			PrefsManager.getMessageType(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageAddress=%s\n",
+			PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageAddress=%s\n",
+			PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageNumber=%s\n",
+			PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageNumber=%s\n",
+			PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageContact=%s\n",
+			PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageContact=%s\n",
+			PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageExtract=%b\n",
+			PrefsManager.getMessageExtract(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageExtract=%b\n",
+			PrefsManager.getMessageExtract(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageFirstCount=%d\n",
+			PrefsManager.getMessageFirstCount(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageFirstCount=%d\n",
+			PrefsManager.getMessageFirstCount(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageLastCount=%d\n",
+			PrefsManager.getMessageLastCount(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageLastCount=%d\n",
+			PrefsManager.getMessageLastCount(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageFirstDir=%d\n",
+			PrefsManager.getMessageFirstDir(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageFirstDir=%d\n",
+			PrefsManager.getMessageFirstDir(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageLastDir=%d\n",
+			PrefsManager.getMessageLastDir(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageLastDir=%d\n",
+			PrefsManager.getMessageLastDir(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageTrim=%b\n",
+			PrefsManager.getMessageTrim(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageTrim=%b\n",
+			PrefsManager.getMessageTrim(context, i, SEND_MESSAGE_AT_END));
+		out.printf("StartMessageTextType=%d\n",
+			PrefsManager.getMessageTextType(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndMessageTextType=%d\n",
+			PrefsManager.getMessageTextType(context, i, SEND_MESSAGE_AT_END));
+		String s = PrefsManager.getMessageLiteral(context, i, SEND_MESSAGE_AT_START);
+		out.printf("StartMessageLiteral=%s\n", s.replace("%", "%p")
+												.replace("\"", "%q")
+												.replace("\n", "%n"));
+		s = PrefsManager.getMessageLiteral(context, i, SEND_MESSAGE_AT_END);
+		out.printf("EndMessageLiteral=%s\n", s.replace("%", "%p")
+											  .replace("\"", "%q")
+											  .replace("\n", "%n"));
+		out.printf("StartSubjectTextType=%d\n",
+			PrefsManager.getSubjectTextType(context, i, SEND_MESSAGE_AT_START));
+		out.printf("EndSubjectTextType=%d\n",
+			PrefsManager.getSubjectTextType(context, i, SEND_MESSAGE_AT_END));
+		 s = PrefsManager.getSubjectLiteral(context, i, SEND_MESSAGE_AT_START);
+		out.printf("StartSubjectLiteral=%s\n", s.replace("%", "%p")
+			.replace("\"", "%q")
+			.replace("\n", "%n"));
+		s = PrefsManager.getSubjectLiteral(context, i, SEND_MESSAGE_AT_END);
+		out.printf("EndSubjectLiteral=%s\n", s.replace("%", "%p")
+			.replace("\"", "%q")
+			.replace("\n", "%n"));
 		// isTriggered not preserved across reinstall
 		// lastTriggerEnd not preserved across reinstall
 		out.printf("isActive=%s\n",
@@ -1438,7 +1768,6 @@ public class PrefsManager {
 				   getUserRinger(context));
 		out.printf("lastRinger=%d\n",
 			getLastRinger(context));
-		out.printf("lastImmediate=%d", getLastImmediate(context));
 		int num = PrefsManager.getNumClasses(context);
 		for (int i = 0; i < num; ++i) {
 			if (PrefsManager.isClassUsed(context, i))
@@ -1446,6 +1775,7 @@ public class PrefsManager {
 				saveClassSettings(context, out, i);
 			}
 		}
+		out.printf("lastImmediate=%d\n", getLastImmediate(context));
 	}
 
 	// We only try to read what we wrote, so we mostly ignore anything that
@@ -1752,6 +2082,224 @@ public class PrefsManager {
 				else if (parts[0].compareTo("soundfileEnd") == 0)
 				{
 					PrefsManager.setSoundFileEnd(context, i, parts[1]);
+				}
+				else if (parts[0].compareTo("StartMessageType") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageType(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageType") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageType(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageAddress") == 0)
+				{
+					PrefsManager.setMessageAddress(
+						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageAddress") == 0)
+				{
+					PrefsManager.setMessageAddress(
+						context, i, SEND_MESSAGE_AT_END, parts[1]);
+				}
+				else if (parts[0].compareTo("StartMessageNumber") == 0)
+				{
+					PrefsManager.setMessageNumber(
+						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageNumber") == 0)
+				{
+					PrefsManager.setMessageNumber(
+						context, i, SEND_MESSAGE_AT_END, parts[1]);
+				}
+				else if (parts[0].compareTo("StartMessageContact") == 0)
+				{
+					PrefsManager.setMessageContact(
+						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageContact") == 0)
+				{
+					PrefsManager.setMessageContact(
+						context, i, SEND_MESSAGE_AT_END, parts[1]);
+				}
+				else if (parts[0].compareTo("StartMessageExtract") == 0)
+				{
+					if (parts[1].compareTo("true")== 0) {
+						PrefsManager.setMessageExtract(
+							context, i, SEND_MESSAGE_AT_START, true);
+					}
+					else if (parts[1].compareTo("false")== 0) {
+						PrefsManager.setMessageExtract(
+							context, i, SEND_MESSAGE_AT_START, false);
+					}
+				}
+				else if (parts[0].compareTo("EndMessageExtract") == 0)
+				{
+					if (parts[1].compareTo("true")== 0) {
+						PrefsManager.setMessageExtract(
+							context, i, SEND_MESSAGE_AT_END, true);
+					}
+					else if (parts[1].compareTo("false")== 0) {
+						PrefsManager.setMessageExtract(
+							context, i, SEND_MESSAGE_AT_END, false);
+					}
+				}
+				else if (parts[0].compareTo("StartMessageFirstCount") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageFirstCount(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageFirstCount") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageFirstCount(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageLastCount") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageLastCount(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageLastCount") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageLastCount(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageFirstDir") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageFirstDir(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageFirstDir") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageFirstDir(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageLastDir") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageLastDir(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageLastDir") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageLastDir(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageTrim") == 0)
+				{
+					if (parts[1].compareTo("true")== 0) {
+						PrefsManager.setMessageTrim(
+							context, i, SEND_MESSAGE_AT_START, true);
+					}
+					else if (parts[1].compareTo("false")== 0) {
+						PrefsManager.setMessageTrim(
+							context, i, SEND_MESSAGE_AT_START, false);
+					}
+				}
+				else if (parts[0].compareTo("EndMessageTrim") == 0)
+				{
+					if (parts[1].compareTo("true")== 0) {
+						PrefsManager.setMessageTrim(
+							context, i, SEND_MESSAGE_AT_END, true);
+					}
+					else if (parts[1].compareTo("false")== 0) {
+						PrefsManager.setMessageTrim(
+							context, i, SEND_MESSAGE_AT_END, false);
+					}
+				}
+				else if (parts[0].compareTo("StartMessageTextType") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageTextType(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndMessageTextType") == 0)
+				{
+					try
+					{
+						PrefsManager.setMessageTextType(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartMessageLiteral") == 0)
+				{
+					s = parts[1].replace("%n", "\n")
+								.replace("%q", "\"")
+								.replace("%p", "%");
+					PrefsManager.setMessageLiteral(
+						context, i, SEND_MESSAGE_AT_START, s);
+				}
+				else if (parts[0].compareTo("EndMessageLiteral") == 0)
+				{
+					s = parts[1].replace("%n", "\n")
+								.replace("%q", "\"")
+								.replace("%p", "%");
+					PrefsManager.setMessageLiteral(
+						context, i, SEND_MESSAGE_AT_END, s);
+				}
+				else if (parts[0].compareTo("StartSubjectTextType") == 0)
+				{
+					try
+					{
+						PrefsManager.setSubjectTextType(
+							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("EndSubjectTextType") == 0)
+				{
+					try
+					{
+						PrefsManager.setSubjectTextType(
+							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) {}
+				}
+				else if (parts[0].compareTo("StartSubjectLiteral") == 0)
+				{
+					s = parts[1].replace("%n", "\n")
+						.replace("%q", "\"")
+						.replace("%p", "%");
+					PrefsManager.setSubjectLiteral(
+						context, i, SEND_MESSAGE_AT_START, s);
+				}
+				else if (parts[0].compareTo("EndSubjectLiteral") == 0)
+				{
+					s = parts[1].replace("%n", "\n")
+						.replace("%q", "\"")
+						.replace("%p", "%");
+					PrefsManager.setSubjectLiteral(
+						context, i, SEND_MESSAGE_AT_END, s);
 				}
 				// Just ignore anything that we don't understand:
 				// probably someone has tampered with the file.

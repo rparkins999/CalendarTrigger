@@ -377,6 +377,8 @@
     <string name="browsefileHelp">Click here to browse for a different sound
         file
     </string>
+    <string name="start">start</string>
+    <string name="end">end</string>
     <string name="defineStopLabel">Event end definition for class %s</string>
     <string name="defineStopHelp">Define the conditions for the event end
         action(s) to be triggered for an event in class %s.</string>

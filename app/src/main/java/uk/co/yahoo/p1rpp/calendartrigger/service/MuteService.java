@@ -1,12 +1,9 @@
 /*
- * Copyright (c) 2017, Richard P. Parkins, M. A.
+ * Copyright (c) 2019, Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.service;
-
-// Add some logic to create local time events
-// Add @contact for event locations
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -65,6 +62,8 @@ import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
+
+import static java.net.Proxy.Type.HTTP;
 
 public class MuteService extends IntentService
 	implements SensorEventListener {
@@ -259,6 +258,16 @@ public class MuteService extends IntentService
 						+ PrefsManager.getRingerStateName(this, mode)
 				  		+ " because CalendarTrigger no longer has permission "
 				  		+ "ACCESS_NOTIFICATION_POLICY.");
+	}
+
+	// Send a text message
+	public void sendSMS(String phone_number, String text) {
+		Intent intent = new Intent(Intent.ACTION_SENDTO);
+		intent.putExtra("sms_body", text);
+		intent.setData(Uri.parse("smsto:" + phone_number));
+		if (intent.resolveActivity(getPackageManager()) != null) {
+			startActivity(intent);
+		}
 	}
 
 	// Check if there is a current call (not a ringing call).
