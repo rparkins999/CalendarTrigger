@@ -757,6 +757,7 @@ public class ActionFragment extends Fragment
         sendToEmail.setText("... email address");
         llll.addView(sendToEmail, -1, ww);
         emailAddress.setMaxLines(1);
+        emailAddress.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         emailAddress.setEnabled(sendToEmail.isEnabled());
         emailAddress.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -838,6 +839,7 @@ public class ActionFragment extends Fragment
         sendToNumber.setText("... phone number");
         llll.addView(sendToNumber, -1, ww);
         smsNumber.setMaxLines(1);
+        smsNumber.setInputType(InputType.TYPE_CLASS_PHONE);
         // FIXME try to reject alphabetic characters
         smsNumber.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -882,7 +884,7 @@ public class ActionFragment extends Fragment
             || sendTextOrEmail.isChecked()) {
             sendToContact.setEnabled(true);
             sendToContact.setChecked(s != null);
-            contactName.setEnabled(false);
+            contactName.setEnabled(true);
         }
         else
         {
@@ -921,6 +923,7 @@ public class ActionFragment extends Fragment
         sendToContact.setText("... contact");
         llll.addView(sendToContact, -1, ww);
         contactName.setMaxLines(1);
+        contactName.setInputType(InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
         contactName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -1046,6 +1049,7 @@ public class ActionFragment extends Fragment
             ac, classNum, startOrEnd)));
         firstWordNum.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL);
         firstWordNum.setFilters(digits);
+        firstWordNum.setSelectAllOnFocus(true);
         firstWordNum.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -1109,6 +1113,7 @@ public class ActionFragment extends Fragment
             ac, classNum, startOrEnd)));
         lastWordNum.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL);
         lastWordNum.setFilters(digits);
+        lastWordNum.setSelectAllOnFocus(true);
         lastWordNum.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -1440,6 +1445,8 @@ public class ActionFragment extends Fragment
         });
         llll.addView(subjectLiteral, -1, ww);
         subjectText.setEnabled(subjectLiteral.isEnabled());
+        subjectText.setMaxLines(1);
+        subjectText.setInputType(InputType.TYPE_CLASS_TEXT);
         subjectText.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -1473,7 +1480,8 @@ public class ActionFragment extends Fragment
         subjectText.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Text Typed here is sent as the message.",
+                Toast.makeText(ac,
+                    "Text Typed here is the subject if an email is sent.",
                     Toast.LENGTH_LONG).show();
                 return true;
             }

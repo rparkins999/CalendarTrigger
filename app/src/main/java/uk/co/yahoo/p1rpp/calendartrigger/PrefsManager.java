@@ -1658,18 +1658,50 @@ public class PrefsManager {
 			PrefsManager.getMessageType(context, i, SEND_MESSAGE_AT_START));
 		out.printf("EndMessageType=%d\n",
 			PrefsManager.getMessageType(context, i, SEND_MESSAGE_AT_END));
-		out.printf("StartMessageAddress=%s\n",
-			PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_START));
-		out.printf("EndMessageAddress=%s\n",
-			PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_END));
-		out.printf("StartMessageNumber=%s\n",
-			PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_START));
-		out.printf("EndMessageNumber=%s\n",
-			PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_END));
-		out.printf("StartMessageContact=%s\n",
-			PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_START));
-		out.printf("EndMessageContact=%s\n",
-			PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_END));
+		String s = PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_START);
+		if (s == null) {
+			out.printf("StartMessageAddressNull\n");
+		}
+		else
+		{
+			out.printf("StartMessageAddress=%s\n", s);
+		}
+		s = PrefsManager.getMessageAddress(context, i, SEND_MESSAGE_AT_END);
+		if (s == null) {
+			out.printf("EndMessageAddressNull\n");
+		}
+		else
+		{
+			out.printf("EndMessageAddress=%s\n", s);
+		}
+		s = PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_START);
+		if (s == null) {
+			out.printf("StartMessageNumberNull\n");
+		}
+		else {
+			out.printf("StartMessageNumber=%s\n", s);
+		}
+		s = PrefsManager.getMessageNumber(context, i, SEND_MESSAGE_AT_END);
+		if (s == null) {
+			out.printf("EndMessageNumberNull\n");
+		}
+		else {
+			out.printf("EndMessageNumber=%s\n", s);
+		}
+		s = PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_START);
+		if (s == null) {
+			out.printf("StartMessageContactNull\n");
+		}
+		else {
+			out.printf("StartMessageContact=%s\n", s);
+		}
+		s = PrefsManager.getMessageContact(context, i, SEND_MESSAGE_AT_END);
+		if (s == null) {
+			out.printf("EndMessageContactNull\n");
+		}
+		else {
+			out.printf("EndMessageContact=%s\n", s);
+		}
 		out.printf("StartMessageExtract=%b\n",
 			PrefsManager.getMessageExtract(context, i, SEND_MESSAGE_AT_START));
 		out.printf("EndMessageExtract=%b\n",
@@ -1698,7 +1730,7 @@ public class PrefsManager {
 			PrefsManager.getMessageTextType(context, i, SEND_MESSAGE_AT_START));
 		out.printf("EndMessageTextType=%d\n",
 			PrefsManager.getMessageTextType(context, i, SEND_MESSAGE_AT_END));
-		String s = PrefsManager.getMessageLiteral(context, i, SEND_MESSAGE_AT_START);
+		s = PrefsManager.getMessageLiteral(context, i, SEND_MESSAGE_AT_START);
 		out.printf("StartMessageLiteral=%s\n", s.replace("%", "%p")
 												.replace("\"", "%q")
 												.replace("\n", "%n"));
@@ -2099,30 +2131,60 @@ public class PrefsManager {
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
 					} catch (NumberFormatException e) {}
 				}
+				else if (parts[0].compareTo("StartMessageAddressNull") == 0)
+				{
+					PrefsManager.setMessageAddress(
+						context, i, SEND_MESSAGE_AT_START, null);
+				}
 				else if (parts[0].compareTo("StartMessageAddress") == 0)
 				{
 					PrefsManager.setMessageAddress(
 						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageAddressNull") == 0)
+				{
+					PrefsManager.setMessageAddress(
+						context, i, SEND_MESSAGE_AT_END, null);
 				}
 				else if (parts[0].compareTo("EndMessageAddress") == 0)
 				{
 					PrefsManager.setMessageAddress(
 						context, i, SEND_MESSAGE_AT_END, parts[1]);
 				}
+				else if (parts[0].compareTo("StartMessageNumberNull") == 0)
+				{
+					PrefsManager.setMessageNumber(
+						context, i, SEND_MESSAGE_AT_START, null);
+				}
 				else if (parts[0].compareTo("StartMessageNumber") == 0)
 				{
 					PrefsManager.setMessageNumber(
 						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageNumberNull") == 0)
+				{
+					PrefsManager.setMessageNumber(
+						context, i, SEND_MESSAGE_AT_END, null);
 				}
 				else if (parts[0].compareTo("EndMessageNumber") == 0)
 				{
 					PrefsManager.setMessageNumber(
 						context, i, SEND_MESSAGE_AT_END, parts[1]);
 				}
+				else if (parts[0].compareTo("StartMessageContactNull") == 0)
+				{
+					PrefsManager.setMessageContact(
+						context, i, SEND_MESSAGE_AT_START, null);
+				}
 				else if (parts[0].compareTo("StartMessageContact") == 0)
 				{
 					PrefsManager.setMessageContact(
 						context, i, SEND_MESSAGE_AT_START, parts[1]);
+				}
+				else if (parts[0].compareTo("EndMessageContactNull") == 0)
+				{
+					PrefsManager.setMessageContact(
+						context, i, SEND_MESSAGE_AT_END, null);
 				}
 				else if (parts[0].compareTo("EndMessageContact") == 0)
 				{
