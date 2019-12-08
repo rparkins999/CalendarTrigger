@@ -231,6 +231,12 @@
     <string name="onlybusy">occupé</string>
     <string name="onlynotbusy">libre</string>
     <string name="busyandnot">n\'importe</string>
+    <string name="alldayhelp">Choisir évènements pour las classe %s qui durent tout le jour,
+        ou ne durent pas tout le jour, ou n\'importe leque.</string>
+    <string name="alldaylabel">et l\'évènement:</string>
+    <string name="onlyallday">dure tout le jour</string>
+    <string name="onlynotallday">ne dure pas toutle jour</string>
+    <string name="alldayandnot">n\'importe</string>
     <string name="recurrenthelp">Choisir évènements pour las classe %s qui sont
         récurrentes, non récurrentes, ou n\'importe lequel.</string>
     <string name="recurrentlabel">et l\'évènement est:</string>
@@ -276,9 +282,11 @@
         (zéro permis) en avant du début d\'un évènement quand CalendarTrigger
         commencera de considérer déclenchant les actions du début de
         l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
-        conditions ci-dessous.</string>
+        conditions ci-dessous. Un nombre négatif signifie minutes après
+        le du début de l\'évènement</string>
     <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
-    <string name="startnotuntilhelp">Retarder les actions du commencement de l\'évènement jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
+    <string name="startnotuntilhelp">Retarder les actions du commencement de l\'évènement
+        jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
     <string name="devicepositionlabel">L\'écran est:-</string>
     <string name="devicepositionhelp">Ici vous pouvez retarder les actions
         jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>

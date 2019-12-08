@@ -741,13 +741,33 @@ public class PrefsManager {
 	public static void setWhetherBusy(Context context, int classNum, int whetherBusy) {
 		String prefName = WHETHER_BUSY + String.valueOf(classNum) ;
 		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putInt(prefName, whetherBusy).commit();
+			.edit().putInt(prefName, whetherBusy).commit();
 	}
 
 	public static int getWhetherBusy(Context context, int classNum) {
 		String prefName = WHETHER_BUSY + String.valueOf(classNum) ;
 		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getInt(prefName, BUSY_AND_NOT);
+			.getInt(prefName, BUSY_AND_NOT);
+	}
+
+	// whether all day events, not not all day events, or both can be in class
+	// note the values here are determined by the order of the radio buttons
+	// in DefineClassFragment.java
+	public static final int ONLY_ALL_DAY = 0;
+	public static final int ONLY_NOT_ALL_DAY = 1;
+	public static final int ALL_DAY_AND_NOT = 2;
+	private static final String WHETHER_ALL_DAY = "whetherAllDay";
+
+	public static void setWhetherAllDay(Context context, int classNum, int whetherAllDay) {
+		String prefName = WHETHER_ALL_DAY + String.valueOf(classNum) ;
+		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.edit().putInt(prefName, whetherAllDay).commit();
+	}
+
+	public static int getWhetherAllDay(Context context, int classNum) {
+		String prefName = WHETHER_ALL_DAY + String.valueOf(classNum) ;
+		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			.getInt(prefName, ALL_DAY_AND_NOT);
 	}
 
 	// whether recurrent events, non-recurrent events, or both can be in class
@@ -1531,6 +1551,7 @@ public class PrefsManager {
 			  .remove(EVENT_COLOUR + (num))
 			  .remove(AGENDAS + (num))
 			  .remove(WHETHER_BUSY + (num))
+			  .remove(WHETHER_ALL_DAY + (num))
 			  .remove(WHETHER_RECURRENT + (num))
 			  .remove(WHETHER_ORGANISER + (num))
 			  .remove(WHETHER_PUBLIC + (num))
@@ -1609,7 +1630,9 @@ public class PrefsManager {
 		String prefName = AGENDAS + String.valueOf(i);
 		out.printf("agendas=%s\n", prefs.getString(prefName, ""));
 		out.printf("whetherBusy=%d\n",
-				   PrefsManager.getWhetherBusy(context, i));
+			PrefsManager.getWhetherBusy(context, i));
+		out.printf("whetherAllDay=%d\n",
+			PrefsManager.getWhetherAllDay(context, i));
 		out.printf("whetherRecurrent=%d\n",
 				   PrefsManager.getWhetherRecurrent(context, i));
 		out.printf("whetherOrganiser=%d\n",
@@ -1940,6 +1963,14 @@ public class PrefsManager {
 					try
 					{
 						PrefsManager.setWhetherBusy(
+							context, i, Integer.valueOf(parts[1]));
+					} catch (NumberFormatException e) { }
+				}
+				else if (parts[0].compareTo("whetherAllDay") == 0)
+				{
+					try
+					{
+						PrefsManager.setWhetherAllDay(
 							context, i, Integer.valueOf(parts[1]));
 					} catch (NumberFormatException e) { }
 				}

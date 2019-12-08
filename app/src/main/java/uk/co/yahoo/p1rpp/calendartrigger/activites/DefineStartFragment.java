@@ -101,7 +101,9 @@ public class DefineStartFragment extends Fragment {
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         minutesEditor = new EditText(ac);
-        minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        minutesEditor.setInputType(
+            android.text.InputType.TYPE_CLASS_NUMBER
+            | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         minutesEditor.setFilters(lf);
         Integer i =
             new Integer(PrefsManager.getBeforeMinutes(ac, classNum));

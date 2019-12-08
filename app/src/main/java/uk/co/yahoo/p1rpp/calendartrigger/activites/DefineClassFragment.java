@@ -18,11 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +61,7 @@ public class DefineClassFragment extends Fragment
     private ArrayList<calendarCheck> calChecks;
     private TextView invisible;
     private RadioGroup busyState;
+    private RadioGroup allDayState;
     private RadioGroup recurrentState;
     private RadioGroup organiserState;
     private RadioGroup publicState;
@@ -225,6 +224,46 @@ public class DefineClassFragment extends Fragment
         if (index == PrefsManager.BUSY_AND_NOT) { id = rb.getId(); }
         busyState.check(id);
         lll.addView(busyState, ww);
+        ll.addView(lll, ww);
+        lll = new LinearLayout(ac);
+        tv = new TextView(ac);
+        tv.setText(R.string.alldaylabel);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.alldayhelp, className)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            lll.setPadding((int)(scale * 25.0), 0, 0, 0);
+            tv.setPadding(0, (int)(scale * 7.0), 0, 0);
+            lll.addView(tv, ww);
+        } else {
+            lll.setPadding((int)(scale * 50.0), 0, 0, 0);
+            tv.setPadding((int)(scale * 25.0), 0, 0, 0);
+            ll.addView(tv, ww);
+        }
+        allDayState = new RadioGroup(ac);
+        allDayState.setOrientation(LinearLayout.HORIZONTAL);
+        index = PrefsManager.getWhetherAllDay(ac, classNum);
+        id = -1;
+        rb = new RadioButton(ac);
+        rb.setText(R.string.onlyallday);
+        allDayState.addView(rb, PrefsManager.ONLY_ALL_DAY, ww);
+        if (index == PrefsManager.ONLY_ALL_DAY) { id = rb.getId(); }
+        rb = new RadioButton(ac);
+        rb.setText(R.string.onlynotallday);
+        allDayState.addView(rb, PrefsManager.ONLY_NOT_ALL_DAY, ww);
+        if (index == PrefsManager.ONLY_NOT_ALL_DAY) { id = rb.getId(); }
+        rb = new RadioButton(ac);
+        rb.setText(R.string.alldayandnot);
+        allDayState.addView(rb, PrefsManager.ALL_DAY_AND_NOT, ww);
+        if (index == PrefsManager.ALL_DAY_AND_NOT) { id = rb.getId(); }
+        allDayState.check(id);
+        lll.addView(allDayState, ww);
         ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
@@ -415,6 +454,12 @@ public class DefineClassFragment extends Fragment
         for (index = 0; index <= PrefsManager.BUSY_AND_NOT; ++index) {
             if (busyState.getChildAt(index).getId() == id) {
                 PrefsManager.setWhetherBusy(ac, classNum, index);
+            }
+        }
+        id = allDayState.getCheckedRadioButtonId();
+        for (index = 0; index <= PrefsManager.ALL_DAY_AND_NOT; ++index) {
+            if (allDayState.getChildAt(index).getId() == id) {
+                PrefsManager.setWhetherAllDay(ac, classNum, index);
             }
         }
         id = recurrentState.getCheckedRadioButtonId();

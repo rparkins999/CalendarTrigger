@@ -68,26 +68,27 @@ public class CalendarProvider {
 		ArrayList<Long> calendarIds
 			= PrefsManager.getCalendars(context, classNum);
 		StringBuilder selClause = new StringBuilder();
+		selClause.append("( ").append(Instances.END)
+			.append(" > ? )");
 		if (!calendarIds.isEmpty())
 		{
-			selClause.append("(");
+			selClause.append(" AND (");
 			boolean first = true;
 			for (long id : calendarIds)
 			{
 				if (first)
 				{
 					first = false;
-				} else
+				}
+				else
 				{
 					selClause.append(" OR ");
 				}
 				selClause.append("(").append(Instances.CALENDAR_ID)
 						 .append("=").append(id).append(")");
 			}
-			selClause.append(") AND ");
+			selClause.append(")");
 		}
-		selClause.append(Instances.ALL_DAY)
-				 .append(" = 0");
 		for (int andIndex = 0; true; ++andIndex) {
 			int orIndex = 0;
 			for (; true; ++orIndex) {
@@ -136,17 +137,29 @@ public class CalendarProvider {
 		if (!s.isEmpty())
 		{
 			selClause.append(" AND ").append(Instances.EVENT_COLOR)
-					 .append(likeQuote(s));
+					 .append("=").append(likeQuote(s));
 		}
 		switch (PrefsManager.getWhetherBusy(context, classNum))
 		{
 			case PrefsManager.ONLY_BUSY:
 				selClause.append(" AND ").append(Instances.AVAILABILITY)
-						 .append("=").append(Instances.AVAILABILITY_BUSY);
+					.append("=").append(Instances.AVAILABILITY_BUSY);
 				break;
 			case PrefsManager.ONLY_NOT_BUSY:
 				selClause.append(" AND ").append(Instances.AVAILABILITY)
-						 .append("=").append(Instances.AVAILABILITY_FREE);
+					.append("=").append(Instances.AVAILABILITY_FREE);
+				break;
+			default:
+		}
+		switch (PrefsManager.getWhetherAllDay(context, classNum))
+		{
+			case PrefsManager.ONLY_ALL_DAY:
+				selClause.append(" AND ").append(Instances.ALL_DAY)
+						 .append("=").append("1");
+				break;
+			case PrefsManager.ONLY_NOT_ALL_DAY:
+				selClause.append(" AND ").append(Instances.ALL_DAY)
+						 .append("=").append("0");
 				break;
 			default:
 		}
@@ -254,8 +267,6 @@ public class CalendarProvider {
 		}
 		ContentResolver cr = context.getContentResolver();
 		StringBuilder selClause = selection(context, classNum);
-		selClause.append(" AND ( ").append(Instances.END)
-				 .append(" > ? )");
 		String[] selectionArgs = new String[] {
 			String.valueOf(currentTime - after)};
 		// Do query sorted by start time

@@ -222,6 +222,12 @@
     <string name="onlybusy">busy</string>
     <string name="onlynotbusy">not busy</string>
     <string name="busyandnot">either</string>
+    <string name="alldayhelp">Determine whether events which are or are not all day events,
+        or either (the default), are in class %s.</string>
+    <string name="alldaylabel">and the event is:</string>
+    <string name="onlyallday">all day</string>
+    <string name="onlynotallday">not all day</string>
+    <string name="alldayandnot">either</string>
     <string name="recurrenthelp">Determine whether events which are recurrent,
         not recurrent, or either (the default), are in class %s.</string>
     <string name="recurrentlabel">and the event is:</string>
@@ -264,7 +270,8 @@
     <string name="startminuteshelp">This defines the number of minutes (which
         may be zero) before the start time of the event at which
         CalendarTrigger will begin to consider triggering the event\'s start
-        action(s). This may however be delayed by other conditions below
+        action(s). This may however be delayed by other conditions below.
+        A negative number means minutes after the start time.
 		</string>
     <string name="startnotuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">Here you can delay the start action(s)
