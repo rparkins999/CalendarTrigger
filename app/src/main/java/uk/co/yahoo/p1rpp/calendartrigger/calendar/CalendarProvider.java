@@ -204,24 +204,29 @@ public class CalendarProvider {
 
 	// get next action times for event class
 	public class startAndEnd {
+
 		// Start time of current or next event, Long.MAX_VALUE if none
 		public long startTime;
 		public String startEventName;
-		
+		public String startEventDescription;
+
 		// End time of current or next event, currentTime if none
 		public long endTime;
 		public String endEventName;
+		public String endEventDescription;
 	}
 
 	private static final String[] INSTANCE_PROJECTION = new String[] {
 		Instances.BEGIN,
 		Instances.END,
 		Instances.TITLE,
+		Instances.DESCRIPTION
 	};
 
 	private static final int INSTANCE_PROJECTION_BEGIN_INDEX = 0;
 	private static final int INSTANCE_PROJECTION_END_INDEX = 1;
 	private static final int INSTANCE_PROJECTION_TITLE_INDEX = 2;
+	private static final int INSTANCE_PROJECTION_DESCRIPTION_INDEX = 3;
 
 	public startAndEnd nextActionTimes(
 		Context context, long currentTime, int classNum) {
@@ -235,6 +240,8 @@ public class CalendarProvider {
 			result.endTime = triggerEnd;
 			result.startEventName = "<immediate>";
 			result.endEventName = "<immediate>";
+			result.startEventDescription = "<immediate>";
+			result.endEventDescription = "<immediate>";
 		}
 		else
 		{
@@ -242,6 +249,8 @@ public class CalendarProvider {
 			result.endTime = currentTime;
 			result.startEventName = "";
 			result.endEventName = "";
+			result.startEventDescription = "";
+			result.endEventDescription = "";
 		}
 		ContentResolver cr = context.getContentResolver();
 		StringBuilder selClause = selection(context, classNum);
@@ -261,13 +270,21 @@ public class CalendarProvider {
 			{
 				// This can only happen once, because we sort the
 				// query on ascending start time
+				// FIXME THIS IS BIG
+				// Several events can start at the same time: if the action is to
+				// send a message, I need to send one for each event
 				result.startTime = start;
 				if (end > result.endTime)
 				{
 					result.endTime = end;
 					result.startEventName =
 						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+					result.startEventName =
+						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+					result.startEventDescription =
+						cur.getString(INSTANCE_PROJECTION_DESCRIPTION_INDEX);
 					result.endEventName = result.startEventName;
+					result.endEventDescription = result.startEventDescription;
 				}
 			}
 			else if (start <= result.endTime)
@@ -279,6 +296,8 @@ public class CalendarProvider {
 					result.endTime = end;
 					result.endEventName =
 						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+					result.endEventDescription =
+						cur.getString(INSTANCE_PROJECTION_DESCRIPTION_INDEX);
 				}
 			}
 			if (start > currentTime)

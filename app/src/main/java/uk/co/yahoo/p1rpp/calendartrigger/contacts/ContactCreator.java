@@ -1882,7 +1882,7 @@ public class ContactCreator {
 	// Check if s is the name of a contact and return a String[2]
 	// whose first element is the contact's email address or null
 	// and whose second element the contact's mobile number or null.
-	public static String[] getMessaging(Activity ac, String s) {
+	public static String[] getMessaging(Context ac, String s) {
 		String[] result = new String[2];
 		String[] parts = s.split(" ");
 		if (parts.length == 2) {

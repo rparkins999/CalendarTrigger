@@ -39,6 +39,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.PermissionChecker;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.telephony.SmsManager;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.widget.RemoteViews;
 
@@ -70,6 +72,9 @@ public class MuteService extends IntentService
 
 	public static final String MUTESERVICE_RESET =
 		"CalendarTrigger.MuteService.Reset";
+
+	public static final String MUTESERVICE_SMS_RESULT =
+		"CalendarTrigger.MuteService.SmaFail";
 
 	// some times in milliseconds
     private static final int SIXTYONE_SECONDS = 61 * 1000;
@@ -214,7 +219,7 @@ public class MuteService extends IntentService
 		}
 	}
 
-	private void emitNotification(String bigText, String path) {
+	private void emitNotification(String smallText, String bigText, String path) {
 		RemoteViews layout = new RemoteViews(
 			"uk.co.yahoo.p1rpp.calendartrigger",
 			R.layout.notification);
@@ -225,9 +230,9 @@ public class MuteService extends IntentService
 		Notification.Builder NBuilder
 			= new Notification.Builder(this)
 			.setSmallIcon(R.drawable.notif_icon)
-			.setContentTitle(getString(R.string.mode_sonnerie_change))
+			.setContentTitle(smallText)
 			.setContent(layout);
-		if (!path.isEmpty())
+		if ((path != null) && !path.isEmpty())
 		{
 			Uri uri = new Uri.Builder().path(path).build();
 			AudioAttributes.Builder ABuilder
@@ -244,30 +249,162 @@ public class MuteService extends IntentService
 
 	private void PermissionFail(int mode)
 	{
-		Notification.Builder builder
-			= new Notification.Builder(this)
-			.setSmallIcon(R.drawable.notif_icon)
-			.setContentText(getString(R.string.permissionfail))
-			.setStyle(new Notification.BigTextStyle()
-                .bigText(getString(R.string.permissionfailbig)));
-		// Show notification
-		NotificationManager notifManager = (NotificationManager)
-			getSystemService(Context.NOTIFICATION_SERVICE);
-		notifManager.notify(notifyId++, builder.build());
+		emitNotification(getString(R.string.permissionfail),
+			getString(R.string.permissionfailbig), null);
 		new MyLog(this, "Cannot set mode "
 						+ PrefsManager.getRingerStateName(this, mode)
 				  		+ " because CalendarTrigger no longer has permission "
 				  		+ "ACCESS_NOTIFICATION_POLICY.");
 	}
 
-	// Send a text message
-	public void sendSMS(String phone_number, String text) {
-		Intent intent = new Intent(Intent.ACTION_SENDTO);
-		intent.putExtra("sms_body", text);
-		intent.setData(Uri.parse("smsto:" + phone_number));
-		if (intent.resolveActivity(getPackageManager()) != null) {
-			startActivity(intent);
+	// Try to get an email address and/or a phone number from a contact
+	private String[] destinationFromContact(
+	int classNum, int startOrEnd, String eventname) {
+		String s = PrefsManager.getMessageContact(this, classNum, startOrEnd);
+		if (s == null) {
+			if (PrefsManager.getMessageExtract(this, classNum, startOrEnd)) {
+				//Parse the event name to get a contact
+				String[] sen = eventname.split(" ");
+				int len = sen.length;
+				int first = PrefsManager.getMessageFirstCount(
+					this, classNum, startOrEnd);
+				if (PrefsManager.getMessageFirstDir(this, classNum, startOrEnd)
+					== PrefsManager.MESSAGE_DIRECTION_LEFT) {
+					first = len - first - 1;
+				}
+				if ((first >= len) || (first < 0)){
+					new MyLog(this,
+						"No word " + first + " in event name " + eventname);
+					return null;
+				}
+				int last = PrefsManager.getMessageLastCount(
+					this, classNum, startOrEnd);
+				if (PrefsManager.getMessageLastDir(this, classNum, startOrEnd)
+					== PrefsManager.MESSAGE_DIRECTION_LEFT) {
+					last = len - last - 1;
+				}
+				if ((last >= len) || (last < 0)){
+					new MyLog(this,
+						"No word " + last + " in event name " + eventname);
+					return null;
+				}
+				String sf = sen[first];
+				String sl = sen[last];
+				if (PrefsManager.getMessageTrim(this, classNum, startOrEnd)) {
+					sf = sf.replace(",", "")
+						.replace("'s", "");
+					sl = sl.replace(",", "")
+						.replace("'s", "");
+				}
+				s = sf + " " + sl;
+			}
+			else
+			{
+				new MyLog(this,
+					"No destination specified for class "
+						+ PrefsManager.getClassName(this, classNum)
+						+ " event " + eventname);
+				return null;
+			}
 		}
+		return ContactCreator.getMessaging(this, s);
+	}
+
+	// Send a text message
+	@TargetApi(android.os.Build.VERSION_CODES.M)
+	private void sendSMS(int apiVersion, int classNum, int startOrEnd,
+						 CalendarProvider.startAndEnd result) {
+		String eventname = startOrEnd == PrefsManager.SEND_MESSAGE_AT_START
+			? result.startEventName
+			: result.endEventName;
+		String dest = PrefsManager.getMessageNumber(this, classNum, startOrEnd);
+		if ((dest == null) || dest.isEmpty()){
+			dest = destinationFromContact(classNum, startOrEnd, eventname)[0];
+			if ((dest == null) || dest.isEmpty()){
+				new MyLog(this,
+					"Could not find phone number for class "
+						+ PrefsManager.getClassName(this, classNum)
+						+ " event " + eventname);
+				return;
+			}
+		}
+		String body;
+		switch (PrefsManager.getMessageTextType(this, classNum, startOrEnd)) {
+			case PrefsManager.MESSAGE_TEXT_NONE:
+			default:
+				body = null;
+				break;
+			case PrefsManager.MESSAGE_TEXT_CLASSNAME:
+				body = PrefsManager.getClassName(this, classNum);
+				break;
+			case PrefsManager.MESSAGE_TEXT_EVENTNAME:
+				body = eventname;
+				break;
+			case PrefsManager.MESSAGE_TEXT_EVENTDESCRIPTION:
+				body = startOrEnd == PrefsManager.SEND_MESSAGE_AT_START
+					? result.startEventDescription
+					: result.endEventDescription;
+				break;
+			case PrefsManager.MESSAGE_TEXT_LITERAL:
+				body = PrefsManager.getMessageLiteral(this, classNum, startOrEnd);
+		}
+		if ((body == null) || body.isEmpty()) {
+			new MyLog(this,
+				"No message sent because of empty message body for class "
+					+ PrefsManager.getClassName(this, classNum)
+					+ " event " + eventname);
+			return;
+		}
+		boolean canSendSms =
+			PackageManager.PERMISSION_GRANTED ==
+				PermissionChecker.checkSelfPermission(
+					this, Manifest.permission.SEND_SMS);
+		if (!canSendSms) {
+			emitNotification("No Permission to send SMS messages",
+				"CalendarTrigger does not have permission" +
+					" to send SMS messages.",
+				null);
+			new MyLog(this,
+				"No permission to send SMS messages");
+			return;
+		}
+		SmsManager smsManager;
+		if (apiVersion >= android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
+			int id = SmsManager.getDefaultSmsSubscriptionId();
+			if (id == -1) {
+				emitNotification("No Default subscription ID",
+					"Running on API level 22 or later,"
+						+ "but SmsManager.getDefaultSmsSubscriptionId() fails.",
+					null);
+				new MyLog(this,
+					"Running on API level 22 or later,"
+					+ "but SmsManager.getDefaultSmsSubscriptionId() fails.");
+				smsManager = SmsManager.getDefault();
+			}
+			else
+			{
+				smsManager = SmsManager.getSmsManagerForSubscriptionId(id);
+			}
+		}
+		else
+		{
+			smsManager = SmsManager.getDefault();
+		}
+		ArrayList<String> bodyParts = smsManager.divideMessage(body);
+		int n = bodyParts.size();
+		ArrayList<PendingIntent> intents = new ArrayList<PendingIntent>(n);
+		for (int i = 0; i < n; ++i) {
+			Intent intent = new Intent(MUTESERVICE_SMS_RESULT, null,
+				this, MuteService.class);
+			intent.putExtra("PartNumber", i);
+			intent.putExtra("EventName", eventname);
+			intents.add(i, PendingIntent.getBroadcast(
+				this, i,
+				intent,0));
+		}
+		new MyLog(this, "Sending SMS for event " + eventname);
+		smsManager.sendMultipartTextMessage(
+			dest, null, bodyParts, intents, null);
 	}
 
 	// Check if there is a current call (not a ringing call).
@@ -311,16 +448,9 @@ public class MuteService extends IntentService
 			{
 				if (!PrefsManager.getNotifiedCannotReadPhoneState(this))
 				{
-					Notification.Builder builder
-						= new Notification.Builder(this)
-						.setSmallIcon(R.drawable.notif_icon)
-						.setContentText(getString(R.string.readphonefail))
-						.setStyle(new Notification.BigTextStyle()
-									  .bigText(getString(R.string.readphonefailbig)));
-					// Show notification
-					NotificationManager notifManager = (NotificationManager)
-						getSystemService(Context.NOTIFICATION_SERVICE);
-					notifManager.notify(notifyId++, builder.build());
+					emitNotification(getString(R.string.readphonefail),
+						getString(R.string.readphonefailbig),
+						null);
 					new MyLog(this, "CalendarTrigger no longer has permission "
 									+ "READ_PHONE_STATE.");
 					PrefsManager.setNotifiedCannotReadPhoneState(this, true);
@@ -442,20 +572,11 @@ public class MuteService extends IntentService
 		}
 		catch (Exception e)
 		{
-			Resources res = getResources();
-			NotificationCompat.Builder builder
-				= new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.notif_icon)
-				.setContentTitle(getString(R.string.logcyclingerror))
-				.setContentText(e.toString());
-			// Show notification
-			NotificationManager notifManager = (NotificationManager)
-				getSystemService(Context.NOTIFICATION_SERVICE);
-			notifManager.notify(DataStore.NOTIFY_ID, builder.build());
+			emitNotification(getString(R.string.logcyclingerror),
+				e.toString(), null);
 			new MyLog(this,
 					  "Exited doLogCycling because of exception "
 						+ e.toString());
-			return;
 		}
 	}
 
@@ -466,8 +587,12 @@ public class MuteService extends IntentService
 		{
 			SensorManager sensorManager =
 				(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
-			Sensor sensor =
-				sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER, true);
+			Sensor sensor;
+			try {
+				sensor =
+					sensorManager.getDefaultSensor(
+						Sensor.TYPE_STEP_COUNTER, true);
+			} catch (NullPointerException e) { sensor = null; }
             if (sensor == null)
             {
                 // if we can't get a wakeup step counter, try without
@@ -1121,6 +1246,14 @@ public class MuteService extends IntentService
 								PrefsManager.setClassActive(
 									this, classNum, true);
 							}
+							int messageType =
+								PrefsManager.getMessageType(
+									this, classNum,
+									PrefsManager.SEND_MESSAGE_AT_START);
+							if (messageType == PrefsManager.SEND_MESSAGE_SMS) {
+								sendSMS(currentApiVersion, classNum,
+									PrefsManager.SEND_MESSAGE_AT_START, result);
+							}
 						}
 					}
 				}
@@ -1397,39 +1530,37 @@ public class MuteService extends IntentService
 			if (PrefsManager.getPlaysoundEnd(this, endClassNum)) {
 				String path = PrefsManager.getSoundFileEnd(
 					this, endClassNum);
-				emitNotification(longText, path);
+				emitNotification(getString(R.string.mode_sonnerie_change),
+					longText, path);
 				new MyLog(this,
 						  "Playing sound for end of event "
 						  + endEvent + " of class " + endClassName);
 			}
 			else if (changed && (wantedMode < current)) {
-				emitNotification(longText, "");
+				emitNotification(getString(R.string.mode_sonnerie_change),
+					longText, "");
 			}
 		}
 		if (startNotifyWanted)
 		{
 			longText = shortText
-					   + " "
-					   + getString(R.string.eventstart)
-					   + " "
-					   + startEvent
-					   + " "
-					   + getString(R.string.ofclass)
-					   + " "
-					   + startClassName;
+					   + " " + getString(R.string.eventstart)
+					   + " " + startEvent
+					   + " " + getString(R.string.ofclass)
+					   + " " + startClassName;
 			if (PrefsManager.getPlaysoundStart(this, startClassNum)) {
 				String path = PrefsManager.getSoundFileStart(
 					this, startClassNum);
-				emitNotification(longText, path);
+				emitNotification(shortText, longText, path);
 				new MyLog(this,
 						  "Playing sound for start of event "
 						  + startEvent + " of class " + startClassName);
 			}
 			else if (changed) {
-				emitNotification(longText, "");
+				emitNotification(longText, "", null);
 			}
 		}
-		if (startEvent != "")
+		if (!startEvent.isEmpty())
 		{
 			new MyLog(this,
 					  "Setting audio mode to "
@@ -1440,7 +1571,7 @@ public class MuteService extends IntentService
 					  + " of class "
 					  + startClassName);
 		}
-		else if (endEvent != "")
+		else if (!endEvent.isEmpty())
 		{
 			new MyLog(this,
 					  "Setting audio mode to "
@@ -1741,6 +1872,20 @@ public class MuteService extends IntentService
 		if (intent.getAction() == MUTESERVICE_RESET) {
 			doReset();
 		}
+		else if (intent.getAction() == MUTESERVICE_SMS_RESULT) {
+			int result = intent.getIntExtra("ResultCode", Activity.RESULT_OK);
+			if (result != Activity.RESULT_OK) {
+				String bigText = "Failed (" + result + ") to send SMS message part "
+					+ intent.getIntExtra("PartNumber", 0)
+					+ " for event "
+					+ intent.getStringExtra("EventName");
+				emitNotification(
+					"SMS send failure " + result, bigText, null);
+				new MyLog(this, bigText);
+			}
+			WakefulBroadcastReceiver.completeWakefulIntent(intent);
+			return;
+		}
 		updateState(intent);
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);
 	}
@@ -1751,6 +1896,7 @@ public class MuteService extends IntentService
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			intent.setClass(context, MuteService.class);
+			intent.putExtra("ResultCode", getResultCode());
 			startWakefulService(context, intent);
 		}
 	}
