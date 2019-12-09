@@ -18,4 +18,8 @@
         <item>@string/start</item>
         <item>@string/end</item>
     </string-array>
+    <string-array name="beforeorafter">
+        <item>@string/before</item>
+        <item>@string/after</item>
+    </string-array>
 </resources>

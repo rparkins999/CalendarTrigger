@@ -259,20 +259,22 @@
         action(s) to be triggered for an event in class %s.</string>
     <string name="definestartpopup">This screen allows you to define when
         the start action(s) for an event in class %s will be triggered. This can
-        be a set number of minutes (defaulting to zero) before the start time
-        of the event, possibly delayed until the device is in some particular
+        be a set number of minutes (defaulting to zero) before or after the start
+        time of the event, possibly delayed until the device is in some particular
         state. When you have done, press the back button. A long press on any
         of the controls below will bring up some help information about it.
     </string>
     <string name="definestartlist">Do start action(s) for an event in class %s:-
     </string>
-    <string name="startminuteslabel">minutes before event start time</string>
+    <string name="minutes">minutes</string>
+    <string name="startminuteslabel">event start time</string>
     <string name="startminuteshelp">This defines the number of minutes (which
-        may be zero) before the start time of the event at which
+        may be zero) before or after the start time of the event at which
         CalendarTrigger will begin to consider triggering the event\'s start
         action(s). This may however be delayed by other conditions below.
-        A negative number means minutes after the start time.
 		</string>
+    <string name="before">before</string>
+    <string name="after">after</string>
     <string name="startnotuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">Here you can delay the start action(s)
         until the device is in some particular state.
@@ -391,16 +393,16 @@
         action(s) to be triggered for an event in class %s.</string>
     <string name="definestoppopup">This screen allows you to define when
         the end action(s) for an event in class %s will be triggered. This can
-        be a set number of minutes (defaulting to zero) after the end time
-        of the event, possibly delayed until the device has moved by some
+        be a set number of minutes (defaulting to zero) before or after the end
+        time of the event, possibly delayed until the device has moved by some
         distance or is in some particular state. When you have done, press the
         back button. A long press on any of the controls below will bring up
         some help information about it.</string>
     <string name="definestoplist">Do end action for an event in class %s:-
     </string>
-    <string name="stopminuteslabel">minutes after event end time</string>
+    <string name="stopminuteslabel">event end time</string>
     <string name="stopminuteshelp">This defines the number of minutes (which
-        may be zero) after the end time of the event at which
+        may be zero) before or after the end time of the event at which
         CalendarTrigger will begin to consider triggering the event\'s end
         action. It may however be delayed by other conditions below.</string>
     <string name="stopnotuntillabel">but not until:-</string>

@@ -270,20 +270,22 @@
     </string>
     <string name="definestartpopup">Ici vous pouvez définir les conditions
         requises pour déclencher les actions du début d\'un évènement de la
-        classe %s. Ceci peut être un certain nombre de minutes (défaut zéro) en
-        avant du début, soit retardé jusqu\'à ce que l\'appareil arrive à un
+        classe %s. Ceci peut être un certain nombre de minutes avant ou apres
+        le début, soit retardé jusqu\'à ce que l\'appareil arrive à un
         état spécifié. Quand vous avez fini, touchez \'fin\'. Une longue touche
         d\'un bouton montrera un message d\'assistance.</string>
     <string name="definestartlist">Déclencher les actions du début d\'un
         évènement de la classe %s:-</string>
-    <string name="startminuteslabel">minutes avant début de l\'évènement
+    <string name="minutes">minutes</string>
+    <string name="startminuteslabel">le début de l\'évènement
     </string>
     <string name="startminuteshelp">Ceci précise le nombre de minutes
-        (zéro permis) en avant du début d\'un évènement quand CalendarTrigger
+        avant ou après le début d\'un évènement quand CalendarTrigger
         commencera de considérer déclenchant les actions du début de
         l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
-        conditions ci-dessous. Un nombre négatif signifie minutes après
-        le du début de l\'évènement</string>
+        conditions ci-dessous.t</string>
+    <string name="before">avant</string>
+    <string name="after">après</string>
     <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
     <string name="startnotuntilhelp">Retarder les actions du commencement de l\'évènement
         jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
@@ -385,17 +387,17 @@
         les actions à ou après la fin d\'un évènement de la classe %s.</string>
     <string name="definestoppopup">Ici vous pouvez définir les conditions
         requises pour déclencher les actions à la fin d\'un évènement de la
-        classe %s. Ceci peut être un certain nombre de minutes (défaut zéro)
+        classe %s. Ceci peut être un certain nombre de minutes avant ou
         après la fin, soit retardé jusqu\'à ce que l\'appareil bouge par une
         distance spécifiée ou arrive à un état spécifié. Quand vous avez fini,
         touchez \'fin\'. Une longue touche d\'un bouton montrera un message
         d\'assistance.</string>
     <string name="definestoplist">Déclencher les actions pour la fin d\'un
         évènement de la classe %s:- </string>
-    <string name="stopminuteslabel">minutes après la fin de l\'évènement
+    <string name="stopminuteslabel">la fin de l\'évènement
     </string>
     <string name="stopminuteshelp">Ceci précise le nombre de minutes
-        (zéro permis) après la fin d\'un évènement quand CalendarTrigger
+        avant ou après la fin d\'un évènement quand CalendarTrigger
         commencera de considérer déclenchant les actions de la fin de
         l\'évènement. Il est possible d\'avoir un delai au conséquent des autres
         conditions ci-dessous.</string>

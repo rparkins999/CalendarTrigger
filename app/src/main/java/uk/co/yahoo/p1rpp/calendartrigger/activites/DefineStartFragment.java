@@ -11,9 +11,12 @@ import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +34,7 @@ public class DefineStartFragment extends Fragment {
     private float scale;
 
     private EditText minutesEditor;
+    private Spinner beforeAfter;
     private CheckBox faceUp;
     private CheckBox faceDown;
     private CheckBox anyPosition;
@@ -107,8 +111,27 @@ public class DefineStartFragment extends Fragment {
         minutesEditor.setFilters(lf);
         Integer i =
             new Integer(PrefsManager.getBeforeMinutes(ac, classNum));
-        minutesEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
+        minutesEditor.setText(String.valueOf(i > 0 ? i : -i),
+            TextView.BufferType.EDITABLE);
         lll.addView(minutesEditor);
+        tv = new TextView(ac);
+        tv.setText(R.string.minutes);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, getString(R.string.stopminuteshelp),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        lll.addView(tv, ww);
+        ArrayAdapter<?> ad = ArrayAdapter.createFromResource(
+            ac, R.array.beforeorafter, R.layout.activity_text_viewer);
+        ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        beforeAfter = new Spinner(ac);
+        beforeAfter.setAdapter(ad);
+        beforeAfter.setSelection((i >= 0 ? 0 : 1));
+        lll.addView(beforeAfter);
         tv = new TextView(ac);
         tv.setText(R.string.startminuteslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -284,9 +307,12 @@ public class DefineStartFragment extends Fragment {
         final EditActivity ac = (EditActivity)getActivity();
         int classNum = PrefsManager.getClassNum(
             ac, getArguments().getString(ARG_CLASS_NAME));
-        String s = new String(minutesEditor.getText().toString());
+        String s = minutesEditor.getText().toString();
+        int i = s.isEmpty() ? 0 : Integer.parseInt(s);
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setBeforeMinutes(ac, classNum, new Integer(s));
+        PrefsManager.setAfterMinutes(ac, classNum, i);
+        if (beforeAfter.getSelectedItemPosition() != 0) { i = -i; }
+        PrefsManager.setBeforeMinutes(ac, classNum, i);
         int orientations = 0;
         if (faceUp.isChecked())
         {

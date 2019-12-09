@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,6 +36,7 @@ public class DefineStopFragment extends Fragment {
     private boolean haveStepCounter;
     private boolean havelocation;
     private EditText minutesEditor;
+    private Spinner beforeAfter;
     private TextView firstStepsLabel;
     private EditText stepCountEditor;
     private TextView lastStepsLabel;
@@ -112,12 +114,32 @@ public class DefineStopFragment extends Fragment {
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         minutesEditor = new EditText(ac);
-        minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+            | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         minutesEditor.setFilters(lf);
         Integer i =
             new Integer(PrefsManager.getAfterMinutes(ac, classNum));
-        minutesEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
+        minutesEditor.setText(String.valueOf(i > 0 ? i : -i),
+            TextView.BufferType.EDITABLE);
         lll.addView(minutesEditor);
+        tv = new TextView(ac);
+        tv.setText(R.string.minutes);
+        tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac, getString(R.string.stopminuteshelp),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
+        lll.addView(tv, ww);
+        ArrayAdapter<?> ad = ArrayAdapter.createFromResource(
+            ac, R.array.beforeorafter, R.layout.activity_text_viewer);
+        ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        beforeAfter = new Spinner(ac);
+        beforeAfter.setAdapter(ad);
+        beforeAfter.setSelection((i <= 0 ? 0 : 1));
+        lll.addView(beforeAfter);
         tv = new TextView(ac);
         tv.setText(R.string.stopminuteslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -369,9 +391,11 @@ public class DefineStopFragment extends Fragment {
         final EditActivity ac = (EditActivity)getActivity();
         int classNum = PrefsManager.getClassNum(
             ac, getArguments().getString(ARG_CLASS_NAME));
-        String s = new String(minutesEditor.getText().toString());
+        String s = minutesEditor.getText().toString();
+        int i = s.isEmpty() ? 0 : Integer.parseInt(s);
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterMinutes(ac, classNum, new Integer(s));
+        if (beforeAfter.getSelectedItemPosition() == 0) { i = -i; }
+        PrefsManager.setAfterMinutes(ac, classNum, i);
         s = new String(stepCountEditor.getText().toString());
         if (s.isEmpty()) { s = "0"; }
         PrefsManager.setAfterSteps(ac, classNum, new Integer(s));
