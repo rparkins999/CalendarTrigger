@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2016. Richard P. Parkins, M. A.
+ * Copyright (c) 2019. Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import java.io.File;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledCheckBox;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
@@ -28,7 +31,6 @@ import static android.text.TextUtils.htmlEncode;
  */
 public class ActionStopFragment extends ActionFragment {
     private static final String ARG_CLASS_NAME = "class name";
-    private float scale;
     private CheckBox ringerRestore;
 
     public ActionStopFragment() {
@@ -57,11 +59,13 @@ public class ActionStopFragment extends ActionFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
         View rootView =
-            inflater.inflate(R.layout.fragment_action_stop, container, false);
+            inflater.inflate(R.layout.dynamicscrollview, container, false);
         scale = getResources().getDisplayMetrics().density;
         return rootView;
     }
 
+	@SuppressLint("ResourceType")
+    @TargetApi(android.os.Build.VERSION_CODES.M)
     @Override
     public void onResume() {
         super.onResume();
@@ -78,7 +82,7 @@ public class ActionStopFragment extends ActionFragment {
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         LinearLayout ll =
-            (LinearLayout)ac.findViewById(R.id.actionstoplayout);
+            (LinearLayout)ac.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);
@@ -136,7 +140,7 @@ public class ActionStopFragment extends ActionFragment {
         ll.addView(showNotification, ww);
         lll = new LinearLayout(ac);
         lll.setPadding((int)(scale * 40.0), 0, 0, 0);
-        playSound = new CheckBox(ac);
+        playSound = new DisabledCheckBox(ac);
         playSound.setEnabled(notif);
         playSound.setText(R.string.playsound);
         playSound.setChecked(PrefsManager.getPlaysoundEnd(ac, classNum));
@@ -188,6 +192,7 @@ public class ActionStopFragment extends ActionFragment {
         });
         lll.addView(soundFilename, ww);
         ll.addView(lll, ww);
+        layoutSendMessage(ll,  ww, classNum, PrefsManager.SEND_MESSAGE_AT_END);
     }
 
     @Override
@@ -210,5 +215,6 @@ public class ActionStopFragment extends ActionFragment {
         else {
             PrefsManager.setSoundFileEnd( ac, classNum, "");
         }
+        saveOnPause(ac, classNum, PrefsManager.SEND_MESSAGE_AT_END);
     }
 }

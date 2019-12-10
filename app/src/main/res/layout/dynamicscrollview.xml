@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright (c) 2019. Richard P. Parkins, M. A.
+   Released under GPL V3 or later
+  -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="left|top"
+        android:padding="10dp"
+        android:orientation="vertical"
+        android:id="@+id/dynamicscrollview">
+    </LinearLayout>
+</ScrollView>

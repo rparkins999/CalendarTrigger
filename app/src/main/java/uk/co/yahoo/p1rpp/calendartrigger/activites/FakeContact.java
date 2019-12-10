@@ -127,7 +127,7 @@ public class FakeContact extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             );
             LinearLayout ll =
-                (LinearLayout)findViewById(R.id.fakecontactlayout);
+                (LinearLayout)findViewById(R.id.dynamicscrollview);
             ll.removeAllViews();
             // All this code is only in debug builds
             // so we don't bother with languages here
@@ -311,7 +311,7 @@ public class FakeContact extends Activity {
         {
             if (dump == null)
             {
-                setContentView(R.layout.activity_fake_contact);
+                setContentView(R.layout.dynamicscrollview);
                 reResume();
             }
             else
@@ -326,7 +326,7 @@ public class FakeContact extends Activity {
         {
             if (dump != null)
             {
-                setContentView(R.layout.activity_fake_contact);
+                setContentView(R.layout.dynamicscrollview);
                 dump = null;
                 reResume();
                 return;

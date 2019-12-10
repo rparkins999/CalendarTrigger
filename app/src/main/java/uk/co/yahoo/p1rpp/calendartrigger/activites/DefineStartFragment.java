@@ -60,7 +60,7 @@ public class DefineStartFragment extends Fragment {
         Bundle savedInstanceState) {
         View rootView =
             inflater.inflate(
-                R.layout.fragment_define_start, container, false);
+                R.layout.dynamicscrollview, container, false);
         scale = getResources().getDisplayMetrics().density;
         return rootView;
     }
@@ -83,7 +83,7 @@ public class DefineStartFragment extends Fragment {
             new InputFilter.LengthFilter(6)
         };
         LinearLayout ll =
-            (LinearLayout)ac.findViewById(R.id.definestartlayout);
+            (LinearLayout)ac.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);

@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
@@ -145,10 +146,12 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		invalidateOptionsMenu();
-		View v = getLayoutInflater().inflate(R.layout.fragment_action_stop, null);
+		View v = getLayoutInflater().inflate(R.layout.dynamicscrollview, null);
 		setContentView(v);
 		int classNum = PrefsManager.getLastImmediate(mThis);
 		if (classNum >= 0) {
+			LinearLayout ll =
+				(LinearLayout)mThis.findViewById(R.id.dynamicscrollview);
 			final String className = PrefsManager.getClassName(mThis, classNum);
 			final String italicName = "<i>" + htmlEncode(className) + "</i>";
 			Button b = new Button(mThis);
@@ -170,7 +173,7 @@ public class MainActivity extends Activity {
 					return true;
 				}
 			});
-			((ViewGroup)v).addView(b);
+			ll.addView(b);
 		}
 	}
 

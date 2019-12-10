@@ -59,7 +59,7 @@ public class FloatActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_float);
+        setContentView(R.layout.dynamicscrollview);
         floatactivity = this;
         floatingTimeEvents =
             DataStore.getFloatingEvents(this, false);
@@ -85,7 +85,7 @@ public class FloatActivity extends Activity
                         this, Manifest.permission.WRITE_CALENDAR))
         {
             LinearLayout ll =
-                    (LinearLayout)findViewById(R.id.float_activity_container);
+                    (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
             tv.setText(getString(R.string.nomodifypermission));
             ll.addView(tv);
@@ -95,7 +95,7 @@ public class FloatActivity extends Activity
                         this, Manifest.permission.READ_EXTERNAL_STORAGE))
         {
             LinearLayout ll =
-                (LinearLayout)findViewById(R.id.float_activity_container);
+                (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
             tv.setText(getString(R.string.floatnoreadpermission));
             ll.addView(tv);
@@ -105,7 +105,7 @@ public class FloatActivity extends Activity
                 this, Manifest.permission.WRITE_EXTERNAL_STORAGE))
         {
             LinearLayout ll =
-                (LinearLayout)findViewById(R.id.float_activity_container);
+                (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
             tv.setText(getString(R.string.floatnowritepermission));
             ll.addView(tv);
@@ -179,7 +179,7 @@ public class FloatActivity extends Activity
     private static final int INDEX_EVENT_RRULE = 2;
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        LinearLayout ll = (LinearLayout)findViewById(R.id.float_activity_container);
+        LinearLayout ll = (LinearLayout)findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(this);
         ContentResolver cr = getContentResolver();

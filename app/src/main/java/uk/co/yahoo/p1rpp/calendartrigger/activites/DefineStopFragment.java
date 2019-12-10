@@ -69,7 +69,7 @@ public class DefineStopFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
         View rootView =
-            inflater.inflate(R.layout.fragment_define_stop, container, false);
+            inflater.inflate(R.layout.dynamicscrollview, container, false);
         scale = getResources().getDisplayMetrics().density;
         return rootView;
     }
@@ -92,7 +92,7 @@ public class DefineStopFragment extends Fragment {
             new InputFilter.LengthFilter(6)
         };
         LinearLayout ll =
-            (LinearLayout)ac.findViewById(R.id.definestoplayout);
+            (LinearLayout)ac.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);

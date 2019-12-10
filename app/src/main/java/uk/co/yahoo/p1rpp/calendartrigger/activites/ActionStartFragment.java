@@ -12,7 +12,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -66,7 +65,7 @@ public class ActionStartFragment extends ActionFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
         View rootView =
-            inflater.inflate(R.layout.fragment_action_start, container, false);
+            inflater.inflate(R.layout.dynamicscrollview, container, false);
         scale = getResources().getDisplayMetrics().density;
         return rootView;
     }
@@ -96,7 +95,7 @@ public class ActionStartFragment extends ActionFragment {
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         LinearLayout ll =
-            (LinearLayout) ac.findViewById(R.id.actionstartlayout);
+            (LinearLayout) ac.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);
@@ -353,7 +352,7 @@ public class ActionStartFragment extends ActionFragment {
             hasFileName = true;
             soundFilename.setText(sf);
         }
-        soundFilename.setOnClickListener(new OnClickListener() {
+        soundFilename.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 getFile();
             }

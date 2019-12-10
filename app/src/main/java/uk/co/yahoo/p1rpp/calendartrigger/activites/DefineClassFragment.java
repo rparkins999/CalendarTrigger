@@ -118,10 +118,6 @@ public class DefineClassFragment extends Fragment
         final String className =
             "<i>" + htmlEncode(getArguments().getString(ARG_CLASS_NAME)) +
             "</i>";
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
