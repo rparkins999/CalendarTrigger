@@ -337,7 +337,7 @@ public class MuteService extends IntentService
 	// Check if the time zone has changed.
 	// If it has, we wait a bit for the CalendarProvider to update before undoing
 	// its changes for any floating time events.
-	private int CheckTimeZone(long currentTime) {
+	private void CheckTimeZone(long currentTime, CalendarProvider provider) {
 		int lastOffset = PrefsManager.getLastTimezoneOffset(this);
 		new MyLog(this, "CheckTimeZone: lastoffset is "
 			+ logOffset(lastOffset));
@@ -353,23 +353,20 @@ public class MuteService extends IntentService
 				PrefsManager.setLastSeenOffset(this, currentOffset);
 				PrefsManager.setUpdateTime(
 						this, currentTime + FIVE_MINUTES);
-				return 0;
 			}
 			else if (PrefsManager.getUpdateTime(this) <= currentTime)
 			{
 				// At least 5 minutes since last time zone change
 				PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 				PrefsManager.setLastTimezoneOffset(this, currentOffset);
-				return currentOffset;
+				provider.doTimeZoneAdjustment(this, currentOffset);
 			}
-			// else fall through to return 0
 		}
 		else
 		{
 			PrefsManager.setLastSeenOffset(this, currentOffset);
 			PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 		}
-		return 0;
 	}
 
 	// Do log cycling if it is enabled and needed now
@@ -918,13 +915,9 @@ public class MuteService extends IntentService
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
-		int tzOffset = CheckTimeZone(currentTime);
-		doLogCycling(currentTime);
 		CalendarProvider provider = new CalendarProvider(this);
-		if (tzOffset != 0)
-		{
-			provider.doTimeZoneAdjustment(this, tzOffset);
-		}
+		CheckTimeZone(currentTime, provider);
+		doLogCycling(currentTime);
 		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
