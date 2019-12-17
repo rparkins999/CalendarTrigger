@@ -21,9 +21,9 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.activites.ArrayAdapter;
 import uk.co.yahoo.p1rpp.calendartrigger.activites.SettingsActivity;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 
 import static android.provider.CalendarContract.Events.AVAILABILITY_BUSY;
 import static android.provider.CalendarContract.Events.AVAILABILITY_FREE;

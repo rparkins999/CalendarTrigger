@@ -17,7 +17,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -36,11 +35,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.PermissionChecker;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.SmsManager;
-import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.widget.RemoteViews;
 
@@ -58,12 +55,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
-import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.DataStore;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static java.net.Proxy.Type.HTTP;
 
@@ -476,7 +473,7 @@ public class MuteService extends IntentService
 	// Check if the time zone has changed.
 	// If it has, we wait a bit for the CalendarProvider to update before undoing
 	// its changes for any floating time events.
-	private int CheckTimeZone(long currentTime) {
+	private int CheckTimeZone(long currentTime, CalendarProvider provider) {
 		int lastOffset = PrefsManager.getLastTimezoneOffset(this);
 		new MyLog(this, "CheckTimeZone: lastoffset is "
 			+ logOffset(lastOffset));
@@ -492,14 +489,13 @@ public class MuteService extends IntentService
 				PrefsManager.setLastSeenOffset(this, currentOffset);
 				PrefsManager.setUpdateTime(
 						this, currentTime + FIVE_MINUTES);
-				return 0;
 			}
 			else if (PrefsManager.getUpdateTime(this) <= currentTime)
 			{
 				// At least 5 minutes since last time zone change
 				PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 				PrefsManager.setLastTimezoneOffset(this, currentOffset);
-				return currentOffset;
+				provider.doTimeZoneAdjustment(this, currentOffset);
 			}
 			// else fall through to return 0
 		}
@@ -508,7 +504,6 @@ public class MuteService extends IntentService
 			PrefsManager.setLastSeenOffset(this, currentOffset);
 			PrefsManager.setUpdateTime(this, Long.MAX_VALUE);
 		}
-		return 0;
 	}
 
 	// Do log cycling if it is enabled and needed now
@@ -1052,13 +1047,9 @@ public class MuteService extends IntentService
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
-		int tzOffset = CheckTimeZone(currentTime);
-		doLogCycling(currentTime);
 		CalendarProvider provider = new CalendarProvider(this);
-		if (tzOffset != 0)
-		{
-			provider.doTimeZoneAdjustment(this, tzOffset);
-		}
+		CheckTimeZone(currentTime, provider);
+		doLogCycling(currentTime);
 		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
@@ -1351,6 +1342,16 @@ public class MuteService extends IntentService
 							waiting = true;
 							done = false;
 						}
+						if (done) {
+							int messageType =
+								PrefsManager.getMessageType(
+									this, classNum,
+									PrefsManager.SEND_MESSAGE_AT_END);
+							if (messageType == PrefsManager.SEND_MESSAGE_SMS) {
+								sendSMS(currentApiVersion, classNum,
+									PrefsManager.SEND_MESSAGE_AT_END, result);
+							}
+						}
 						PrefsManager.setClassActive(this, classNum, false);
 					}
 					if (PrefsManager.isClassWaiting(this, classNum))
@@ -1444,6 +1445,14 @@ public class MuteService extends IntentService
 								endClassName = className;
 								endClassNum = classNum;
 							}
+						}
+						int messageType =
+							PrefsManager.getMessageType(
+								this, classNum,
+								PrefsManager.SEND_MESSAGE_AT_END);
+						if (messageType == PrefsManager.SEND_MESSAGE_SMS) {
+							sendSMS(currentApiVersion, classNum,
+								PrefsManager.SEND_MESSAGE_AT_END, result);
 						}
 						PrefsManager.setClassActive(this, classNum, false);
 						PrefsManager.setClassWaiting(this, classNum, false);

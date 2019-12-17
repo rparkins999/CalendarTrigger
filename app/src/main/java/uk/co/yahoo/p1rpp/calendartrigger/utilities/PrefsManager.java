@@ -3,7 +3,7 @@
  * Released under GPL V3 or later
  */
 
-package uk.co.yahoo.p1rpp.calendartrigger;
+package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
@@ -19,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import uk.co.yahoo.p1rpp.calendartrigger.R;
 
 public class PrefsManager {
 

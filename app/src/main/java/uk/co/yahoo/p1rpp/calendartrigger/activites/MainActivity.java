@@ -17,14 +17,13 @@ import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;

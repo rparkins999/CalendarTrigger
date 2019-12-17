@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import uk.co.yahoo.p1rpp.calendartrigger.Layouts.AndList;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;

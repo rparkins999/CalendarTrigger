@@ -14,9 +14,6 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
@@ -35,9 +32,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.sqlite;
 
 import static java.util.Calendar.DAY_OF_MONTH;
 import static java.util.Calendar.MONTH;
@@ -47,7 +44,7 @@ public class FloatActivity extends Activity
         implements DatePickerDialog.OnDateSetListener,
         DatePickerDialog.OnCancelListener {
     public FloatActivity floatactivity;
-    private SQLiteDatabase floatingTimeEvents;
+    private sqlite floatingTimeEvents;
 
     private boolean isFloating (long eventid) {
         String sql = "SELECT EVENT_ID FROM FLOATINGEVENTS WHERE EVENT_ID IS ?";
@@ -61,8 +58,7 @@ public class FloatActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dynamicscrollview);
         floatactivity = this;
-        floatingTimeEvents =
-            DataStore.getFloatingEvents(this, false);
+        floatingTimeEvents = new sqlite(this);
     }
 
     private void showDialog() {
@@ -165,7 +161,6 @@ public class FloatActivity extends Activity
                     + " UTC");
             }
         }
-
     }
 
     private static final String[] INSTANCE_PROJECTION = new String[] {
@@ -253,7 +248,7 @@ public class FloatActivity extends Activity
     protected void onDestroy() {
         super.onDestroy();
         if (floatingTimeEvents != null) {
-            floatingTimeEvents.close();
+           floatingTimeEvents.close();
         }
     }
 }

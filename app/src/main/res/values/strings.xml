@@ -11,9 +11,24 @@
     <string name="typelog">log</string>
     <string name="typesettings">settings</string>
     <string name="lognodir">Cannot create %s file</string>
+    <string name="because">" because "</string>
     <string name="lognodirdetail">exists but is a plain file</string>
-    <string name="nocreatedetail">does not exist and cannot be created</string>
+    <string name="norename">Cannot rename %s file</string>
     <string name="nowrite">Cannot open %s file</string>
+    <string name="table">"Table "</string>
+    <string name="creating">" does not exist, creating new one."</string>
+    <string name="creatingnew">"Creating new table "</string>
+    <string name="column">"Column "</string>
+    <string name="dropping">" does not exist, dropping and recreating table "</string>
+    <string name="databaseerror">"Database error"</string>
+    <string name="unrecoverable">" unrecoverable error "</string>
+    <string name="norows">"Table VACUUMDATA has no rows, creating new valid row."</string>
+    <string name="value">"Value \""</string>
+    <string name="countnoninteger">"\" in VACUUMDATA.COUNT is non-integer,
+        replacing with new valid row."</string>
+    <string name="nocreatedetail">does not exist and cannot be created</string>
+    <string name="norename1">" does not exist and "</string>
+    <string name="norename2">" exists but cannot be renamed."</string>
     <string name="databasefail">Cannot access floating time event database</string>
     <string name="tablecreatefail">Cannot create table FLOATINGEVENTS</string>
     <string name="nomodifypermission">CalendarTrigger cannot set events to floating
@@ -22,7 +37,7 @@
         the Application Manager.</string>
     <string name="floatnoreadpermission">CalendarTrigger cannot set events to floating
         time because it does not have permission to read from external storage
-        where it keeps its database of floating time eventss.
+        where it keeps its database of floating time events.
         You can enable this permission from the device\'s Settings tool by selecting
         the Application Manager.</string>
     <string name="floatnowritepermission">CalendarTrigger cannot set events to floating
@@ -41,10 +56,24 @@
     <string name="checkfloatrecurringhelp">If this box is checked, all instances of
         this recurring event will retain the same wall clock time if the device\'s
         time zone changes."</string>
+    <string name="nonrecurring">"Non-recurring event "</string>
+    <string name="settingstart">" setting start time to "</string>
+    <string name="settingend">"UTC and end time to "</string>
+    <string name="recurring">"Recurring event "</string>
+    <string name="settingduration">" UTC and duration to "</string>
+    <string name="settingrrule">" and rrule to "</string>
+    <string name="doingTZ">Doing time zone adjustment</string>
+    <string name="doingTZby">"Doing time zone adjustment by</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
     <string name="floating">Make Events Floating</string>
+    <string name="deletinginvalid">"Deleting invalid record \"</string>
+    <string name="fromfloating">\" from table FLOATINGEVENTS"</string>
+    <string name="event">"Event "</string>
+    <string name="corrupted">" apparently corrupted, deleted"</string>
+    <string name="isallday">" is all day, handled in provider"</string>
+    <string name="nonexistent">" no longer exists, deleted"</string>
     <string name="settings">Debugging</string>
     <string name="lastcalldetail">Last called at %s</string>
     <string name="lastCallHelp">This is the time at which CalendarTrigger was

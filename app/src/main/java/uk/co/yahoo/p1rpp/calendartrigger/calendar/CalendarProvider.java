@@ -9,7 +9,6 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Calendars;
@@ -21,9 +20,10 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.sqlite;
 
 public class CalendarProvider {
 
@@ -57,8 +57,10 @@ public class CalendarProvider {
 
 	private String likeQuote(String s) {
 		StringBuilder result = new StringBuilder(" LIKE '%");
-		String es = s.replace("*", "**").replace("%", "*%")
-					 .replace("_", "*_").replace("'", "''");
+		String es = s.replace("*", "**")
+					 .replace("%", "*%")
+					 .replace("_", "*_")
+					 .replace("'", "''");
 		result.append(es).append("%' ESCAPE '*'");
 		return result.toString();
 	}
@@ -346,12 +348,12 @@ public class CalendarProvider {
 		StringBuilder selClause = new StringBuilder();
 		selClause.append("( ").append(Instances.BEGIN)
 				 .append(" > ").append(String.valueOf(currentTime))
-				 .append(" )");
-		selClause.append(" AND ( ").append(Instances.BEGIN)
-				 .append(" < ").append(String.valueOf(dateFin.getTimeInMillis
-			()))
-				 .append(" )");
-		selClause.append(" AND ( ").append(Instances.EVENT_LOCATION)
+				 .append(" )")
+				 .append(" AND ( ").append(Instances.BEGIN)
+				 .append(" < ")
+				 .append(String.valueOf(dateFin.getTimeInMillis()))
+				 .append(" )")
+				 .append(" AND ( ").append(Instances.EVENT_LOCATION)
 				 .append(" IS NOT NULL )");
 		ContentResolver cr = context.getContentResolver();
 		Cursor cur = cr.query(getInstancesQueryUri(), LOCATION_PROJECTION,
@@ -370,7 +372,29 @@ public class CalendarProvider {
 			return null;
 		}
 	}
-	
+
+	// Returns -1 if the record was corrupted and we deleted it.
+	private long getUnsignedLong(
+		Context context, sqlite floatingEvents, Cursor cursor, int columnIndex) {
+		try {
+			return floatingEvents.getUnsignedLong(cursor, columnIndex);
+		} catch (NumberFormatException e) {
+			String eventId = cursor.getString(0);
+			String wallStart = cursor.getString(1);
+			String wallEnd = cursor.getString(2);
+			new MyLog(context,context.getString(R.string.deletinginvalid) +
+				eventId + ", " + wallStart + ", " + wallEnd + ", " +
+				context.getString(R.string.fromfloating));
+			String[] args = new String[] { eventId, wallStart, wallEnd };
+			String whereClause =
+				"EVENT_ID IS "	+ eventId +
+				" AND START_WALLTIME_MILLIS IS " + wallStart +
+				" AND END_WALLTIME_MILLIS IS " + wallEnd;
+			floatingEvents.delete("FLOATINGEVENTS", whereClause, args);
+			return -1;
+		}
+	}
+
 	private static final String[] TIMEZONE_PROJECTION = new String[] {
 		Events.DURATION,
 		Events.RRULE,
@@ -389,13 +413,15 @@ public class CalendarProvider {
 	 * c1 is the row in floatingEvents
 	 * c2 is the data read from the existing events table
 	 */
-	private void updateEvent(
-		Context context, ContentResolver cr,
+	private boolean updateEvent(
+		Context context, ContentResolver cr, sqlite floatingEvents,
 		Uri uri, int tzOffset, Cursor c1, Cursor c2)
 	{
 		String title = c2.getString(TIMEZONE_EVENT_TITLE_INDEX);
 		ContentValues cv = new ContentValues();
-		long dtstart = c1.getLong(1) - tzOffset;
+		long dtstart = getUnsignedLong(context, floatingEvents, c1,  1);
+		if (dtstart < 0) { return false; }
+		dtstart = dtstart - tzOffset;
 		cv.put(Events.DTSTART, dtstart);
 		DateFormat dtf = DateFormat.getDateTimeInstance();
 		dtf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -404,13 +430,15 @@ public class CalendarProvider {
 		if ((rrule == null) || rrule.isEmpty())
 		{
 			// not a recurrent event
-			long dtend = c1.getLong(2) - tzOffset;
+			long dtend = c1.getLong(2);
+			if (dtend < 0) { return false; }
+			dtend = dtend - tzOffset;
 			cv.put(Events.DTEND, dtend);
 			cv.put(Events.DURATION, (String) null);
 			new MyLog(context,
-				"Non-recurring event " + title
-					+ " setting start time to " + dtf.format(dtstart)
-					+ "UTC and end time to " + dtf.format(dtend));
+				context.getString(R.string.nonrecurring) + title +
+				context.getString(R.string.settingstart) + dtf.format(dtstart) +
+				context.getString(R.string.settingend) + dtf.format(dtend));
 		}
 		else
         {
@@ -420,56 +448,68 @@ public class CalendarProvider {
             cv.put(Events.DURATION, duration);
 			cv.put(Events.RRULE, rrule);
 			new MyLog(context,
-				"Recurring event " + title
-					+ " setting start time to " + dtf.format(dtstart)
-					+ " UTC and duration to " + duration
-					+ " and rrule to " + rrule);
+				context.getString(R.string.recurring) +
+				context.getString(R.string.settingstart) + dtf.format(dtstart) +
+				context.getString(R.string.settingduration) + duration +
+				context.getString(R.string.settingrrule) + rrule);
         }
 		cr.update(uri, cv, null, null);
+		return true;
 	}
 
 	public void doTimeZoneAdjustment(Context context, int tzOffset) {
-		SQLiteDatabase floatingEvents = DataStore.getFloatingEvents(
-			context, true);
-		new MyLog(context, "doTimeZoneAdjustment");
+		sqlite floatingEvents = new sqlite(context);
+		String small = context.getString(R.string.doingTZ);
+		String big = context.getString(R.string.doingTZby) + (tzOffset / 60000) + " " +
+			context.getString(R.string.minutes) + ".";
+		new MyLog(context, small, big);
 		if (floatingEvents != null)
 		{
 			Cursor c1 = floatingEvents.rawQuery(
 				"SELECT EVENT_ID, START_WALLTIME_MILLIS,"
 					+ "END_WALLTIME_MILLIS FROM FLOATINGEVENTS", null);
 			while (c1.moveToNext()) {
-				long eventId = c1.getLong(0);
-				ContentResolver cr = context.getContentResolver();
-				Uri uri = ContentUris.withAppendedId
-					(CalendarContract.Events.CONTENT_URI, eventId);
-				Cursor c2 = cr.query(uri, TIMEZONE_PROJECTION,
-					null,null, null);
-				if (c2.moveToNext()) {
-					// All day events are done by the Calendar Provider
-                    if (c2.getInt(TIMEZONE_EVENT_ALL_DAY_INDEX) == 0)
-                    {
-                        updateEvent(context, cr, uri, tzOffset, c1, c2);
-                    }
-                    else
-					{
+				long eventId =
+					getUnsignedLong(context, floatingEvents, c1, 0);
+				if (eventId >= 0) {
+					ContentResolver cr = context.getContentResolver();
+					Uri uri = ContentUris.withAppendedId
+						(CalendarContract.Events.CONTENT_URI, eventId);
+					Cursor c2 = cr.query(uri, TIMEZONE_PROJECTION,
+						null, null, null);
+					if (c2.moveToNext()) {
+						// All day events are done by the Calendar Provider
+						if (c2.getInt(TIMEZONE_EVENT_ALL_DAY_INDEX) == 0) {
+							if (!updateEvent(context, cr, floatingEvents,
+								uri, tzOffset, c1, c2)) {
+								// The event is corrupted, remove from our database
+								String[] args = new String[] { String.valueOf(eventId) };
+								floatingEvents.delete("FLOATINGEVENTS",
+									"EVENT_ID IS ?", args);
+								new MyLog(context,
+									context.getString(R.string.event) +
+									c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
+									context.getString(R.string.corrupted));
+								continue;
+							}
+						} else {
+							new MyLog(context,
+								context.getString(R.string.event) +
+									c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
+									context.getString(R.string.isallday));
+						}
+					} else {
+						// The event no longer exists, remove from our database
+						String[] args = new String[] { String.valueOf(eventId) };
+						floatingEvents.delete("FLOATINGEVENTS",
+							"EVENT_ID IS ?", args);
 						new MyLog(context,
-							"Event "
-								+ c2.getString(TIMEZONE_EVENT_TITLE_INDEX)
-								+ " is all day, handled in provider");
+							context.getString(R.string.event) +
+								c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
+								context.getString(R.string.nonexistent));
 					}
+					c2.close();
 				}
-				else
-				{
-					// The event no longer exists, remove from our database
-					String[] args = new String[] { String.valueOf(eventId) };
-					floatingEvents.delete("FLOATINGEVENTS",
-						"EVENT_ID IS ?", args);
-					new MyLog(context,
-						"Event "
-						+ c2.getString(TIMEZONE_EVENT_TITLE_INDEX)
-						+ " no longer exists, deleted");
-				}
-				c2.close();
 			}
 			c1.close();
 			floatingEvents.close();

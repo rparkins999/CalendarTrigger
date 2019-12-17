@@ -8,8 +8,8 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 
 public class OrList extends LinearLayout {

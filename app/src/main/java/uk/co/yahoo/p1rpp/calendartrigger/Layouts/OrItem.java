@@ -17,8 +17,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.text.InputType.TYPE_CLASS_TEXT;
 import static android.view.MotionEvent.ACTION_DOWN;

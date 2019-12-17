@@ -31,12 +31,11 @@ import java.io.PrintStream;
 import java.text.DateFormat;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
-import uk.co.yahoo.p1rpp.calendartrigger.DataStore;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarDumper;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.DataStore;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 /**
  * Created by rparkins on 29/08/16.
@@ -523,7 +522,7 @@ public class SettingsActivity extends Activity {
             b.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     String type = me.getResources().getString(R.string.typesettings);
-                    if (DataStore.ensureDataDirectory(me, type, false))
+                    if (DataStore.ensureDataDirectory(me, type))
                     {
                         try
                         {
@@ -534,15 +533,11 @@ public class SettingsActivity extends Activity {
                         }
                         catch (Exception e)
                         {
-                            Toast.makeText(
-                                me,
+                            Toast.makeText(me,
                                 me.getResources().getString(
-                                    R.string.nowrite, type)
-                                    + ", "
-                                    + DataStore.SettingsFileName()
-                                    + ":"
-                                    + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                                    R.string.nowrite, type) + ", " +
+                                DataStore.SettingsFileName() + ": " +
+                                e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                         }
                     }
 

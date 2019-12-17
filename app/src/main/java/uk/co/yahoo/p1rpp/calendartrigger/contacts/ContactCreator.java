@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 
 public class ContactCreator {
 	private Context me;

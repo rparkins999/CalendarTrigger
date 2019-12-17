@@ -5,6 +5,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -15,10 +16,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
@@ -93,6 +94,7 @@ public class EditActivity extends Activity {
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
+            @SuppressLint("StringFormatInvalid")
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,

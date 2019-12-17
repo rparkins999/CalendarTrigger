@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
-import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledCheckBox;
 import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledRadioButton;
