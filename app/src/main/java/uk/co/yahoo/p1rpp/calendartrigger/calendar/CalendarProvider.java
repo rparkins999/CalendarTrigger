@@ -383,13 +383,13 @@ public class CalendarProvider {
 			String wallStart = cursor.getString(1);
 			String wallEnd = cursor.getString(2);
 			new MyLog(context,context.getString(R.string.deletinginvalid) +
-				eventId + ", " + wallStart + ", " + wallEnd + ", " +
+				eventId + ", " + wallStart + ", " + wallEnd +
 				context.getString(R.string.fromfloating));
 			String[] args = new String[] { eventId, wallStart, wallEnd };
 			String whereClause =
-				"EVENT_ID IS "	+ eventId +
-				" AND START_WALLTIME_MILLIS IS " + wallStart +
-				" AND END_WALLTIME_MILLIS IS " + wallEnd;
+				"EVENT_ID IS ?" +
+				" AND START_WALLTIME_MILLIS IS ?" +
+				" AND END_WALLTIME_MILLIS IS ?";
 			floatingEvents.delete("FLOATINGEVENTS", whereClause, args);
 			return -1;
 		}
@@ -438,7 +438,7 @@ public class CalendarProvider {
 			new MyLog(context,
 				context.getString(R.string.nonrecurring) + title +
 				context.getString(R.string.settingstart) + dtf.format(dtstart) +
-				context.getString(R.string.settingend) + dtf.format(dtend));
+				context.getString(R.string.settingend) + dtf.format(dtend) + " UTC");
 		}
 		else
         {
@@ -448,7 +448,7 @@ public class CalendarProvider {
             cv.put(Events.DURATION, duration);
 			cv.put(Events.RRULE, rrule);
 			new MyLog(context,
-				context.getString(R.string.recurring) +
+				context.getString(R.string.recurring) + title +
 				context.getString(R.string.settingstart) + dtf.format(dtstart) +
 				context.getString(R.string.settingduration) + duration +
 				context.getString(R.string.settingrrule) + rrule);
@@ -460,7 +460,8 @@ public class CalendarProvider {
 	public void doTimeZoneAdjustment(Context context, int tzOffset) {
 		sqlite floatingEvents = new sqlite(context);
 		String small = context.getString(R.string.doingTZ);
-		String big = context.getString(R.string.doingTZby) + (tzOffset / 60000) + " " +
+		String big = context.getString(R.string.doingTZby) +
+			(tzOffset >= 0 ? "+" : "") + (tzOffset / 60000) + " " +
 			context.getString(R.string.minutes) + ".";
 		new MyLog(context, small, big);
 		if (floatingEvents != null)

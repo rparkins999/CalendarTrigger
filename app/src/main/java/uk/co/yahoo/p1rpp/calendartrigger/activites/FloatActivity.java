@@ -145,9 +145,9 @@ public class FloatActivity extends Activity
                 floatingTimeEvents.insert("FLOATINGEVENTS",
                     null, uvf);
                 new MyLog(this,
-                    (recurring ?"All instances of recurring event " :  "Event ")
-                    + title + " set to begin at " + df.format(dtstart)
-                    + " wall clock time");
+                    getString(recurring ? R.string.allinstances :  R.string.event)
+                    + title + getString(R.string.settobegin) + df.format(dtstart)
+                    + getString(R.string.walltime));
             }
             else
             {
@@ -156,9 +156,9 @@ public class FloatActivity extends Activity
                     "EVENT_ID IS ?", args);
                 df.setTimeZone(TimeZone.getTimeZone("GMT"));
                 new MyLog(this,
-                    (recurring ? "Event " : "All instances of recurring event ")
-                    + title + " set to begin at " + df.format(dtstart)
-                    + " UTC");
+                    getString(recurring ? R.string.allinstances :  R.string.event)
+                    + title + getString(R.string.settobegin) + df.format(dtstart)
+                    + getString(R.string.utc));
             }
         }
     }
@@ -178,21 +178,20 @@ public class FloatActivity extends Activity
         ll.removeAllViews();
         TextView tv = new TextView(this);
         ContentResolver cr = getContentResolver();
-        GregorianCalendar dd = new GregorianCalendar();
-        dd.setTimeInMillis(0);
-        dd.set(YEAR, year);
-        dd.set(MONTH, month);
-        dd.set(DAY_OF_MONTH, day);
-        CharSequence date = DateFormat.getDateInstance().format(dd.getTimeInMillis());
         Uri.Builder builder = CalendarContract.Instances.CONTENT_URI.buildUpon();
-        ContentUris.appendId(builder, dd.getTimeInMillis());
-        dd.roll(DAY_OF_MONTH,1);
-        ContentUris.appendId(builder, dd.getTimeInMillis());
+        Calendar beginTime = Calendar.getInstance();
+        beginTime.set(year, month, day, 0, 0);
+        Calendar endTime = Calendar.getInstance();
+        endTime.set(year, month, day + 1, 0, 0);
+        ContentUris.appendId(builder, beginTime.getTimeInMillis());
+        ContentUris.appendId(builder, endTime.getTimeInMillis());
         Cursor cu = cr.query(builder.build(), INSTANCE_PROJECTION,
                 null, null, CalendarContract.Instances.BEGIN);
         if (cu.getCount() == 0)
         {
-            tv.setText(getString(R.string.noevents) + " " + date);
+            CharSequence date =
+                DateFormat.getDateInstance().format(beginTime.getTimeInMillis());
+            tv.setText(getString(R.string.noevents) + date);
             ll.addView(tv);
             showDialog();
         }

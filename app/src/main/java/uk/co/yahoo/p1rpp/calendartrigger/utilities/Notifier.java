@@ -5,6 +5,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -17,17 +18,17 @@ public class Notifier extends Object {
     private static final int NOTIFY_ID = 1427;
 
     public Notifier(Context context, String small, String big) {
-        if (Looper.myLooper() == Looper.getMainLooper())
-        {
+        if (   (Activity.class.isInstance(context))
+            && ((Activity)context).hasWindowFocus()) {
             Toast.makeText(context, big, Toast.LENGTH_LONG).show();
         }
-        else {
+        else
+        {
             Notification.Builder builder
                 = new Notification.Builder(context)
                 .setSmallIcon(R.drawable.notif_icon)
                 .setContentTitle(small)
-                .setContentText(big);
-            // Show notification
+                .setStyle(new Notification.BigTextStyle().bigText(big));
             NotificationManager notifManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
             notifManager.notify(NOTIFY_ID, builder.build());

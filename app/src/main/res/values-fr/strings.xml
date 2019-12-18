@@ -47,8 +47,12 @@
         permission WRITE_EXTERNAL_STORAGE.
         Vous pouvez activer cette permission en employant
         l\'outil \'Paramètres\'.</string>
-    <string name="eventdate">Date de l\'événement</string>
-    <string name="noevents">Pas d\'événements à la date</string>
+    <string name="eventdate">Date des événement(s)</string>
+    <string name="allinstances">"Tous exemples de l\'événement récurrent "</string>
+    <string name="settobegin">" réglé à commencer à "</string>
+    <string name="walltime">" heure locale"</string>
+    <string name="utc">" UTC"</string>
+    <string name="noevents">"Pas d\'événements à la date "</string>
     <string name="checkfloat">Cocher pour heure flottante</string>
     <string name="checkfloathelp">Si coché, l\'événement retiendra la même heure
         locale si le fuseau horaire de l\'appareil est changé. Si l\'événement est
@@ -58,20 +62,20 @@
     <string name="checkfloatrecurringhelp">Si coché, tous les exemples de
         l\'événement retiendront la même heure locale si le fuseau horaire de
         l\'appareil est changé."</string>
-    <string name="nonrecurring">"Événement non récurrente "</string>
+    <string name="nonrecurring">"Événement non récurrent "</string>
     <string name="settingstart">" définissant heure du début à "</string>
-    <string name="settingend">"UTC et heure de la fin à "</string>
-    <string name="recurring">"Événement récurrente "</string>
+    <string name="settingend">" UTC et heure de la fin à "</string>
+    <string name="recurring">"Événement récurrent "</string>
     <string name="settingduration">" UTC et durée à "</string>
     <string name="settingrrule">" et rrule à "</string>
     <string name="doingTZ">Rajustant pour changement de fuseau horaire</string>
-    <string name="doingTZby">"Rajustant pour changement de fuseau horaire par "</string>
+    <string name="doingTZby">"Rajustant pour changement de fuseau horaire à UTC"</string>
     <string name="new_event_class">Nouvelle Classe d\'événements</string>
     <string name="create_it">Créer</string>
     <string name="cancel_create">Annuler</string>
     <string name="floating">Flotter événements</string>
-    <string name="deletinginvalid">"Supprimant rangée invalide \"</string>
-    <string name="fromfloating">\" de table FLOATINGEVENTS"</string>
+    <string name="deletinginvalid">"Supprimant rangée invalide "</string>
+    <string name="fromfloating">" de table FLOATINGEVENTS"</string>
     <string name="event">"Événement "</string>
     <string name="corrupted">" apparemment corrompu, supprimé"</string>
     <string name="isallday">" dure toute la journée, traité par pourvoyeur"</string>
@@ -268,10 +272,10 @@
     <string name="onlynotallday">ne dure pas toutle jour</string>
     <string name="alldayandnot">n\'importe</string>
     <string name="recurrenthelp">Choisir événements pour las classe %s qui sont
-        récurrentes, non récurrentes, ou n\'importe lequel.</string>
+        récurrents, non récurrents, ou n\'importe lequel.</string>
     <string name="recurrentlabel">et l\'événement est:</string>
-    <string name="onlyrecurrent">récurrente</string>
-    <string name="onlynotrecurrent">non récurrente</string>
+    <string name="onlyrecurrent">récurrent</string>
+    <string name="onlynotrecurrent">non récurrent</string>
     <string name="recurrentandnot">n\'importe</string>
     <string name="organiserhelp">Choisir événements pour las classe %s qui sont
         organisés par vous, par autres (ou sans organisateur), ou n\'importe lequel.

@@ -460,7 +460,7 @@ public class MuteService extends IntentService
 	private String logOffset(long offset) {
 		DateFormat df = DateFormat.getTimeInstance();
 		df.setTimeZone(TimeZone.getTimeZone("GMT"));
-		if (offset > 0)
+		if (offset >= 0)
 		{
 			return df.format(offset);
 		}
@@ -473,7 +473,7 @@ public class MuteService extends IntentService
 	// Check if the time zone has changed.
 	// If it has, we wait a bit for the CalendarProvider to update before undoing
 	// its changes for any floating time events.
-	private int CheckTimeZone(long currentTime, CalendarProvider provider) {
+	private void CheckTimeZone(long currentTime, CalendarProvider provider) {
 		int lastOffset = PrefsManager.getLastTimezoneOffset(this);
 		new MyLog(this, "CheckTimeZone: lastoffset is "
 			+ logOffset(lastOffset));
@@ -497,7 +497,7 @@ public class MuteService extends IntentService
 				PrefsManager.setLastTimezoneOffset(this, currentOffset);
 				provider.doTimeZoneAdjustment(this, currentOffset);
 			}
-			// else fall through to return 0
+			// else nothing to do yet
 		}
 		else
 		{

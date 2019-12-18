@@ -87,9 +87,10 @@ public class sqlite extends Object {
         throw new Error(big);
     }
 
+    // All column names contain "_" so that they can't be reserved words
     private String getCreator(String s) {
         if (s.equals("VACUUMDATA")) {
-            return "CREATE TABLE VACUUMDATA (COUNT INTEGER)";
+            return "CREATE TABLE VACUUMDATA (VACUUM_COUNT INTEGER)";
         }
         else if (s.equals("FLOATINGEVENTS")) {
             return "CREATE TABLE FLOATINGEVENTS "
@@ -102,9 +103,9 @@ public class sqlite extends Object {
         return null; // unreachable
     }
 
-    // We assume here that we don't re-use column names in different tables
+    // We assume here that we don't re-use column names in different tables.
     private String getTableName(String s) {
-        if (s.equals("COUNT")) { return "VACUUMDATA"; }
+        if (s.equals("VACUUM_COUNT")) { return "VACUUMDATA"; }
         else if (s.equals("EVENT_ID")) { return "FLOATINGEVENTS"; }
         else if (s.equals("START_WALLTIME_MILLIS")) { return "FLOATINGEVENTS"; }
         else if (s.equals("END_WALLTIME_MILLIS")) { return "FLOATINGEVENTS"; }
@@ -230,10 +231,10 @@ public class sqlite extends Object {
     // Vacuuming needs to be done from time to time, but it isn't urgent.
     private static int WRITECOUNT = 1000;
     public void tryVacuum ()  {
-        long count = 0;
+        long count = 1;
         try {
             Cursor cursor = m_db.rawQuery(
-                "SELECT COUNT FROM VACUUMDATA", null);
+                "SELECT VACUUM_COUNT FROM VACUUMDATA", null);
             if (cursor.moveToFirst()) {
                 count = getUnsignedLong(cursor, 0) + 1;
                 if (count > WRITECOUNT) {
@@ -245,7 +246,8 @@ public class sqlite extends Object {
             else {
                 new MyLog(m_context,
                     m_context.getString(R.string.norows));
-                m_db.execSQL("INSERT INTO VACUUMDATA VALUES ( 1 )");
+                m_db.execSQL("INSERT INTO VACUUMDATA ( VACUUM_COUNT ) VALUES ( "
+                             + count + " )");
                 return;
             }
         } catch (SQLiteException e) {
@@ -257,7 +259,7 @@ public class sqlite extends Object {
             // fall through to replace invalid count with 0
         }
         try {
-            m_db.execSQL("UPDATE VACUUMDATA SET COUNT = " + count);
+            m_db.execSQL("UPDATE VACUUMDATA SET VACUUM_COUNT = " + count);
             return;
         } catch (SQLiteException e) {
             handleException(0, e);
@@ -285,10 +287,15 @@ public class sqlite extends Object {
 
     public void close()
     {
-        try {
-            if (m_written) { tryVacuum(); }
-            m_db.close();
-        } catch (SQLiteException e) { }
+        if (m_db != null) {
+            try {
+                if (m_written) {
+                    tryVacuum();
+                }
+                m_db.close();
+                m_db = null;
+            } catch (SQLiteException e) {}
+        }
     }
 
     @Override

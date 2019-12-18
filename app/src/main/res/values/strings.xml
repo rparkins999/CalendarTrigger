@@ -46,7 +46,11 @@
         You can enable this permission from the device\'s Settings tool by selecting
         the Application Manager.</string>
     <string name="eventdate">Event date</string>
-    <string name="noevents">No events on</string>
+    <string name="allinstances">"All instances of recurring event "</string>
+    <string name="settobegin">" set to begin at "</string>
+    <string name="walltime">" wall clock time"</string>
+    <string name="utc">" UTC"</string>
+    <string name="noevents">"No events on "</string>
     <string name="checkfloat">Check box for floating time</string>
     <string name="checkfloathelp">If a box is checked, the event will retain the same
         wall clock time if the device\'s time zone changes. Changing a recurring
@@ -58,18 +62,18 @@
         time zone changes."</string>
     <string name="nonrecurring">"Non-recurring event "</string>
     <string name="settingstart">" setting start time to "</string>
-    <string name="settingend">"UTC and end time to "</string>
+    <string name="settingend">" UTC and end time to "</string>
     <string name="recurring">"Recurring event "</string>
     <string name="settingduration">" UTC and duration to "</string>
     <string name="settingrrule">" and rrule to "</string>
     <string name="doingTZ">Doing time zone adjustment</string>
-    <string name="doingTZby">"Doing time zone adjustment by</string>
+    <string name="doingTZby">"Doing time zone adjustment to UTC"</string>
     <string name="new_event_class">New Event Class</string>
     <string name="create_it">Create</string>
     <string name="cancel_create">Cancel</string>
     <string name="floating">Make Events Floating</string>
-    <string name="deletinginvalid">"Deleting invalid record \"</string>
-    <string name="fromfloating">\" from table FLOATINGEVENTS"</string>
+    <string name="deletinginvalid">"Deleting invalid record "</string>
+    <string name="fromfloating">" from table FLOATINGEVENTS"</string>
     <string name="event">"Event "</string>
     <string name="corrupted">" apparently corrupted, deleted"</string>
     <string name="isallday">" is all day, handled in provider"</string>
