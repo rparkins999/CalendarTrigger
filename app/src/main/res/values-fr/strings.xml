@@ -14,6 +14,10 @@
     <string name="lognodirdetail">existe comme simple fichier</string>
     <string name="norename">Impossible d\'renommer %s file</string>
     <string name="nowrite">Impossible d\'ouvrir %s file</string>
+    <string name="unknowntable">") nom de table inconnue"</string>
+    <string name="badtable">Faux nom de table</string>
+    <string name="unknowncolumn">") nom de colonne inconnue"</string>
+    <string name="badcolumn">Faux nom de colonnee</string>
     <string name="table">"Table "</string>
     <string name="creating">" n\'existe pas, créant nouvelle."</string>
     <string name="creatingnew">"Créant nouvelle table "</string>
@@ -24,8 +28,8 @@
     <string name="norows">"Table VACUUMDATA n'a pas de rangées, créant nouvelle rangée valide."
     </string>
     <string name="value">"Valeur \""</string>
-    <string name="countnoninteger">"\" en VACUUMDATA.COUNT n\'est pas un entier,
-        remplaceant avec nouvelle rangée valide."</string>
+    <string name="countnoninteger">"\" en VACUUMDATA.COUNT n\'est pas un entier,"
+        "remplaceant avec nouvelle rangée valide."</string>
     <string name="nocreatedetail">n\'existe pas at ne peut pas être créé
     </string>
     <string name="norename1">" n\'existe pas et "</string>
@@ -75,7 +79,7 @@
     <string name="cancel_create">Annuler</string>
     <string name="floating">Flotter événements</string>
     <string name="deletinginvalid">"Supprimant rangée invalide "</string>
-    <string name="fromfloating">" de table FLOATINGEVENTS"</string>
+    <string name="fromfloating">") de table FLOATINGEVENTS"</string>
     <string name="event">"Événement "</string>
     <string name="corrupted">" apparemment corrompu, supprimé"</string>
     <string name="isallday">" dure toute la journée, traité par pourvoyeur"</string>

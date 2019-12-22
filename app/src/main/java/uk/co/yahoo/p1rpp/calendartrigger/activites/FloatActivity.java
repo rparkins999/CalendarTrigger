@@ -145,7 +145,8 @@ public class FloatActivity extends Activity
                 floatingTimeEvents.insert("FLOATINGEVENTS",
                     null, uvf);
                 new MyLog(this,
-                    getString(recurring ? R.string.allinstances :  R.string.event)
+                    getString(recurring ?
+                        R.string.allinstances : R.string.event)
                     + title + getString(R.string.settobegin) + df.format(dtstart)
                     + getString(R.string.walltime));
             }
@@ -156,7 +157,8 @@ public class FloatActivity extends Activity
                     "EVENT_ID IS ?", args);
                 df.setTimeZone(TimeZone.getTimeZone("GMT"));
                 new MyLog(this,
-                    getString(recurring ? R.string.allinstances :  R.string.event)
+                    getString(recurring ?
+                        R.string.allinstances :  R.string.event)
                     + title + getString(R.string.settobegin) + df.format(dtstart)
                     + getString(R.string.utc));
             }

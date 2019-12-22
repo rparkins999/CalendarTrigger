@@ -15,6 +15,10 @@
     <string name="lognodirdetail">exists but is a plain file</string>
     <string name="norename">Cannot rename %s file</string>
     <string name="nowrite">Cannot open %s file</string>
+    <string name="unknowntable">") unknown table name"</string>
+    <string name="badtable">Bad table name</string>
+    <string name="unknowncolumn">") unknown column name"</string>
+    <string name="badcolumn">Bad column name</string>
     <string name="table">"Table "</string>
     <string name="creating">" does not exist, creating new one."</string>
     <string name="creatingnew">"Creating new table "</string>
@@ -24,8 +28,8 @@
     <string name="unrecoverable">" unrecoverable error "</string>
     <string name="norows">"Table VACUUMDATA has no rows, creating new valid row."</string>
     <string name="value">"Value \""</string>
-    <string name="countnoninteger">"\" in VACUUMDATA.COUNT is non-integer,
-        replacing with new valid row."</string>
+    <string name="countnoninteger">"\" in VACUUMDATA.COUNT is non-integer,"
+        "replacing with new valid row."</string>
     <string name="nocreatedetail">does not exist and cannot be created</string>
     <string name="norename1">" does not exist and "</string>
     <string name="norename2">" exists but cannot be renamed."</string>
@@ -60,6 +64,9 @@
     <string name="checkfloatrecurringhelp">If this box is checked, all instances of
         this recurring event will retain the same wall clock time if the device\'s
         time zone changes."</string>
+    <string name="badactivestate">Bad active state</string>
+    <string name="bigbadactivestate">Bad active state %s for event %s,
+        entry removed from active table.</string>
     <string name="nonrecurring">"Non-recurring event "</string>
     <string name="settingstart">" setting start time to "</string>
     <string name="settingend">" UTC and end time to "</string>
@@ -73,7 +80,7 @@
     <string name="cancel_create">Cancel</string>
     <string name="floating">Make Events Floating</string>
     <string name="deletinginvalid">"Deleting invalid record "</string>
-    <string name="fromfloating">" from table FLOATINGEVENTS"</string>
+    <string name="fromfloating">") from table FLOATINGEVENTS"</string>
     <string name="event">"Event "</string>
     <string name="corrupted">" apparently corrupted, deleted"</string>
     <string name="isallday">" is all day, handled in provider"</string>

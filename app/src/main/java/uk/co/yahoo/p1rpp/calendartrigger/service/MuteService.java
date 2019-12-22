@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -57,10 +58,12 @@ import java.util.TimeZone;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider.NextAlarm;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.DataStore;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.sqlite;
 
 import static java.net.Proxy.Type.HTTP;
 
@@ -1038,19 +1041,21 @@ public class MuteService extends IntentService
 		lock();
 		return true;
 	}
-	
-	// Determine which event classes have become active
-	// and which event classes have become inactive
-	// and consequently what we need to do.
-	// Incidentally we compute the next alarm time.
+
+	// Process the active event list, updating states if possible,
+	// and perform any actions required.
+	// Incidentally we compute the next time we need to run and either
+	// set an alarm if it is later than 1 minute from now or send ourselves
+	// a delayed message if it is sooner since Android won't let us set
+	// an alarm so soon.
 	@TargetApi(Build.VERSION_CODES.M)
 	public void updateState(Intent intent) {
 		// Timestamp used in all requests (so it remains consistent)
 		long currentTime = System.currentTimeMillis();
 		CalendarProvider provider = new CalendarProvider(this);
+		sqlite db = new sqlite(this);
 		CheckTimeZone(currentTime, provider);
 		doLogCycling(currentTime);
-		long nextTime =  currentTime + FIVE_MINUTES;
 		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
 		AudioManager audio
 			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
@@ -1059,10 +1064,10 @@ public class MuteService extends IntentService
 		int last =  PrefsManager.getLastRinger(this);
 		int current = PrefsManager.getCurrentMode(this);
 		new MyLog(this,
-				  "last mode is "
-				  + PrefsManager.getEnglishStateName(this, last)
-				  + ", current mode is "
-				  + PrefsManager.getEnglishStateName(this, current));
+			"last mode is "
+				+ PrefsManager.getEnglishStateName(this, last)
+				+ ", current mode is "
+				+ PrefsManager.getEnglishStateName(this, current));
 		/* This will do the wrong thing if the user changes the mode during the
 		 * one second that we are waiting for Android to set the new mode, but
 		 * there seems to be no workaround because Android is a bit
@@ -1079,8 +1084,279 @@ public class MuteService extends IntentService
 			user = current;
 			PrefsManager.setUserRinger(this, user);
 			new MyLog(this,
-					  "Setting user ringer to "
-					  + PrefsManager.getEnglishStateName(this, user));
+				"Setting user ringer to "
+					+ PrefsManager.getEnglishStateName(this, user));
+		}
+		nextAccelTime = Long.MAX_VALUE;
+		String endEvent = "";
+		String endClassName = "";
+		int endClassNum = 0;
+		boolean startNotifyWanted = false;
+		boolean endNotifyWanted = false;
+		int phoneState = UpdatePhoneState(intent);
+		boolean anyStepCountActive = false;
+		boolean anyLocationActive = false;
+		PackageManager packageManager = getPackageManager();
+		final boolean haveStepCounter =
+			currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
+				&& packageManager.hasSystemFeature(
+				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
+		final boolean havelocation =
+			PackageManager.PERMISSION_GRANTED ==
+				PermissionChecker.checkSelfPermission(
+					this, Manifest.permission.ACCESS_FINE_LOCATION);
+		if (PrefsManager.getStepCount(this) >= 0)
+		{
+			new MyLog(this, "Step counter running");
+		}
+		int numClasses = PrefsManager.getNumClasses(this);
+		CalendarProvider.NextAlarm nextAlarm = null;
+		Cursor cr = db.rawQuery(
+			"SELECT * FROM ACTIVEEVENTS", null);
+		while (cr.moveToNext()) {
+			int classNum = PrefsManager.getClassNum(
+				db.getString(cr, sqlite.ACTIVE_CLASS_NAME));
+		}
+		if (   (PackageManager.PERMISSION_GRANTED ==
+			ActivityCompat.checkSelfPermission(
+				this, Manifest.permission.READ_CONTACTS))
+			&& (PackageManager.PERMISSION_GRANTED ==
+			ActivityCompat.checkSelfPermission(
+				this, Manifest.permission.WRITE_CONTACTS))
+			&& (PrefsManager.getNextLocationMode(this)))
+		{
+			CalendarProvider.StartAndLocation sl =
+				provider.nextLocation(this, currentTime);
+			if (sl != null)
+			{
+				ContactCreator cc = new  ContactCreator(this);
+				cc.makeContact("!NextEventLocation", "", sl.location);
+				long slst = sl.startTime + 60000;
+				if (   (slst < nextAlarmTime)
+					&& (slst > currentTime))
+				{
+					nextAlarmTime = slst;
+					alarmReason = " after start of event "
+						.concat(sl.eventName);
+				}
+			}
+		}
+		String shortText;
+		String longText;
+		if (wantedMode < user) { wantedMode = user; }
+		else if (wantedMode == PrefsManager.RINGER_MODE_NONE)
+		{
+			wantedMode = PrefsManager.RINGER_MODE_NORMAL;
+		}
+		boolean changed =
+			setCurrentRinger(audio, currentApiVersion,  wantedMode, current);
+		if (changed) {
+			shortText = PrefsManager.getRingerStateName(this, wantedMode);
+		}
+		else {
+			shortText = getString(R.string.ringerModeNone);
+		}
+		if (endNotifyWanted)
+		{
+			longText = shortText
+				+ " "
+				+ getString(R.string.eventend)
+				+ " "
+				+ endEvent
+				+ " "
+				+ getString(R.string.ofclass)
+				+ " "
+				+ endClassName;
+			if (PrefsManager.getPlaysoundEnd(this, endClassNum)) {
+				String path = PrefsManager.getSoundFileEnd(
+					this, endClassNum);
+				emitNotification(getString(R.string.mode_sonnerie_change),
+					longText, path);
+				new MyLog(this,
+					"Playing sound for end of event "
+						+ endEvent + " of class " + endClassName);
+			}
+			else if (changed && (wantedMode < current)) {
+				emitNotification(getString(R.string.mode_sonnerie_change),
+					longText, "");
+			}
+		}
+		if (startNotifyWanted)
+		{
+			longText = shortText
+				+ " " + getString(R.string.eventstart)
+				+ " " + startEvent
+				+ " " + getString(R.string.ofclass)
+				+ " " + startClassName;
+			if (PrefsManager.getPlaysoundStart(this, startClassNum)) {
+				String path = PrefsManager.getSoundFileStart(
+					this, startClassNum);
+				emitNotification(shortText, longText, path);
+				new MyLog(this,
+					"Playing sound for start of event "
+						+ startEvent + " of class " + startClassName);
+			}
+			else if (changed) {
+				emitNotification(longText, "", null);
+			}
+		}
+		if (!startEvent.isEmpty())
+		{
+			new MyLog(this,
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " for start of event "
+					+ startEvent
+					+ " of class "
+					+ startClassName);
+		}
+		else if (!endEvent.isEmpty())
+		{
+			new MyLog(this,
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " for end of event "
+					+ endEvent
+					+ " of class "
+					+ endClassName);
+		}
+		else if (resetting)
+		{
+			new MyLog(this,
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " after reset");
+		}
+		resetting = false;
+		PendingIntent pIntent = PendingIntent.getBroadcast(
+			this, 0 /*requestCode*/,
+			new Intent("CalendarTrigger.Alarm", Uri.EMPTY,
+				this, StartServiceReceiver.class),
+			PendingIntent.FLAG_UPDATE_CURRENT);
+		AlarmManager alarmManager = (AlarmManager)
+			getSystemService(Context.ALARM_SERVICE);
+		long updateTime = PrefsManager.getUpdateTime(this);
+		if (updateTime < nextAlarmTime)
+		{
+			nextAlarmTime = updateTime;
+			alarmReason = " for time zone change";
+		}
+		if (nextAlarmTime == Long.MAX_VALUE)
+		{
+			alarmManager.cancel(pIntent);
+			new MyLog(this, "Alarm cancelled");
+		}
+		else
+		{
+			// Sometimes Android delivers an alarm a few seconds early. In that
+			// case we don't do the actions for the alarm (because it isn't
+			// time for it yet), but we used not to set the alarm if it had not
+			// changed. This resulted in the actions getting lost until we got
+			// called again for some reason. However Android also won't set an
+			// alarm for less than 1 minute in the future, so in this case we
+			// use a handler to schedule another invocation instead.
+			long delay = nextAlarmTime - System.currentTimeMillis();
+			DateFormat df = DateFormat.getDateTimeInstance();
+			if (delay < SIXTYONE_SECONDS)
+			{
+				// If we took a long time executing this procedure, we may have
+				// gone past the next alarm time: in that case we reschedule
+				// with a zero delay.
+				if (delay < 0) { delay = 0; }
+				mHandler.sendMessageDelayed(
+					mHandler.obtainMessage(
+						what, DELAY_WAIT, 0, this), delay);
+				lock();
+				new MyLog(this, "Delayed message set for "
+					.concat(df.format(nextAlarmTime))
+					.concat(alarmReason));
+			}
+			else
+			{
+				if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
+				{
+					alarmManager.setExactAndAllowWhileIdle(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
+				else
+				{
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
+				new MyLog(this, "Alarm time set to "
+					.concat(df.format(nextAlarmTime))
+					.concat(alarmReason));
+			}
+			PrefsManager.setLastAlarmTime(this, nextAlarmTime);
+		}
+
+		PrefsManager.setLastInvocationTime(this, currentTime);
+		if (!anyStepCountActive)
+		{
+			if (PrefsManager.getStepCount(this)
+				!= PrefsManager.STEP_COUNTER_IDLE)
+			{
+				PrefsManager.setStepCount(this, PrefsManager.STEP_COUNTER_IDLE);
+				SensorManager sensorManager =
+					(SensorManager)getSystemService(Activity.SENSOR_SERVICE);
+				sensorManager.unregisterListener(this);
+				new MyLog(this, "Step counter deactivated");
+			}
+		}
+		if (!anyLocationActive)
+		{
+			if (PrefsManager.getLocationState(this))
+			{
+				LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
+			}
+		}
+		unlock("updateState");
+	}
+	// Determine which event classes have become active
+	// and which event classes have become inactive
+	// and consequently what we need to do.
+	// Incidentally we compute the next alarm time.
+	@TargetApi(Build.VERSION_CODES.M)
+	public void oldupdateState(Intent intent) {
+		// Timestamp used in all requests (so it remains consistent)
+		long currentTime = System.currentTimeMillis();
+		CalendarProvider provider = new CalendarProvider(this);
+		CheckTimeZone(currentTime, provider);
+		doLogCycling(currentTime);
+		long nextTime =  currentTime + FIVE_MINUTES;
+		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
+		AudioManager audio
+			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		int wantedMode = PrefsManager.RINGER_MODE_NONE;
+		int user = PrefsManager.getUserRinger(this);
+		int last =  PrefsManager.getLastRinger(this);
+		int current = PrefsManager.getCurrentMode(this);
+		new MyLog(this,
+			"last mode is "
+				+ PrefsManager.getEnglishStateName(this, last)
+				+ ", current mode is "
+				+ PrefsManager.getEnglishStateName(this, current));
+		/* This will do the wrong thing if the user changes the mode during the
+		 * one second that we are waiting for Android to set the new mode, but
+		 * there seems to be no workaround because Android is a bit
+		 * unpredictable in this area. Since Android can delay setting the
+		 * mode that we asked for, or even set a different mode, but doesn't
+		 * always do so, we can't tell if a change was done by Android or by the
+		 * user.
+		 */
+		if (   (last != current)
+			&& (last != PrefsManager.RINGER_MODE_NONE)
+			&& (!mHandler.hasMessages(what)))
+		{
+			// user changed ringer mode
+			user = current;
+			PrefsManager.setUserRinger(this, user);
+			new MyLog(this,
+				"Setting user ringer to "
+					+ PrefsManager.getEnglishStateName(this, user));
 		}
 		long nextAlarmTime = Long.MAX_VALUE;
 		String alarmReason = "";
@@ -1100,12 +1376,12 @@ public class MuteService extends IntentService
 		PackageManager packageManager = getPackageManager();
 		final boolean haveStepCounter =
 			currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
-			&& packageManager.hasSystemFeature(
+				&& packageManager.hasSystemFeature(
 				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
 		final boolean havelocation =
 			PackageManager.PERMISSION_GRANTED ==
-			PermissionChecker.checkSelfPermission(
-				this, Manifest.permission.ACCESS_FINE_LOCATION);
+				PermissionChecker.checkSelfPermission(
+					this, Manifest.permission.ACCESS_FINE_LOCATION);
 		if (PrefsManager.getStepCount(this) >= 0)
 		{
 			new MyLog(this, "Step counter running");
@@ -1117,7 +1393,7 @@ public class MuteService extends IntentService
 			{
 				String className = PrefsManager.getClassName(this, classNum);
 				int ringerAction = PrefsManager.getRingerAction(
-						this, classNum);
+					this, classNum);
 				CalendarProvider.startAndEnd result
 					= provider.nextActionTimes(this, currentTime, classNum);
 
@@ -1127,12 +1403,12 @@ public class MuteService extends IntentService
 
 				// true if an event of this class should be currently active
 				boolean active = (result.startTime <= currentTime)
-								 && (result.endTime > currentTime);
+					&& (result.endTime > currentTime);
 
 				if (triggered)
 				{
 					long after = PrefsManager.getAfterMinutes(this, classNum)
-								 * 60000;
+						* 60000;
 					if (after > 0)
 					{
 						long triggerEnd = currentTime + after;
@@ -1180,9 +1456,9 @@ public class MuteService extends IntentService
 						{
 							notNow = checkOrientationWait(classNum, true);
 							new MyLog(this, "checkOrientationWait("
-											+ className
-											+ ", true) returns "
-											+ (notNow ? "true" : "false"));
+								+ className
+								+ ", true) returns "
+								+ (notNow ? "true" : "false"));
 							if (notNow)
 							{
 								if ((nextAccelTime < nextAlarmTime)
@@ -1206,7 +1482,7 @@ public class MuteService extends IntentService
 										nextAlarmTime = nextTime;
 										alarmReason =
 											(" for next connection check for "
-											 + "event ")
+												+ "event ")
 												.concat(result.startEventName)
 												.concat(" of class ")
 												.concat(className);
@@ -1265,7 +1541,7 @@ public class MuteService extends IntentService
 					// check if we're waiting for movement
 					boolean done = false;
 					boolean waiting = false;
-                    int lastCounterSteps = PrefsManager.getStepCount(this);
+					int lastCounterSteps = PrefsManager.getStepCount(this);
 					int aftersteps =
 						PrefsManager.getAfterSteps(this, classNum);
 					if (PrefsManager.isClassActive(this, classNum))
@@ -1292,19 +1568,19 @@ public class MuteService extends IntentService
 									lastCounterSteps + aftersteps);
 								anyStepCountActive = true;
 								new MyLog(this,
-										  "Setting target steps for class "
-										  + className
-										  + " to "
-										  + String.valueOf(lastCounterSteps)
-										  + " + "
-										  + String.valueOf(aftersteps));
+									"Setting target steps for class "
+										+ className
+										+ " to "
+										+ String.valueOf(lastCounterSteps)
+										+ " + "
+										+ String.valueOf(aftersteps));
 								waiting = true;
 								done = false;
 							}
 						}
 						if (havelocation
 							&& (PrefsManager.getAfterMetres(this, classNum)
-								> 0))
+							> 0))
 						{
 							// keep it active while waiting for location
 							startLocationWait(classNum, intent);
@@ -1334,7 +1610,7 @@ public class MuteService extends IntentService
 								nextAlarmTime = nextTime;
 								alarmReason =
 									(" for next connection check for "
-									 + "event ")
+										+ "event ")
 										.concat(result.endEventName)
 										.concat(" of class ")
 										.concat(className);
@@ -1358,7 +1634,7 @@ public class MuteService extends IntentService
 					{
 						done = true;
 						if ((lastCounterSteps != PrefsManager.STEP_COUNTER_IDLE)
-                            && (aftersteps > 0))
+							&& (aftersteps > 0))
 						{
 							int steps
 								= PrefsManager.getTargetSteps(this, classNum);
@@ -1372,12 +1648,12 @@ public class MuteService extends IntentService
 								}
 								anyStepCountActive = true;
 								new MyLog(this,
-										  "Setting target steps for class "
-										  + className
-										  + " to "
-										  + String.valueOf(lastCounterSteps)
-										  + " + "
-										  + String.valueOf(aftersteps));
+									"Setting target steps for class "
+										+ className
+										+ " to "
+										+ String.valueOf(lastCounterSteps)
+										+ " + "
+										+ String.valueOf(aftersteps));
 								waiting = true;
 								done = false;
 							}
@@ -1419,7 +1695,7 @@ public class MuteService extends IntentService
 								nextAlarmTime = nextTime;
 								alarmReason =
 									(" for next connection check for "
-									 + "event ")
+										+ "event ")
 										.concat(result.endEventName)
 										.concat(" of class ")
 										.concat(className);
@@ -1487,12 +1763,12 @@ public class MuteService extends IntentService
 			}
 		}
 		if (   (PackageManager.PERMISSION_GRANTED ==
-					   ActivityCompat.checkSelfPermission(
-						   this, Manifest.permission.READ_CONTACTS))
-		    && (PackageManager.PERMISSION_GRANTED ==
-				ActivityCompat.checkSelfPermission(
-					this, Manifest.permission.WRITE_CONTACTS))
-			   && (PrefsManager.getNextLocationMode(this)))
+			ActivityCompat.checkSelfPermission(
+				this, Manifest.permission.READ_CONTACTS))
+			&& (PackageManager.PERMISSION_GRANTED ==
+			ActivityCompat.checkSelfPermission(
+				this, Manifest.permission.WRITE_CONTACTS))
+			&& (PrefsManager.getNextLocationMode(this)))
 		{
 			CalendarProvider.StartAndLocation sl =
 				provider.nextLocation(this, currentTime);
@@ -1502,7 +1778,7 @@ public class MuteService extends IntentService
 				cc.makeContact("!NextEventLocation", "", sl.location);
 				long slst = sl.startTime + 60000;
 				if (   (slst < nextAlarmTime)
-				    && (slst > currentTime))
+					&& (slst > currentTime))
 				{
 					nextAlarmTime = slst;
 					alarmReason = " after start of event "
@@ -1517,7 +1793,7 @@ public class MuteService extends IntentService
 		{
 			wantedMode = PrefsManager.RINGER_MODE_NORMAL;
 		}
- 		boolean changed =
+		boolean changed =
 			setCurrentRinger(audio, currentApiVersion,  wantedMode, current);
 		if (changed) {
 			shortText = PrefsManager.getRingerStateName(this, wantedMode);
@@ -1528,22 +1804,22 @@ public class MuteService extends IntentService
 		if (endNotifyWanted)
 		{
 			longText = shortText
-					   + " "
-					   + getString(R.string.eventend)
-					   + " "
-					   + endEvent
-					   + " "
-					   + getString(R.string.ofclass)
-					   + " "
-					   + endClassName;
+				+ " "
+				+ getString(R.string.eventend)
+				+ " "
+				+ endEvent
+				+ " "
+				+ getString(R.string.ofclass)
+				+ " "
+				+ endClassName;
 			if (PrefsManager.getPlaysoundEnd(this, endClassNum)) {
 				String path = PrefsManager.getSoundFileEnd(
 					this, endClassNum);
 				emitNotification(getString(R.string.mode_sonnerie_change),
 					longText, path);
 				new MyLog(this,
-						  "Playing sound for end of event "
-						  + endEvent + " of class " + endClassName);
+					"Playing sound for end of event "
+						+ endEvent + " of class " + endClassName);
 			}
 			else if (changed && (wantedMode < current)) {
 				emitNotification(getString(R.string.mode_sonnerie_change),
@@ -1553,17 +1829,17 @@ public class MuteService extends IntentService
 		if (startNotifyWanted)
 		{
 			longText = shortText
-					   + " " + getString(R.string.eventstart)
-					   + " " + startEvent
-					   + " " + getString(R.string.ofclass)
-					   + " " + startClassName;
+				+ " " + getString(R.string.eventstart)
+				+ " " + startEvent
+				+ " " + getString(R.string.ofclass)
+				+ " " + startClassName;
 			if (PrefsManager.getPlaysoundStart(this, startClassNum)) {
 				String path = PrefsManager.getSoundFileStart(
 					this, startClassNum);
 				emitNotification(shortText, longText, path);
 				new MyLog(this,
-						  "Playing sound for start of event "
-						  + startEvent + " of class " + startClassName);
+					"Playing sound for start of event "
+						+ startEvent + " of class " + startClassName);
 			}
 			else if (changed) {
 				emitNotification(longText, "", null);
@@ -1572,39 +1848,39 @@ public class MuteService extends IntentService
 		if (!startEvent.isEmpty())
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
-					  + PrefsManager.getEnglishStateName(this,
-														 wantedMode)
-					  + " for start of event "
-					  + startEvent
-					  + " of class "
-					  + startClassName);
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " for start of event "
+					+ startEvent
+					+ " of class "
+					+ startClassName);
 		}
 		else if (!endEvent.isEmpty())
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
-					  + PrefsManager.getEnglishStateName(this,
-														 wantedMode)
-					  + " for end of event "
-					  + endEvent
-					  + " of class "
-					  + endClassName);
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " for end of event "
+					+ endEvent
+					+ " of class "
+					+ endClassName);
 		}
 		else if (resetting)
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
-					  + PrefsManager.getEnglishStateName(this,
-														 wantedMode)
-					  + " after reset");
+				"Setting audio mode to "
+					+ PrefsManager.getEnglishStateName(this,
+					wantedMode)
+					+ " after reset");
 		}
 		resetting = false;
 		PendingIntent pIntent = PendingIntent.getBroadcast(
 			this, 0 /*requestCode*/,
 			new Intent("CalendarTrigger.Alarm", Uri.EMPTY,
 				this, StartServiceReceiver.class),
-				PendingIntent.FLAG_UPDATE_CURRENT);
+			PendingIntent.FLAG_UPDATE_CURRENT);
 		AlarmManager alarmManager = (AlarmManager)
 			getSystemService(Context.ALARM_SERVICE);
 		long updateTime = PrefsManager.getUpdateTime(this);
@@ -1625,48 +1901,48 @@ public class MuteService extends IntentService
 			// time for it yet), but we used not to set the alarm if it had not
 			// changed. This resulted in the actions getting lost until we got
 			// called again for some reason. However Android also won't set an
-            // alarm for less than 1 minute in the future, so in this case we
-            // use a handler to schedule another invocation instead.
-            long delay = nextAlarmTime - System.currentTimeMillis();
-            DateFormat df = DateFormat.getDateTimeInstance();
-            if (delay < SIXTYONE_SECONDS)
-            {
-                // If we took a long time executing this procedure, we may have
-                // gone past the next alarm time: in that case we reschedule
-                // with a zero delay.
-                if (delay < 0) { delay = 0; }
-                mHandler.sendMessageDelayed(
-                    mHandler.obtainMessage(
-                    		what, DELAY_WAIT, 0, this), delay);
-                lock();
-                new MyLog(this, "Delayed message set for "
-                    .concat(df.format(nextAlarmTime))
-                    .concat(alarmReason));
-            }
-            else
-            {
-                if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
-                {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-                }
-                else
-                {
-                    alarmManager.setExact(
-                        AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
-                }
-                new MyLog(this, "Alarm time set to "
-                    .concat(df.format(nextAlarmTime))
-                    .concat(alarmReason));
-            }
-            PrefsManager.setLastAlarmTime(this, nextAlarmTime);
+			// alarm for less than 1 minute in the future, so in this case we
+			// use a handler to schedule another invocation instead.
+			long delay = nextAlarmTime - System.currentTimeMillis();
+			DateFormat df = DateFormat.getDateTimeInstance();
+			if (delay < SIXTYONE_SECONDS)
+			{
+				// If we took a long time executing this procedure, we may have
+				// gone past the next alarm time: in that case we reschedule
+				// with a zero delay.
+				if (delay < 0) { delay = 0; }
+				mHandler.sendMessageDelayed(
+					mHandler.obtainMessage(
+						what, DELAY_WAIT, 0, this), delay);
+				lock();
+				new MyLog(this, "Delayed message set for "
+					.concat(df.format(nextAlarmTime))
+					.concat(alarmReason));
+			}
+			else
+			{
+				if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
+				{
+					alarmManager.setExactAndAllowWhileIdle(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
+				else
+				{
+					alarmManager.setExact(
+						AlarmManager.RTC_WAKEUP, nextAlarmTime, pIntent);
+				}
+				new MyLog(this, "Alarm time set to "
+					.concat(df.format(nextAlarmTime))
+					.concat(alarmReason));
+			}
+			PrefsManager.setLastAlarmTime(this, nextAlarmTime);
 		}
 
 		PrefsManager.setLastInvocationTime(this, currentTime);
 		if (!anyStepCountActive)
 		{
 			if (PrefsManager.getStepCount(this)
-                != PrefsManager.STEP_COUNTER_IDLE)
+				!= PrefsManager.STEP_COUNTER_IDLE)
 			{
 				PrefsManager.setStepCount(this, PrefsManager.STEP_COUNTER_IDLE);
 				SensorManager sensorManager =

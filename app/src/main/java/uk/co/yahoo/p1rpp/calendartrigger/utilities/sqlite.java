@@ -4,6 +4,7 @@
  */
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
@@ -66,17 +67,24 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 // Not using private storage here is a deliberate decision because
 // I don't approve of applications storing information that they
 // don't allow the device owner to read.
-// However this does mean that I have to be very careful when I
-// read data because it may have been corrupted by the user or another app..
+// However this does mean that I have to be very careful when I read from
+// my database because it may have been corrupted by the user or another app.
 
 public class sqlite extends Object {
     private Context m_context;
     private SQLiteDatabase m_db;
     private boolean m_written;
 
-    private void report(String small, String big) {
+    // Report a fatal error.
+    // We send a message to then log file (if logging is enabled).
+    // If this thread is the UI thread, we display a Toast:
+    // otherwise we show a notification.
+    // Then we throw an Error exception which will cause Android to
+    // terminate the thread and display a (not very helpful) message.
+    private void fatal(String small, String big) {
         new MyLog(m_context, big);
-        if (Looper.myLooper() == Looper.getMainLooper())
+        if (   (Activity.class.isInstance(m_context))
+            && ((Activity)m_context).hasWindowFocus())
         {
             Toast.makeText(m_context, big, Toast.LENGTH_LONG).show();
         }
@@ -87,20 +95,111 @@ public class sqlite extends Object {
         throw new Error(big);
     }
 
-    // All column names contain "_" so that they can't be reserved words
+    // All table names are concatenated words so that they shouldn't be reserved words
+    // All column names contain "_" so that they shouldn't be reserved words
     private String getCreator(String s) {
         if (s.equals("VACUUMDATA")) {
-            return "CREATE TABLE VACUUMDATA (VACUUM_COUNT INTEGER)";
+            return "CREATE TABLE VACUUMDATA (" +
+                // This counts the number of writes to the database.
+                // When it reaches 1000, we try a VACUUM.
+                // If it succeeds, we reset the count to 1.
+                "VACUUM_COUNT INTEGER)";
         }
         else if (s.equals("FLOATINGEVENTS")) {
-            return "CREATE TABLE FLOATINGEVENTS "
-                 + "(EVENT_ID INTEGER, START_WALLTIME_MILLIS INTEGER,"
-                 + "END_WALLTIME_MILLIS INTEGER)";
+            // This table keeps track of floating time events.
+            // It is used to adjust the UTC times when the time zone changes.
+            return "CREATE TABLE FLOATINGEVENTS ("
+                 // This is the _ID of a floating time event.
+                 // Event_id's are unique, so we don't need the calendar id.
+                 + " EVENT_ID INTEGER,"
+                 // This is the start time of the event in wall clock time.
+                 // It is used to recalculate the UTC start time (DTSTART)
+                 // from the time zone offset when it changes.
+                 + " START_WALLTIME_MILLIS INTEGER,"
+                 // This is the end time of the event in wall clock time.,
+                 // It is used to recalculate DTEND for non-recurring events.
+                 // For recurring events Android uses DURATION instead.
+                 + " END_WALLTIME_MILLIS INTEGER)";
+        }
+        else if (s.equals("ACTIVEEVENTS")) {
+            // This table keeps track of active events.
+            return "CREATE TABLE ACTIVEEVENTS ("
+                 // This is the class name of the event.
+                 // An event has a separate entry in this table
+                 // for each class in which it is active.
+                 // This is because the start or end time offset of
+                 // events can be different for different classes.
+                 // If the class no longer exists, we delete the record.
+                 + "ACTIVE_CLASS_NAME TEXT"
+                 // This is 1 if this is an immediate event, and 0 otherwise.
+                 // If it is 1, ACTIVE_EVENT_ID is meaningless.
+                 + "ACTIVE_IMMEDIATE INTEGER"
+                 // This is the _ID of a non-immediate active event.
+                 // If the event no longer exists, we try to do the end actions.
+                 // Some end actions require information from the event and
+                 // so cannot be done if the event has been deleted.
+                 + "ACTIVE_EVENT_ID INTEGER"
+                 // This is the state of an active event:
+                 // the states are defined below.
+                 + "ACTIVE_STATE INTEGER"
+                 // This is the time when we next need to wake up for this event.
+                 + "ACTIVE_NEXT_ALARM INTEGER"
+                 + ")";
+
         }
         // If this occurs. it's a programming error
-        String big = "getCreator(" + s + ") unknown table name";
-        report("Bad table name", big);
+        String big = "getCreator(" + s + m_context.getString(R.string.unknowntable);
+        fatal(m_context.getString(R.string.badtable), big);
         return null; // unreachable
+    }
+
+    public static final int ACTIVE_CLASS_NAME = 0;
+    public static final int ACTIVE_IMMEDIATE = 1;
+    public static final int ACTIVE_EVENT_ID = 2;
+    public static final int ACTIVE_STATE = 3;
+    public static final int ACTIVE_NEXT_ALARM = 4;
+
+    // Possible values for ACTIVE_STATE:-
+    // This state is only here for completeness.
+    // It should never occur because inactive events get deleted from the table.
+    public static final int NOT_ACTIVE = 0;
+    // The event has reached its start time, but is waiting for other conditions
+    // to be satisfied before it can become fully active.
+    public static final int ACTIVE_START_WAITING = 1;
+    // The event was inactive before and has become fully active.
+    // This state exists only for one pass through the table.
+    public static final int ACTIVE_STARTING = 2;
+    // The event has completed some of the class's start actions,
+    // but is waiting for some resource (such as an internet connection) to
+    // become available before it can complete others.
+    public static final int ACTIVE_START_SENDING = 3;
+    // The event has completed all the class's start actions and is now fully active.
+    public static final int ACTIVE_STARTED = 4;
+    // The event has reached its end time, but is waiting for other conditions
+    // to be satisfied before it can become inactive.
+    public static final int ACTIVE_END_WAITING = 5;
+    // The event was active and has become inactive.
+    // This state exists only for one pass through the table.
+    public static final int ACTIVE_ENDING = 6;
+    // The event has completed some of the class's end actions,
+    // but is waiting for some resource (such as an internet connection) to
+    // become available before it can complete others.
+    public static final int ACTIVE_END_SENDING = 7;
+    // The next state would be NOT_ACTIVE, but the record gets deleted
+    // because we don't need to keep track of this event for this class any more.
+
+    public String getActiveStateName(int n) {
+        switch (n) {
+            case 0: return "NOT_ACTIVE";
+            case 1: return "ACTIVE_START_WAITING";
+            case 2: return "ACTIVE_STARTING";
+            case 3: return "ACTIVE_START_SENDING";
+            case 4: return "ACTIVE_STARTED";
+            case 5: return "ACTIVE_START_SENDING";
+            case 6: return "ACTIVE_ENDING";
+            case 7: return "ACTIVE_END_SENDING";
+            default: return "Unknown state" + n;
+        }
     }
 
     // We assume here that we don't re-use column names in different tables.
@@ -109,14 +208,21 @@ public class sqlite extends Object {
         else if (s.equals("EVENT_ID")) { return "FLOATINGEVENTS"; }
         else if (s.equals("START_WALLTIME_MILLIS")) { return "FLOATINGEVENTS"; }
         else if (s.equals("END_WALLTIME_MILLIS")) { return "FLOATINGEVENTS"; }
+        else if (s.equals("ACTIVE_CLASS_NAME")) { return "ACTIVEEVENTS"; }
+        else if (s.equals("ACTIVE_IMMEDIATE")) { return "ACTIVEEVENTS"; }
+        else if (s.equals("ACTIVE_EVENT_ID")) { return "ACTIVEEVENTS"; }
+        else if (s.equals("ACTIVE_STATE")) { return "ACTIVEEVENTS"; }
+        else if (s.equals("ACTIVE_NEXT_ALARM")) { return "ACTIVEEVENTS"; }
         // If this occurs. it's a programming error
-        String big = "getTableName(" + s + ") unknown column name";
-        report("Bad column name", big);
+        String big = "getTableName(" + s + m_context.getString(R.string.unknowncolumn);
+        fatal(m_context.getString(R.string.badcolumn), big);
         return null; // unreachable
     }
 
-    // Returns e if not handled or null to try again
-    // We assume here that column names don't contain spaces
+    // This normally returns, having patched up the database if necessary
+    // so that the caller can try again if it wants to.
+    // Unrecoverable problems result in a call to fatal() above.
+    // We assume here that our column names don't contain spaces
     private void handleException (int i, SQLiteException e) {
         String s = e.getMessage();
         if (s.startsWith("no such table:")) {
@@ -153,14 +259,20 @@ public class sqlite extends Object {
                 || (t.equals("SQLiteDatabaseLockedException")))
             {
                 new MyLog(m_context, t);
-                if (i > 0) { return; }
+                // Try waiting 0.1 second for the other transaction to complete
+                if (i > 0) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ee) {}
+                    return;
+                }
             }
         }
         String small = m_context.getString(R.string.databaseerror);
         String big = DataStore.getDatabaseFile(m_context) +
             m_context.getString(R.string.unrecoverable)
             + e.getCause().toString()+ e.getLocalizedMessage();
-        report(small, big);
+        fatal(small, big);
     }
 
     public Cursor rawQuery(String sql, String[] selectionArgs) {
@@ -182,6 +294,24 @@ public class sqlite extends Object {
             } catch (SQLiteException e) {
                 handleException(i, e);
            }
+        }
+    }
+
+    public int update(
+        String table, ContentValues values, String whereClause, String[] whereArgs) {
+        for (int i = 10; ; --i) {
+            try {
+                int result =  m_db.update(table, values, whereClause, whereArgs);
+                m_written = true;
+                return result;
+            } catch (SQLiteException e) {
+                // Nonexistent table or column is almost certainly a programming error:
+                // we should only ever update records that we have just found.
+                // However it's possible that some other process deleted the
+                // table while we were looking at it, and maybe created it
+                // with different columns, so we handle these in the normal way.
+                handleException(i, e);
+            }
         }
     }
 
@@ -228,18 +358,23 @@ public class sqlite extends Object {
         }
     }
 
+    public String getString(Cursor cursor, int columnIndex) {
+        
+    }
+
     // Vacuuming needs to be done from time to time, but it isn't urgent.
-    private static int WRITECOUNT = 1000;
+    private static final int WRITECOUNT = 1000;
     public void tryVacuum ()  {
-        long count = 1;
+        long count = 0;
         try {
             Cursor cursor = m_db.rawQuery(
                 "SELECT VACUUM_COUNT FROM VACUUMDATA", null);
             if (cursor.moveToFirst()) {
-                count = getUnsignedLong(cursor, 0) + 1;
+                count = getUnsignedLong(cursor, 0);
                 if (count > WRITECOUNT) {
                     // Time to vacuum, do so and reset count
                     m_db.execSQL("VACUUM");
+                    count = 0;
                 }
                 // fall through to update count
             }
@@ -247,7 +382,7 @@ public class sqlite extends Object {
                 new MyLog(m_context,
                     m_context.getString(R.string.norows));
                 m_db.execSQL("INSERT INTO VACUUMDATA ( VACUUM_COUNT ) VALUES ( "
-                             + count + " )");
+                             + (count + 1) + " )");
                 return;
             }
         } catch (SQLiteException e) {
@@ -256,10 +391,10 @@ public class sqlite extends Object {
             new MyLog(m_context,m_context.getString(R.string.value)
                 + ee.getMessage().replace("Bad number ", "")
                 + m_context.getString(R.string.countnoninteger));
-            // fall through to replace invalid count with 0
+            // fall through to replace invalid count with 1
         }
         try {
-            m_db.execSQL("UPDATE VACUUMDATA SET VACUUM_COUNT = " + count);
+            m_db.execSQL("UPDATE VACUUMDATA SET VACUUM_COUNT = " + (count + 1));
             return;
         } catch (SQLiteException e) {
             handleException(0, e);

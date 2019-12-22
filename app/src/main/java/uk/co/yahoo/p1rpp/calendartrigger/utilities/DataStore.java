@@ -84,12 +84,13 @@ public class DataStore extends Object {
             if ((!f2.exists()) && f1.exists()) {
                 try {
                     if (!f1.renameTo(f2)) {
-                        String big = DataStore.DATABASEFILE +
+                        String big = DATABASEFILE +
                             context.getString(R.string.norename1)
-                            + DataStore.OLDDATABASEFILE
+                            + OLDDATABASEFILE
                             + context.getString(R.string.norename2);
                         report(context, context.getString(
-                            R.string.norename, OLDDATABASEFILE), big, "Database");
+                            R.string.norename, OLDDATABASEFILE),
+                            big, "Database");
                         return null;
                     }
                 } catch (NullPointerException e) { /* can't actually happen' */ }
