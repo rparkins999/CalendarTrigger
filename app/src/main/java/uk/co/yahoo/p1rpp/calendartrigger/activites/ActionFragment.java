@@ -4,6 +4,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.support.v4.content.PermissionChecker;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -66,7 +68,6 @@ public class ActionFragment extends Fragment
     protected DisabledCheckBox sendToContact;
     protected EditText contactName;
     protected DisabledCheckBox sendToContactFromEventName;
-    protected boolean sendToContactFromEventNameWasChecked;
     private TextView firstLabel;
     protected EditText firstWordNum;
     private TextView firstFrom;
@@ -86,6 +87,7 @@ public class ActionFragment extends Fragment
     protected DisabledRadioButton subjectDescription;
     protected DisabledRadioButton subjectLiteral;
     protected EditText subjectText;
+    private boolean haveContactsPermission;
 
     public ActionFragment() {
     }
@@ -111,6 +113,48 @@ public class ActionFragment extends Fragment
     public void onTextChanged(
         CharSequence s, int start, int before, int count) {
         // nothing
+    }
+
+    public void enableSendToContact(boolean enable) {
+        if (enable) {
+            haveContactsPermission =
+                (PackageManager.PERMISSION_GRANTED ==
+                    PermissionChecker.checkSelfPermission(
+                        getActivity(), Manifest.permission.READ_CONTACTS));
+            if (haveContactsPermission) {
+                sendToContact.setEnabled(true);
+                return;
+            }
+        }
+        sendToContact.setEnabled(false);
+    }
+
+    public void enableSendToContactFromEventName(boolean enable) {
+        if (enable) {
+            haveContactsPermission =
+                (PackageManager.PERMISSION_GRANTED ==
+                    PermissionChecker.checkSelfPermission(
+                        getActivity(), Manifest.permission.READ_CONTACTS));
+            if (haveContactsPermission) {
+                sendToContactFromEventName.setEnabled(true);
+                return;
+            }
+        }
+        sendToContactFromEventName.setEnabled(false);
+    }
+
+    public void enableContactName(boolean enable) {
+        if (enable) {
+            haveContactsPermission =
+                (PackageManager.PERMISSION_GRANTED ==
+                    PermissionChecker.checkSelfPermission(
+                        getActivity(), Manifest.permission.READ_CONTACTS));
+            if (haveContactsPermission) {
+                contactName.setEnabled(true);
+                return;
+            }
+        }
+        contactName.setEnabled(false);
     }
 
     private void fixupContactName(String s) {
@@ -283,9 +327,9 @@ public class ActionFragment extends Fragment
         sendToEmail.setEnabled(true);
         emailAddress.setEnabled(true);
         sendToNumber.setEnabled(false);
-        sendToContact.setEnabled(true);
-        contactName.setEnabled(true);
-        sendToContactFromEventName.setEnabled(true);
+        enableSendToContact(true);
+        enableContactName(true);
+        enableSendToContactFromEventName(true);
     }
 
     private void setSendEmailOrText() {
@@ -298,9 +342,9 @@ public class ActionFragment extends Fragment
         emailAddress.setEnabled(true);
         sendToNumber.setEnabled(true);
         smsNumber.setEnabled(true);
-        sendToContact.setEnabled(true);
-        contactName.setEnabled(true);
-        sendToContactFromEventName.setEnabled(true);
+        enableSendToContact(true);
+        enableContactName(true);
+        enableSendToContactFromEventName(true);
     }
 
     private void setSendText() {
@@ -314,9 +358,9 @@ public class ActionFragment extends Fragment
         emailAddress.setEnabled(false);
         sendToNumber.setEnabled(true);
         smsNumber.setEnabled(true);
-        sendToContact.setEnabled(true);
-        contactName.setEnabled(true);
-        sendToContactFromEventName.setEnabled(true);
+        enableSendToContact(true);
+        enableContactName(true);
+        enableSendToContactFromEventName(true);
     }
 
     private void setSendTextOrEmail() {
@@ -329,9 +373,9 @@ public class ActionFragment extends Fragment
         emailAddress.setEnabled(true);
         sendToNumber.setEnabled(true);
         smsNumber.setEnabled(true);
-        sendToContact.setEnabled(true);
-        contactName.setEnabled(true);
-        sendToContactFromEventName.setEnabled(true);
+        enableSendToContact(true);
+        enableContactName(true);
+        enableSendToContactFromEventName(true);
     }
 
     private void clearSendMessage() {
@@ -347,10 +391,10 @@ public class ActionFragment extends Fragment
         sendToNumber.setEnabled(false);
         smsNumber.setEnabled(false);
         sendToContact.setChecked(false);
-        sendToContact.setEnabled(false);
-        contactName.setEnabled(false);
+        enableSendToContact(false);
+        enableContactName(false);
         sendToContactFromEventName.setChecked(false);
-        sendToContactFromEventName.setEnabled(false);
+        enableSendToContactFromEventName(false);
         firstLabel.setEnabled(false);
         firstWordNum.setEnabled(false);
         firstFrom.setEnabled(false);
@@ -882,14 +926,14 @@ public class ActionFragment extends Fragment
             || sendEmail.isChecked()
             || sendEmailOrText.isChecked()
             || sendTextOrEmail.isChecked()) {
-            sendToContact.setEnabled(true);
+            enableSendToContact(true);
             sendToContact.setChecked(s != null);
-            contactName.setEnabled(true);
+            enableContactName(true);
         }
         else
         {
-            sendToContact.setEnabled(false);
-            contactName.setEnabled(false);
+            enableSendToContact(false);
+            enableContactName(false);
         }
         sendToContact.setOnClickListener(new  View.OnClickListener() {
             @Override
@@ -910,11 +954,18 @@ public class ActionFragment extends Fragment
                     Toast.makeText(ac, "Send message to a contact",
                         Toast.LENGTH_LONG).show();
                 }
-                else
+                else if (haveContactsPermission)
                 {
                     Toast.makeText(ac,
                         "This option is disabled because the message"
                             + " is not being sent by either email or SMS text.",
+                        Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    Toast.makeText(ac,
+                        "This option is disabled because CalendarTrigger"
+                        + " does not have permission to read contacts.",
                         Toast.LENGTH_LONG).show();
                 }
                 return true;
@@ -968,7 +1019,7 @@ public class ActionFragment extends Fragment
             || sendEmail.isChecked()
             || sendEmailOrText.isChecked()
             || sendTextOrEmail.isChecked()) {
-            sendToContactFromEventName.setEnabled(true);
+            enableSendToContactFromEventName(true);
             boolean enable = PrefsManager.getMessageExtract(
                 ac, classNum, startOrEnd);
             sendToContactFromEventName.setChecked(enable);
@@ -984,8 +1035,8 @@ public class ActionFragment extends Fragment
         }
         else
         {
-            sendToContactFromEventName.setEnabled(false);
-            contactName.setEnabled(false);
+            enableSendToContactFromEventName(false);
+            enableContactName(false);
             firstLabel.setEnabled(false);
             firstWordNum.setEnabled(false);
             firstFrom.setEnabled(false);
@@ -1018,11 +1069,18 @@ public class ActionFragment extends Fragment
                             + " from the name of the event.",
                         Toast.LENGTH_LONG).show();
                 }
-                else
+                else if (haveContactsPermission)
                 {
                     Toast.makeText(ac,
                         "This option is disabled because the message"
                             + " is not being sent by either email or SMS text.",
+                        Toast.LENGTH_LONG).show();
+                }
+                else
+                {
+                    Toast.makeText(ac,
+                        "This option is disabled because CalendarTrigger"
+                            + " does not have permission to read contacts.",
                         Toast.LENGTH_LONG).show();
                 }
                 return true;

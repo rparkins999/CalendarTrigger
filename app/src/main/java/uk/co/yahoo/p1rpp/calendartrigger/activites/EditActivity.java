@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -17,9 +18,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.SQLtable;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
@@ -218,9 +221,17 @@ public class EditActivity extends Activity {
             R.string.eventNowLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                int classNum = PrefsManager.getClassNum(ac, className);
-                PrefsManager.setLastImmediate(ac, classNum);
-                PrefsManager.setClassTriggered(ac, classNum, true);
+                long now = System.currentTimeMillis();
+                ContentValues cv = new ContentValues();
+                cv.put("ACTIVE_CLASS_NAME", className);
+                cv.put("ACTIVE_IMMEDIATE", 1);
+                cv.put("ACTIVE_EVENT_ID", 0);
+                cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
+                cv.put("ACTIVE_NEXT_ALARM", now + CalendarProvider.FIVE_MINUTES);
+                cv.put("ACTIVE_STEPS_TARGET", 0);
+                SQLtable table = new SQLtable(ac, "ACTIVEEVENTS");
+                table.insert(cv);
+                table.close();
                 MuteService.startIfNecessary(ac, "Immediate Event");
             }
         });

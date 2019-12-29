@@ -19,6 +19,13 @@
     <string name="badtable">Bad table name</string>
     <string name="unknowncolumn">") unknown column name"</string>
     <string name="badcolumn">Bad column name</string>
+    <string name="immediate">immediate event</string>
+    <string name="state">", state "</string>
+    <string name="badstate">", invalid state "</string>
+    <string name="alarm">", alarm "</string>
+    <string name="badcursor">Bad cursor</string>
+    <string name="badrowtocolumn">rowToColumn called  with Cursor
+        not on a table from CalendarTrigger\'s database</string>
     <string name="table">"Table "</string>
     <string name="creating">" does not exist, creating new one."</string>
     <string name="creatingnew">"Creating new table "</string>
@@ -26,10 +33,17 @@
     <string name="dropping">" does not exist, dropping and recreating table "</string>
     <string name="databaseerror">"Database error"</string>
     <string name="unrecoverable">" unrecoverable error "</string>
+    <string name="badcolnum">Column number %s out of range</string>
+    <string name="getstring">" in call of getString() on table %s"</string>
+    <string name="getunsignedlong">" in call of getUnsignedLong on table %s"</string>
+    <string name="classnotfound">Class %s not found</string>
+    <string name="forrow">" for row "</string>
+    <string name="deletingit">, deleting it</string>
+    <string name="notablename">"No table name in query "</string>
     <string name="norows">"Table VACUUMDATA has no rows, creating new valid row."</string>
     <string name="value">"Value \""</string>
-    <string name="countnoninteger">"\" in VACUUMDATA.COUNT is non-integer,"
-        "replacing with new valid row."</string>
+    <string name="countnoninteger">%s in VACUUMDATA.COUNT is non-integer,
+        replacing with new valid row.</string>
     <string name="nocreatedetail">does not exist and cannot be created</string>
     <string name="norename1">" does not exist and "</string>
     <string name="norename2">" exists but cannot be renamed."</string>
@@ -64,6 +78,7 @@
     <string name="checkfloatrecurringhelp">If this box is checked, all instances of
         this recurring event will retain the same wall clock time if the device\'s
         time zone changes."</string>
+    <string name="anotherdate">Another Date</string>
     <string name="badactivestate">Bad active state</string>
     <string name="bigbadactivestate">Bad active state %s for event %s,
         entry removed from active table.</string>
@@ -80,7 +95,7 @@
     <string name="cancel_create">Cancel</string>
     <string name="floating">Make Events Floating</string>
     <string name="deletinginvalid">"Deleting invalid record "</string>
-    <string name="fromfloating">") from table FLOATINGEVENTS"</string>
+    <string name="fromtable">") from table "</string>
     <string name="event">"Event "</string>
     <string name="corrupted">" apparently corrupted, deleted"</string>
     <string name="isallday">" is all day, handled in provider"</string>
@@ -508,7 +523,7 @@
     <string name="mode_sonnerie_change">Setting audio mode at\ </string>
     <string name="name">name</string>
     <string name="settingTo">Setting audio mode to</string>
-    <string name="ringerModeNone">unchanged</string>
+    <string name="ringerModeNone">Ringer Mode unchanged</string>
     <string name="ringerModeNormal">normal</string>
     <string name="ringerModeVibrate">vibrate</string>
     <string name="ringerModeNoDisturb">do-not-disturb</string>

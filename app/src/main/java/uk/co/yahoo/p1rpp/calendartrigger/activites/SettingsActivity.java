@@ -58,7 +58,8 @@ public class SettingsActivity extends Activity {
 
     private void doReset() {
         startService(new Intent(
-            MuteService.MUTESERVICE_RESET, null, this, MuteService.class));
+            MuteService.MUTESERVICE_RESET,
+            null, this, MuteService.class));
 
     }
 

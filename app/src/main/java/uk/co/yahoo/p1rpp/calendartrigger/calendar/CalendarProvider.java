@@ -24,7 +24,7 @@ import java.util.TimeZone;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
-import uk.co.yahoo.p1rpp.calendartrigger.utilities.sqlite;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.SQLtable;
 
 public class CalendarProvider {
 
@@ -32,7 +32,8 @@ public class CalendarProvider {
 	public static final long ONE_SECOND = 1000;
 	public static final long ONE_MINUTE = 60 * ONE_SECOND;
 	public static final long FIVE_MINUTES = 5 * ONE_MINUTE;
-	public static final long ONE_DAY = 24 * 60 * ONE_MINUTE;
+	public static final long ONE_HOUR = 60 * ONE_MINUTE;
+	public static final long ONE_DAY = 24 * ONE_HOUR;
 	public static final long TWO_DAYS = 2 * ONE_DAY;
 	public static final long ONE_MONTH = 28 * ONE_DAY;
 
@@ -340,25 +341,11 @@ public class CalendarProvider {
 		return selClause;
 	}
 
-	// get next action times for event class
-	public class startAndEnd {
-
-		// Start time of current or next event, Long.MAX_VALUE if none
-		public long startTime;
-		public String startEventName;
-		public String startEventDescription;
-
-		// End time of current or next event, currentTime if none
-		public long endTime;
-		public String endEventName;
-		public String endEventDescription;
-	}
-
 	public class NextAlarm {
 		public String reason;
 		public long time;
-		public String className;
 		public String eventName;
+		public String className;
 	}
 
 	private static final String[] INSTANCE_PROJECTION = new String[] {
@@ -373,9 +360,9 @@ public class CalendarProvider {
 	private static final int INSTANCE_PROJECTION_BEGIN_INDEX = 1;
 	private static final int INSTANCE_PROJECTION_END_INDEX = 2;
 	private static final int INSTANCE_PROJECTION_TITLE_INDEX = 3;
-	private static final int INSTANCE_PROJECTION_DESCRIPTION_INDEX = 4;
+	//private static final int INSTANCE_PROJECTION_DESCRIPTION_INDEX = 4;
 
-	public NextAlarm fillActive(sqlite db, Context context, long currentTime) {
+	public NextAlarm fillActive(SQLtable activeEvents, Context context, long currentTime) {
 		NextAlarm nextAlarm = new NextAlarm();
 		nextAlarm.reason = "calendar search";
 		nextAlarm.time = currentTime + ONE_MONTH;
@@ -401,61 +388,65 @@ public class CalendarProvider {
 					long eventId = c1.getLong(INSTANCE_PROJECTION_ID_INDEX);
 					long start = c1.getLong(INSTANCE_PROJECTION_BEGIN_INDEX) - before;
 					long end = c1.getLong(INSTANCE_PROJECTION_END_INDEX) + after;
-					String sel = "SELECT ACTIVE_STATE FROM ACTIVEEVENTS WHERE ";
-					String where = "ACTIVE_CLASS_NAME IS ? " +
-								   "AND ACTIVE_EVENT_ID IS ?";
-					String[] selArgs =
-						new String [] { className, String.valueOf(eventId)};
+					String where = "ACTIVE_CLASS_NAME IS ? AND ACTIVE_EVENT_ID IS ?";
+					String[] args = new String [] { className, String.valueOf(eventId) };
 					if (end <= currentTime) {
-						Cursor c2 = db.rawQuery(sel + where, selArgs);
-						if (c2.moveToNext()) {
+						SQLtable table =
+							new SQLtable(activeEvents, "ACTIVEEVENTS",
+										 where, args, null);
+						if (table.moveToNext()) {
 							try {
 								long state =
-									db.getUnsignedLong(c2, 0);
-								if (state < sqlite.ACTIVE_END_WAITING) {
+									table.getUnsignedLong(0);
+								if (state < SQLtable.ACTIVE_END_WAITING) {
 									ContentValues cv = new ContentValues();
-									cv.put("ACTIVE_STATE", sqlite.ACTIVE_END_WAITING);
+									cv.put("ACTIVE_STATE", SQLtable.ACTIVE_END_WAITING);
 									cv.put("ACTIVE_NEXT_ALARM", Long.MAX_VALUE);
-									db.update("ACTIVEEVENTS", cv, where, selArgs);
+									table.update(cv);
 								}
 							} catch (NumberFormatException e) {
 								String small = context.getString(R.string.badactivestate);
 								String big = context.getString(
 									R.string.bigbadactivestate,
-									c2.getString(0),
+									table.getString(0),
 									c1.getString(INSTANCE_PROJECTION_TITLE_INDEX));
 								new MyLog(context, small, big);
-								db.delete("ACTIVEEVENTS", where, selArgs);
+								table.delete();
 							}
 						}
+						table.close();
 					}
 					else
 					{
 						if (end < nextAlarm.time) {
 							nextAlarm.reason = "end";
 							nextAlarm.time = end;
-							nextAlarm.className = className;
 							nextAlarm.eventName =
 								c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+							nextAlarm.className = className;
 						}
 						if (start <= currentTime) {
-							Cursor c2 = db.rawQuery(sel + where, selArgs);
-							if (!c2.moveToNext()) {
+							SQLtable table =
+								new SQLtable(activeEvents, "ACTIVEEVENTS",
+									where, args, null);
+							if (table.isEmpty()) {
 								ContentValues cv = new ContentValues();
 								cv.put("ACTIVE_CLASS_NAME", className);
 								cv.put("ACTIVE_IMMEDIATE", 0);
 								cv.put("ACTIVE_EVENT_ID", eventId);
-								cv.put("ACTIVE_STATE", sqlite.ACTIVE_START_WAITING);
+								cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
 								cv.put("ACTIVE_NEXT_ALARM", end);
-								db.insert("ACTIVE_STATE", null, cv);
+								cv.put("ACTIVE_STEPS_TARGET", 0);
+								table.insert(cv);
 							}
+							table.close();
 						}
 						else if (start < nextAlarm.time) {
 							nextAlarm.reason = "start";
 							nextAlarm.time = start;
-							nextAlarm.className = className;
 							nextAlarm.eventName =
 								c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+							nextAlarm.className = className;
 						}
 						else
 						{
@@ -468,86 +459,6 @@ public class CalendarProvider {
 			}
 		}
 		return nextAlarm;
-	}
-
-	public startAndEnd nextActionTimes(
-		Context context, long currentTime, int classNum) {
-		long before = PrefsManager.getBeforeMinutes(context, classNum) * ONE_MINUTE;
-		long after = PrefsManager.getAfterMinutes(context, classNum) * ONE_MINUTE;
-		startAndEnd result = new startAndEnd();
-		long triggerEnd =  PrefsManager.getLastTriggerEnd(context, classNum);
-		if (triggerEnd > currentTime)
-		{
-			result.startTime = currentTime;
-			result.endTime = triggerEnd;
-			result.startEventName = "<immediate>";
-			result.endEventName = "<immediate>";
-			result.startEventDescription = "<immediate>";
-			result.endEventDescription = "<immediate>";
-		}
-		else
-		{
-			result.startTime = Long.MAX_VALUE;
-			result.endTime = currentTime;
-			result.startEventName = "";
-			result.endEventName = "";
-			result.startEventDescription = "";
-			result.endEventDescription = "";
-		}
-		ContentResolver cr = context.getContentResolver();
-		StringBuilder selClause = selection(context, classNum);
-		// Do query sorted by start time
-		Cursor cur = cr.query(getInstancesQueryUri(), INSTANCE_PROJECTION,
-							  selClause.toString(), null,
-							  Instances.BEGIN);
-		while (cur.moveToNext())
-		{
-			long start = cur.getLong(INSTANCE_PROJECTION_BEGIN_INDEX) - before;
-			long end = cur.getLong(INSTANCE_PROJECTION_END_INDEX) + after;
-			if (start < result.startTime)
-			{
-				// This can only happen once, because we sort the
-				// query on ascending start time
-				// FIXME THIS IS BIG
-				// Several events can start at the same time: if the action is to
-				// send a message, I need to send one for each event
-				result.startTime = start;
-				if (end > result.endTime)
-				{
-					result.endTime = end;
-					result.startEventName =
-						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
-					result.startEventName =
-						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
-					result.startEventDescription =
-						cur.getString(INSTANCE_PROJECTION_DESCRIPTION_INDEX);
-					result.endEventName = result.startEventName;
-					result.endEventDescription = result.startEventDescription;
-				}
-			}
-			else if (start <= result.endTime)
-			{
-				// This event starts or started before our current end
-				if (end > result.endTime)
-				{
-					// extend end time for overlapping event
-					result.endTime = end;
-					result.endEventName =
-						cur.getString(INSTANCE_PROJECTION_TITLE_INDEX);
-					result.endEventDescription =
-						cur.getString(INSTANCE_PROJECTION_DESCRIPTION_INDEX);
-				}
-			}
-			if (start > currentTime)
-			{
-				// This event starts in the future
-				// We need not consider any later ones, because we will
-				// set an alarm for its start time or earlier and look again
-				break;
-			}
-		}
-		cur.close();
-		return result;
 	}
 
 	// get start time and location for next event with a location
@@ -598,16 +509,6 @@ public class CalendarProvider {
 		}
 	}
 
-	// Returns -1 if the record was corrupted and we deleted it.
-	private long getUnsignedLong(
-		Context context, sqlite floatingEvents, Cursor cursor, int columnIndex) {
-		try {
-			return floatingEvents.getUnsignedLong(cursor, columnIndex);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
-
 	private static final String[] TIMEZONE_PROJECTION = new String[] {
 		Events.DURATION,
 		Events.RRULE,
@@ -627,12 +528,12 @@ public class CalendarProvider {
 	 * c2 is the data read from the existing events table
 	 */
 	private boolean updateEvent (
-		Context context, ContentResolver cr, sqlite floatingEvents,
-		Uri uri, int tzOffset, Cursor c1, Cursor c2)
+		Context context, ContentResolver cr, SQLtable floatingEvents,
+		Uri uri, int tzOffset, Cursor c2)
         throws NumberFormatException {
 		String title = c2.getString(TIMEZONE_EVENT_TITLE_INDEX);
 		ContentValues cv = new ContentValues();
-		long dtstart = floatingEvents.getUnsignedLong(c1,  1);
+		long dtstart = floatingEvents.getUnsignedLong(1);
 		dtstart = dtstart - tzOffset;
 		cv.put(Events.DTSTART, dtstart);
 		DateFormat dtf = DateFormat.getDateTimeInstance();
@@ -642,7 +543,7 @@ public class CalendarProvider {
 		if ((rrule == null) || rrule.isEmpty())
 		{
 			// not a recurrent event
-			long dtend = floatingEvents.getUnsignedLong(c1,  2);
+			long dtend = floatingEvents.getUnsignedLong(2);
 			dtend = dtend - tzOffset;
 			cv.put(Events.DTEND, dtend);
 			cv.put(Events.DURATION, (String) null);
@@ -668,76 +569,50 @@ public class CalendarProvider {
 		return true;
 	}
 
-	private void deleteBad (sqlite floatingEvents, Cursor c1, String title) {
-        String eventId = c1.getString(0);
-        String wallStart = c1.getString(1);
-        String wallEnd = c1.getString(2);
-        new MyLog(context, context.getString(R.string.deletinginvalid) +
-						   ((title == null) ? "(" : title + " (") +
-            			   eventId + ", " + wallStart + ", " + wallEnd +
-            			   context.getString(R.string.fromfloating));
-        String[] args = new String[] { eventId, wallStart, wallEnd };
-        String whereClause = "EVENT_ID IS ?" +
-							" AND START_WALLTIME_MILLIS IS ?" +
-							" AND END_WALLTIME_MILLIS IS ?";
-        floatingEvents.delete("FLOATINGEVENTS", whereClause, args);
-    }
-
-	public void doTimeZoneAdjustment(Context context, int tzOffset) {
-		sqlite floatingEvents = new sqlite(context);
+	public void doTimeZoneAdjustment(Context context, int tzOffset, SQLtable table) {
 		String small = context.getString(R.string.doingTZ);
 		String big = context.getString(R.string.doingTZby) +
 			(tzOffset >= 0 ? "+" : "") + (tzOffset / 60000) + " " +
 			context.getString(R.string.minutes) + ".";
 		new MyLog(context, small, big);
-		if (floatingEvents != null)
-		{
-			Cursor c1 = floatingEvents.rawQuery(
-				"SELECT EVENT_ID, START_WALLTIME_MILLIS,"
-					+ "END_WALLTIME_MILLIS FROM FLOATINGEVENTS", null);
-			while (c1.moveToNext()) {
-                long eventId;
-                try {
-                    eventId = floatingEvents.getUnsignedLong(c1, 0);
-                } catch (NumberFormatException e) {
-                    deleteBad (floatingEvents, c1, null);
-                    continue;
-                }
-                ContentResolver cr = context.getContentResolver();
-                Uri uri = ContentUris.withAppendedId
-                    (CalendarContract.Events.CONTENT_URI, eventId);
-                Cursor c2 = cr.query(uri, TIMEZONE_PROJECTION,
-                    null, null, null);
-                if (c2.moveToNext()) {
-                    // All day events are done by the Calendar Provider
-                    if (c2.getInt(TIMEZONE_EVENT_ALL_DAY_INDEX) == 0) {
-                        try {
-                            updateEvent(context, cr, floatingEvents,
-                                uri, tzOffset, c1, c2);
-                        } catch (NumberFormatException e) {
-                            deleteBad (floatingEvents, c1,
-                                c2.getString(TIMEZONE_EVENT_TITLE_INDEX));
-                        }
-                    } else {
-                        new MyLog(context,
-                            context.getString(R.string.event) +
-                                c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
-                                context.getString(R.string.isallday));
-                    }
-                } else {
-                    // The event no longer exists, remove from our database
-                    String[] args = new String[] { String.valueOf(eventId) };
-                    floatingEvents.delete("FLOATINGEVENTS",
-                        "EVENT_ID IS ?", args);
-                    new MyLog(context,
-                        context.getString(R.string.event) +
-                            c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
-                            context.getString(R.string.nonexistent));
-                }
-                c2.close();
+		SQLtable floatingEvents = new SQLtable(table, "FLOATINGEVENTS");
+		while (floatingEvents.moveToNext()) {
+			long eventId;
+			try {
+				eventId = floatingEvents.getUnsignedLong(0);
+			} catch (NumberFormatException e) {
+				floatingEvents.deleteBad();
+				continue;
 			}
-			c1.close();
-			floatingEvents.close();
+			ContentResolver cr = context.getContentResolver();
+			Uri uri = ContentUris.withAppendedId
+				(CalendarContract.Events.CONTENT_URI, eventId);
+			Cursor c2 = cr.query(uri, TIMEZONE_PROJECTION,
+				null, null, null);
+			if (c2.moveToNext()) {
+				// All day events are done by the Calendar Provider
+				if (c2.getInt(TIMEZONE_EVENT_ALL_DAY_INDEX) == 0) {
+					try {
+						updateEvent(context, cr, floatingEvents, uri, tzOffset, c2);
+					} catch (NumberFormatException e) {
+						floatingEvents.deleteBad();
+					}
+				} else {
+					new MyLog(context,
+						context.getString(R.string.event) +
+							c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
+							context.getString(R.string.isallday));
+				}
+			} else {
+				// The event no longer exists, remove from our database
+				floatingEvents.delete();
+				new MyLog(context,
+					context.getString(R.string.event) +
+						c2.getString(TIMEZONE_EVENT_TITLE_INDEX) +
+						context.getString(R.string.nonexistent));
+			}
+			c2.close();
 		}
+		floatingEvents.close();
 	}
 }

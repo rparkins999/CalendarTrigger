@@ -6,6 +6,7 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -22,8 +23,10 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.SQLtable;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
@@ -35,32 +38,41 @@ public class MainActivity extends Activity {
 	// At the moment we have only one possible version upgrade,
 	// so "was" is unused.
 	private void UpdatePrefs (String was, String now) {
-		// Check for 3.0 comparisons and convert to 3.1.
+		// Check for 3.0 comparisons and convert to 3.2.
 		int n = PrefsManager.getNumClasses(this);
 		for (int classNum = 0; classNum < n; ++classNum) {
-			if (PrefsManager.isClassUsed(this, classNum)) {
-				String eventName = PrefsManager.getEventName(this, classNum);
-				int andIndex = 0;
-				if (eventName.length() > 0) {
-					PrefsManager.setEventComparison(this, classNum, andIndex,
-						0, 0, 0, eventName);
-					++andIndex;
-					PrefsManager.removeEventName(this, classNum);
+			if (was.compareTo("3.1") < 0) {
+				if (PrefsManager.isClassUsed(this, classNum)) {
+					String eventName = PrefsManager.getEventName(this, classNum);
+					int andIndex = 0;
+					if (eventName.length() > 0) {
+						PrefsManager.setEventComparison(this, classNum, andIndex,
+							0, 0, 0, eventName);
+						++andIndex;
+						PrefsManager.removeEventName(this, classNum);
+					}
+					String eventLocation = PrefsManager.getEventLocation(
+						this, classNum);
+					if (eventLocation.length() > 0) {
+						PrefsManager.setEventComparison(this, classNum, andIndex,
+							0, 1, 0, eventLocation);
+						++andIndex;
+						PrefsManager.removeEventLocation(this, classNum);
+					}
+					String eventDescription
+						= PrefsManager.getEventDescription(this, classNum);
+					if (eventDescription.length() > 0) {
+						PrefsManager.setEventComparison(this, classNum, andIndex,
+							0, 2, 0, eventDescription);
+						++andIndex;
+						PrefsManager.removeEventDescription(this, classNum);
+					}
 				}
-				String eventLocation = PrefsManager.getEventLocation(this, classNum);
-				if (eventLocation.length() > 0) {
-					PrefsManager.setEventComparison(this, classNum, andIndex,
-						0, 1, 0, eventLocation);
-					++andIndex;
-					PrefsManager.removeEventLocation(this, classNum);
-				}
-				String eventDescription
-					= PrefsManager.getEventDescription(this, classNum);
-				if (eventDescription.length() > 0) {
-					PrefsManager.setEventComparison(this, classNum, andIndex,
-						0, 2, 0, eventDescription);
-					++andIndex;
-					PrefsManager.removeEventDescription(this, classNum);
+				if (was.compareTo("3.2") < 0) {
+					PrefsManager.removeClassWaiting(this, classNum);
+					PrefsManager.removeTriggered(this, classNum);
+					PrefsManager.removeLastTriggerEnd(this, classNum);
+					PrefsManager.removeLastActive(this, classNum);
 				}
 			}
 		}
@@ -158,8 +170,17 @@ public class MainActivity extends Activity {
 				R.string.eventNowLabel, italicName)));
 			b.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-					int classNum = PrefsManager.getClassNum(mThis, className);
-					PrefsManager.setClassTriggered(mThis, classNum, true);
+					long now = System.currentTimeMillis();
+					ContentValues cv = new ContentValues();
+					cv.put("ACTIVE_CLASS_NAME", className);
+					cv.put("ACTIVE_IMMEDIATE", 1);
+					cv.put("ACTIVE_EVENT_ID", 0);
+					cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
+					cv.put("ACTIVE_NEXT_ALARM", now + CalendarProvider.FIVE_MINUTES);
+					cv.put("ACTIVE_STEPS_TARGET", 0);
+					SQLtable table = new SQLtable(mThis, "ACTIVEEVENTS");
+					table.insert(cv);
+					table.close();
 					MuteService.startIfNecessary(mThis, "Immediate Event");
 				}
 			});

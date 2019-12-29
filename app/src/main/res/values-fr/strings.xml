@@ -25,11 +25,12 @@
     <string name="dropping">" n\'existe pas, supprimant et recréant table "</string>
     <string name="databaseerror">"Faute base de données"</string>
     <string name="unrecoverable">" faute irrécupérable "</string>
+    <string name="notablename">"Pas de nom de table dans requête "</string>
     <string name="norows">"Table VACUUMDATA n'a pas de rangées, créant nouvelle rangée valide."
     </string>
     <string name="value">"Valeur \""</string>
-    <string name="countnoninteger">"\" en VACUUMDATA.COUNT n\'est pas un entier,"
-        "remplaceant avec nouvelle rangée valide."</string>
+    <string name="countnoninteger">%s en VACUUMDATA.COUNT n\'est pas un entier,
+        remplaceant avec nouvelle rangée valide.</string>
     <string name="nocreatedetail">n\'existe pas at ne peut pas être créé
     </string>
     <string name="norename1">" n\'existe pas et "</string>

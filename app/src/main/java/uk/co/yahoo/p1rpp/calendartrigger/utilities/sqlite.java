@@ -11,10 +11,11 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.os.Looper;
 import android.widget.Toast;
 
-import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
@@ -74,13 +75,15 @@ public class sqlite extends Object {
     private Context m_context;
     private SQLiteDatabase m_db;
     private boolean m_written;
+    private String m_saveQuerySql;
+    private String[] m_saveQueryArgs;
 
     // Report a fatal error.
-    // We send a message to then log file (if logging is enabled).
+    // We send a message to the log file (if logging is enabled).
     // If this thread is the UI thread, we display a Toast:
     // otherwise we show a notification.
     // Then we throw an Error exception which will cause Android to
-    // terminate the thread and display a (not very helpful) message.
+    // terminate the thread and display a (not so helpful) message.
     private void fatal(String small, String big) {
         new MyLog(m_context, big);
         if (   (Activity.class.isInstance(m_context))
@@ -190,14 +193,14 @@ public class sqlite extends Object {
 
     public String getActiveStateName(int n) {
         switch (n) {
-            case 0: return "NOT_ACTIVE";
-            case 1: return "ACTIVE_START_WAITING";
-            case 2: return "ACTIVE_STARTING";
-            case 3: return "ACTIVE_START_SENDING";
-            case 4: return "ACTIVE_STARTED";
-            case 5: return "ACTIVE_START_SENDING";
-            case 6: return "ACTIVE_ENDING";
-            case 7: return "ACTIVE_END_SENDING";
+            case NOT_ACTIVE: return "NOT_ACTIVE";
+            case ACTIVE_START_WAITING: return "ACTIVE_START_WAITING";
+            case ACTIVE_STARTING: return "ACTIVE_STARTING";
+            case ACTIVE_START_SENDING: return "ACTIVE_START_SENDING";
+            case ACTIVE_STARTED: return "ACTIVE_STARTED";
+            case ACTIVE_END_WAITING: return "ACTIVE_START_SENDING";
+            case ACTIVE_ENDING: return "ACTIVE_ENDING";
+            case ACTIVE_END_SENDING: return "ACTIVE_END_SENDING";
             default: return "Unknown state" + n;
         }
     }
@@ -216,6 +219,106 @@ public class sqlite extends Object {
         // If this occurs. it's a programming error
         String big = "getTableName(" + s + m_context.getString(R.string.unknowncolumn);
         fatal(m_context.getString(R.string.badcolumn), big);
+        return null; // unreachable
+    }
+
+    // Get table name from Cursor.
+    private String getTableName(Cursor cr) {
+        String table = getTableName(cr.getColumnName(0));
+        if (table == null) {
+            // This should be impossible because the query should not
+            // have succeeded if there was no table in it.
+            String small = m_context.getString(R.string.notablename);
+            fatal(small, small + m_saveQuerySql);
+        }
+        return table;
+    }
+
+    public String rowVacToString(Cursor cr) {
+        return "(" + cr.getString(0) + ")";
+    }
+
+    public String rowFloatToString(Cursor cr) {
+        StringBuilder builder =
+            new StringBuilder("(event ID " + cr.getString(0));
+        builder.append(", ");
+        DateFormat df = DateFormat.getDateTimeInstance();
+        try {
+            builder.append(df.format(getUnsignedLong(cr,1)));
+        } catch (NumberFormatException e) {
+            builder.append("?);");
+            builder.append(cr.getString(1));
+            builder.append("?);");
+        }
+        builder.append(" to ");
+        try {
+            builder.append(df.format(getUnsignedLong(cr,2)));
+        } catch (NumberFormatException e) {
+            builder.append("?);");
+            builder.append(cr.getString(2));
+            builder.append("?);");
+        }
+        builder.append(")");
+        return builder.toString();
+    }
+
+    public String rowActiveToString(Cursor cr) {
+        StringBuilder builder =
+            new StringBuilder("(");
+        builder.append(cr.getString(ACTIVE_CLASS_NAME));
+        builder.append(", ");
+        if (cr.getLong(ACTIVE_IMMEDIATE) != 0) {
+            builder.append(m_context.getString(R.string.immediate));
+        }
+        else
+        {
+            builder.append("event ID ");
+
+            builder.append(cr.getString(ACTIVE_EVENT_ID));
+        }
+        builder.append(", ");
+        try {
+            int n = (int)getUnsignedLong(cr, ACTIVE_STATE);
+            builder.append(m_context.getString(R.string.state));
+            builder.append(getActiveStateName(n));
+        } catch (NumberFormatException e) {
+            builder.append(m_context.getString(R.string.badstate));
+            builder.append(cr.getString(3));
+        }
+        builder.append(m_context.getString(R.string.alarm));
+        try {
+            DateFormat df = DateFormat.getDateTimeInstance();
+            builder.append(df.format(getUnsignedLong(cr, ACTIVE_NEXT_ALARM)));
+        } catch (NumberFormatException e) {
+            builder.append("?");
+            builder.append(cr.getString(4));
+            builder.append("?");
+        }
+        builder.append(")");
+        return builder.toString();
+    }
+
+    // Return a string describing the row pointed to by a Cursor.
+    // Note that this is used for error messages, so it has to work
+    // if the row contains bad data. However it doesn't have to work if the
+    // table does not contain the right columns, since we deal with that
+    // elsewhere.
+    // The versions above can be used if we know which table it is from.
+    public String rowToString(Cursor cr) {
+        String tableName = getTableName(cr);
+        if (tableName.equals("VACUUMDATA")) {
+            return rowVacToString(cr);
+        }
+        else if (tableName.equals("FLOATINGEVENTS")) {
+            return rowFloatToString(cr);
+        }
+        else if (tableName.equals("ACTIVEEVENTS")) {
+            return rowActiveToString(cr);
+        }
+        // If this occurs. it's a programming error
+        String small = m_context.getString(R.string.badcursor);
+        String big = m_context.getString(R.string.badrowtocolumn);
+        fatal(small, big);
         return null; // unreachable
     }
 
@@ -275,7 +378,7 @@ public class sqlite extends Object {
         fatal(small, big);
     }
 
-    public Cursor rawQuery(String sql, String[] selectionArgs) {
+    private Cursor rawQueryNoSave(String sql, String[] selectionArgs) {
         for (int i = 10; ; --i) {
             try {
                 return m_db.rawQuery(sql, selectionArgs);
@@ -283,6 +386,12 @@ public class sqlite extends Object {
                 handleException(i, e);
             }
         }
+    }
+
+    public Cursor rawQuery(String sql, String[] selectionArgs) {
+        m_saveQuerySql = sql;
+        m_saveQueryArgs = selectionArgs;
+        return rawQueryNoSave(sql, selectionArgs);
     }
 
     public long insert (String table, String nullColumnHack, ContentValues values)  {
@@ -315,6 +424,49 @@ public class sqlite extends Object {
         }
     }
 
+    public int update(Cursor cr, ContentValues cv) {
+        StringBuilder whereClause = new StringBuilder();
+        ArrayList<String> whereArgs = new ArrayList<String>();
+        int columns = cr.getColumnCount();
+        boolean first = true;
+        int i;
+        for ( i = 0; i < columns; ++i) {
+            if (first) { first = false; } else {
+                whereClause.append(" AND ");
+            }
+            whereClause.append(cr.getColumnName(i));
+            whereClause.append(" IS ?");
+            whereArgs.add(cr.getString(i));
+        }
+        String parts[] = m_saveQuerySql.split("\\s+");
+        for (i  = 4; i < parts.length; ++i) {
+            if (   (parts[i].compareTo("IS") == 0)
+                && (cr.getColumnIndex(parts[i - 1]) < 0)) {
+                // This can't be the first one because that would mean no
+                // columns were returned by the query.
+                whereClause.append(" AND ");
+                whereClause.append(parts[i - 1]);
+                whereClause.append(" IS ?");
+                whereArgs.add(parts[++i]);
+            }
+        }
+        // m_saveQueryArgs is only used for its type here.
+        return update(getTableName(cr), cv,
+            whereClause.toString(), whereArgs.toArray(m_saveQueryArgs));
+    }
+
+    public int update(Cursor cr, String columnName, String value) {
+        ContentValues cv = new ContentValues();
+        cv.put(columnName, value);
+        return update(cr, cv);
+    }
+
+    public int update(Cursor cr, String columnName, long value) {
+        ContentValues cv = new ContentValues();
+        cv.put(columnName, value);
+        return update(cr, cv);
+    }
+
     public int delete (String table, String whereClause, String[] whereArgs) {
         for (int i = 10; ; --i) {
             try {
@@ -332,8 +484,51 @@ public class sqlite extends Object {
         }
     }
 
+    // This deletes the row that a Cursor returned by rawQuery() is looking at.
+    // We assume that the columns returned plus the original whereClause
+    // are sufficient to identify the row to be deleted.
+    // The Android implementation uses AbstractWindowedCursor, so it doesn't
+    // guarantee that the cursor caches all the rows selected.
+    // So we return a new Cursor using the previous query, created on the table
+    // after the deletion and positioned to the row before the deleted one.
+    public Cursor delete(Cursor cr) {
+        int pos = cr.getPosition();
+        StringBuilder whereClause = new StringBuilder();
+        ArrayList<String> whereArgs = new ArrayList<String>();
+        int columns = cr.getColumnCount();
+        String table =  getTableName(cr);
+        boolean first = true;
+        int i;
+        for ( i = 0; i < columns; ++i) {
+            if (first) { first = false; } else {
+                whereClause.append(" AND ");
+            }
+            String columnName = cr.getColumnName(i);
+            whereClause.append(columnName);
+            whereClause.append(" IS ?");
+            whereArgs.add(cr.getString(i));
+        }
+        String parts[] = m_saveQuerySql.split("\\s+");
+        for (i  = 4; i < parts.length; ++i) {
+            if (   (parts[i].compareTo("IS") == 0)
+                && (cr.getColumnIndex(parts[i - 1]) < 0)) {
+                // This can't be the first one because that would mean no
+                // columns were returned by the query.
+                whereClause.append(" AND ");
+                whereClause.append(parts[i - 1]);
+                whereClause.append(" IS ?");
+                whereArgs.add(parts[++i]);
+            }
+        }
+        // m_saveQueryArgs is only used for its type here.
+        delete (table, whereClause.toString(), whereArgs.toArray(m_saveQueryArgs));
+        cr = rawQueryNoSave(m_saveQuerySql, m_saveQueryArgs);
+        cr.moveToPosition(pos - 1);
+        return cr;
+    }
+
     public long getLong(Cursor cursor, int columnIndex)
-        throws NumberFormatException
+        throws NumberFormatException, IllegalStateException
     {
         String s = cursor.getString(columnIndex);
         if ((s != null) && s.matches("^-?[0-9]+$")) {
@@ -346,7 +541,7 @@ public class sqlite extends Object {
     }
 
     public long getUnsignedLong(Cursor cursor, int columnIndex)
-        throws NumberFormatException
+        throws NumberFormatException, IllegalStateException
     {
         String s = cursor.getString(columnIndex);
         if ((s != null) && s.matches("^[0-9]+$")) {
@@ -356,10 +551,6 @@ public class sqlite extends Object {
         {
             throw(new NumberFormatException("Bad number " + s));
         }
-    }
-
-    public String getString(Cursor cursor, int columnIndex) {
-        
     }
 
     // Vacuuming needs to be done from time to time, but it isn't urgent.
@@ -405,6 +596,8 @@ public class sqlite extends Object {
         m_context = context;
         m_db = null;
         m_written = false;
+        m_saveQuerySql = null;
+        m_saveQueryArgs = null;
         Resources res = m_context.getResources();
         String fileName = DataStore.getDatabaseFile(context);
         if (fileName != null) {

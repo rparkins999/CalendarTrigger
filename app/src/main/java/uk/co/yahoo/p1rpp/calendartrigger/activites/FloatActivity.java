@@ -18,6 +18,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.content.PermissionChecker;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -29,12 +31,11 @@ import android.widget.Toast;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
-import uk.co.yahoo.p1rpp.calendartrigger.utilities.sqlite;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
+import uk.co.yahoo.p1rpp.calendartrigger.utilities.SQLtable;
 
 import static java.util.Calendar.DAY_OF_MONTH;
 import static java.util.Calendar.MONTH;
@@ -44,13 +45,19 @@ public class FloatActivity extends Activity
         implements DatePickerDialog.OnDateSetListener,
         DatePickerDialog.OnCancelListener {
     public FloatActivity floatactivity;
-    private sqlite floatingTimeEvents;
+    private SQLtable floatingTimeEvents;
+    private DatePickerDialog myDialog;
+    private int m_year;
+    private int m_month;
+    private int m_day;
 
     private boolean isFloating (long eventid) {
-        String sql = "SELECT EVENT_ID FROM FLOATINGEVENTS WHERE EVENT_ID IS ?";
         String[] args = new String[] { String.valueOf(eventid) };
-        Cursor cu = floatingTimeEvents.rawQuery(sql, args);
-        return cu.getCount() > 0;
+        SQLtable table = new SQLtable(floatingTimeEvents, "FLOATINGEVENTS",
+            "WHERE EVENT_ID IS ?", args, null);
+        boolean result = !table.isEmpty();
+        table.close();
+        return result;
     }
 
     @Override
@@ -58,16 +65,17 @@ public class FloatActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dynamicscrollview);
         floatactivity = this;
-        floatingTimeEvents = new sqlite(this);
+        floatingTimeEvents = new SQLtable(this, "FLOATINGEVENTS");
+        myDialog = null;
     }
 
     private void showDialog() {
         final Calendar c = Calendar.getInstance();
-        int year = c.get(YEAR);
-        int month = c.get(MONTH);
-        int day = c.get(DAY_OF_MONTH);
-        DatePickerDialog myDialog = new DatePickerDialog(
-            this, this, year, month, day);
+        m_year = c.get(YEAR);
+        m_month = c.get(MONTH);
+        m_day = c.get(DAY_OF_MONTH);
+        myDialog = new DatePickerDialog(
+            this, this, m_year, m_month, m_day);
         myDialog.setOnCancelListener(this);
         myDialog.setTitle(getString(R.string.eventdate));
         myDialog.show();
@@ -142,8 +150,7 @@ public class FloatActivity extends Activity
                 uvf.put("START_WALLTIME_MILLIS", dtstart + offset);
                 if (dtend > 0) { dtend += offset; }
                 uvf.put("END_WALLTIME_MILLIS", dtend);
-                floatingTimeEvents.insert("FLOATINGEVENTS",
-                    null, uvf);
+                floatingTimeEvents.insert(uvf);
                 new MyLog(this,
                     getString(recurring ?
                         R.string.allinstances : R.string.event)
@@ -152,9 +159,13 @@ public class FloatActivity extends Activity
             }
             else
             {
-                String[] args = new String[] {String.valueOf(eventId)};
-                floatingTimeEvents.delete("FLOATINGEVENTS",
-                    "EVENT_ID IS ?", args);
+                String[] args = new String[] { String.valueOf(eventId) };
+                SQLtable table = new SQLtable(floatingTimeEvents,
+                    "FLOATINGEVENTS",
+                    "WHERE EVENT_ID IS ?", args, null);
+                table.moveToNext();
+                table.delete();
+                table.close();
                 df.setTimeZone(TimeZone.getTimeZone("GMT"));
                 new MyLog(this,
                     getString(recurring ?
@@ -176,6 +187,9 @@ public class FloatActivity extends Activity
     private static final int INDEX_EVENT_RRULE = 2;
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
+        m_year = year;
+        m_month = month;
+        m_day = day;
         LinearLayout ll = (LinearLayout)findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
         TextView tv = new TextView(this);
@@ -246,10 +260,33 @@ public class FloatActivity extends Activity
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (floatingTimeEvents != null) {
-           floatingTimeEvents.close();
+    public boolean onPrepareOptionsMenu(Menu menu) {
+		menu.clear();
+        boolean displayIt = super.onPrepareOptionsMenu(menu);
+        if ((myDialog != null) && !myDialog.isShowing()) {
+            MenuItem mi = menu.add(Menu.NONE, 1, Menu.NONE, R.string.anotherdate);
+		    mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            return true;
         }
+        return displayIt;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getTitle().equals(getString(R.string.anotherdate))) {
+            myDialog = new DatePickerDialog(
+                this, this, m_year, m_month, m_day);
+            myDialog.setOnCancelListener(this);
+            myDialog.setTitle(getString(R.string.eventdate));
+            myDialog.show();
+            showDialog();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        floatingTimeEvents.close();
+        super.onDestroy();
     }
 }
