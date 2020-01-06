@@ -16,7 +16,7 @@ public class FileData {
 
     public File file;
     public String name;
-    public boolean directory = false;
+    public boolean directory;
 
     public FileData(File file, String name, boolean directory) {
         this.file = file;

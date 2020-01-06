@@ -4,6 +4,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
@@ -22,7 +23,6 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
 
 public class FakeContact extends Activity {
-    private Activity me;
     private EditText formattedaddress;
     private EditText first;
     private EditText last;
@@ -39,7 +39,6 @@ public class FakeContact extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        me = this;
         formattedaddress = null;
         first = null;
         last = null;
@@ -71,8 +70,7 @@ public class FakeContact extends Activity {
             }
             else
             {
-                ArrayAdapter<String> adapter
-                    = new ArrayAdapter<String>(
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this, R.layout.activity_text_viewer, strings);
                 dump.setAdapter(adapter);
                 dump.setFastScrollEnabled(true);
@@ -107,8 +105,7 @@ public class FakeContact extends Activity {
             }
             else
             {
-                ArrayAdapter<String> adapter
-                    = new ArrayAdapter<String>(
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this, R.layout.activity_text_viewer, strings);
                 dump.setAdapter(adapter);
                 dump.setFastScrollEnabled(true);
@@ -119,18 +116,15 @@ public class FakeContact extends Activity {
         }
     }
 
+    // All this code is only in debug builds
+    // so we don't bother with languages here
+    @SuppressLint("SetTextI18n")
     void reResume() {
         if (BuildConfig.DEBUG)
         {
-            ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            );
             LinearLayout ll =
                 (LinearLayout)findViewById(R.id.dynamicscrollview);
             ll.removeAllViews();
-            // All this code is only in debug builds
-            // so we don't bother with languages here
             LinearLayout lll = new LinearLayout(this);
             lll.setOrientation(LinearLayout.HORIZONTAL);
             TextView tv = new TextView(this);

@@ -103,7 +103,6 @@ public class CalendarDumper implements OnDateSetListener {
     private void doOne(Cursor cu)
     {
         if (BuildConfig.DEBUG) {
-            DateFormat df = DateFormat.getDateInstance();
             DateFormat dtf0 = DateFormat.getDateTimeInstance();
             dtf0.setTimeZone(TimeZone.getTimeZone("GMT"));
             DateFormat dtf1 = DateFormat.getDateTimeInstance();

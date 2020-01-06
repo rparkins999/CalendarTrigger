@@ -37,12 +37,8 @@ public class DefineStopFragment extends Fragment {
     private boolean havelocation;
     private EditText minutesEditor;
     private Spinner beforeAfter;
-    private TextView firstStepsLabel;
     private EditText stepCountEditor;
-    private TextView lastStepsLabel;
-    private TextView firstMetresLabel;
     private EditText metresEditor;
-    private TextView lastMetresLabel;
     private CheckBox faceUp;
     private CheckBox faceDown;
     private CheckBox anyPosition;
@@ -51,7 +47,6 @@ public class DefineStopFragment extends Fragment {
     private CheckBox slowchcarger;
     private CheckBox peripheral;
     private CheckBox nothing;
-    private boolean noRecursion;
 
     public DefineStopFragment() {
     }
@@ -59,7 +54,6 @@ public class DefineStopFragment extends Fragment {
     public static DefineStopFragment newInstance(String className ) {
         DefineStopFragment fragment = new DefineStopFragment();
         Bundle args = new Bundle();
-        fragment.noRecursion = false;
         args.putString(ARG_CLASS_NAME, className);
         fragment.setArguments(args);
         return fragment;
@@ -88,7 +82,7 @@ public class DefineStopFragment extends Fragment {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        InputFilter lf[] = {
+        InputFilter[] lf = {
             new InputFilter.LengthFilter(6)
         };
         LinearLayout ll =
@@ -117,8 +111,7 @@ public class DefineStopFragment extends Fragment {
         minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
             | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         minutesEditor.setFilters(lf);
-        Integer i =
-            new Integer(PrefsManager.getAfterMinutes(ac, classNum));
+        int i = PrefsManager.getAfterMinutes(ac, classNum);
         minutesEditor.setText(String.valueOf(i > 0 ? i : -i),
             TextView.BufferType.EDITABLE);
         lll.addView(minutesEditor);
@@ -185,7 +178,7 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        firstStepsLabel = new TextView(ac);
+        TextView firstStepsLabel = new TextView(ac);
         firstStepsLabel.setText(R.string.firststepslabel);
         firstStepsLabel.setTextColor(colour);
         stepCountEditor = new EditText(ac);
@@ -196,7 +189,7 @@ public class DefineStopFragment extends Fragment {
         stepCountEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         stepCountEditor.setEnabled(true);
         stepCountEditor.setTextColor(colour);
-        lastStepsLabel = new TextView(ac);
+        TextView lastStepsLabel = new TextView(ac);
         lastStepsLabel.setText(R.string.laststepslabel);
         lastStepsLabel.setTextColor(colour);
         lll.addView(firstStepsLabel, ww);
@@ -221,7 +214,7 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        firstMetresLabel = new TextView(ac);
+        TextView firstMetresLabel = new TextView(ac);
         firstMetresLabel.setText(R.string.firstlocationlabel);
         firstMetresLabel.setTextColor(colour);
         metresEditor = new EditText(ac);
@@ -232,7 +225,7 @@ public class DefineStopFragment extends Fragment {
         metresEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         metresEditor.setEnabled(havelocation);
         metresEditor.setTextColor(colour);
-        lastMetresLabel = new TextView(ac);
+        TextView lastMetresLabel = new TextView(ac);
         lastMetresLabel.setText(R.string.lastlocationlabel);
         lastMetresLabel.setTextColor(colour);
         lll.addView(firstMetresLabel, ww);
@@ -393,15 +386,14 @@ public class DefineStopFragment extends Fragment {
             ac, getArguments().getString(ARG_CLASS_NAME));
         String s = minutesEditor.getText().toString();
         int i = s.isEmpty() ? 0 : Integer.parseInt(s);
-        if (s.isEmpty()) { s = "0"; }
         if (beforeAfter.getSelectedItemPosition() == 0) { i = -i; }
         PrefsManager.setAfterMinutes(ac, classNum, i);
-        s = new String(stepCountEditor.getText().toString());
+        s = stepCountEditor.getText().toString();
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterSteps(ac, classNum, new Integer(s));
-        s = new String(metresEditor.getText().toString());
+        PrefsManager.setAfterSteps(ac, classNum, Integer.valueOf(s));
+        s = metresEditor.getText().toString();
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterMetres(ac, classNum, new Integer(s));
+        PrefsManager.setAfterMetres(ac, classNum, Integer.valueOf(s));
         int orientations = 0;
         if (faceUp.isChecked())
         {

@@ -5,7 +5,6 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -64,7 +63,6 @@ public class ActionStopFragment extends ActionFragment {
         return rootView;
     }
 
-	@SuppressLint("ResourceType")
     @TargetApi(android.os.Build.VERSION_CODES.M)
     @Override
     public void onResume() {

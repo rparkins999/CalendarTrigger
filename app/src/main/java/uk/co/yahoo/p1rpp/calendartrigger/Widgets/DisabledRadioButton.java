@@ -4,6 +4,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.Widgets;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
@@ -57,6 +58,8 @@ public class DisabledRadioButton extends RadioButton {
         return m_enabled;
     }
 
+    // suppress warning that we don't call super.performClick();
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     // Normally you can't un-click a RadioButton; this hack does it.
     public boolean performClick() {

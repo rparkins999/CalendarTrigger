@@ -20,7 +20,6 @@ import android.widget.Toast;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
-import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.SQLtable;
 
@@ -229,7 +228,7 @@ public class EditActivity extends Activity {
                 cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
                 cv.put("ACTIVE_NEXT_ALARM", now + CalendarProvider.FIVE_MINUTES);
                 cv.put("ACTIVE_STEPS_TARGET", 0);
-                SQLtable table = new SQLtable(ac, "ACTIVEEVENTS");
+                SQLtable table = new SQLtable(ac, "ACTIVEINSTANCES");
                 table.insert(cv);
                 table.close();
                 MuteService.startIfNecessary(ac, "Immediate Event");

@@ -11,7 +11,6 @@ import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -79,7 +78,7 @@ public class DefineStartFragment extends Fragment {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        InputFilter lf[] = {
+        InputFilter[] lf = {
             new InputFilter.LengthFilter(6)
         };
         LinearLayout ll =
@@ -109,8 +108,7 @@ public class DefineStartFragment extends Fragment {
             android.text.InputType.TYPE_CLASS_NUMBER
             | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         minutesEditor.setFilters(lf);
-        Integer i =
-            new Integer(PrefsManager.getBeforeMinutes(ac, classNum));
+        int i = PrefsManager.getBeforeMinutes(ac, classNum);
         minutesEditor.setText(String.valueOf(i > 0 ? i : -i),
             TextView.BufferType.EDITABLE);
         lll.addView(minutesEditor);
@@ -309,7 +307,6 @@ public class DefineStartFragment extends Fragment {
             ac, getArguments().getString(ARG_CLASS_NAME));
         String s = minutesEditor.getText().toString();
         int i = s.isEmpty() ? 0 : Integer.parseInt(s);
-        if (s.isEmpty()) { s = "0"; }
         PrefsManager.setAfterMinutes(ac, classNum, i);
         if (beforeAfter.getSelectedItemPosition() != 0) { i = -i; }
         PrefsManager.setBeforeMinutes(ac, classNum, i);

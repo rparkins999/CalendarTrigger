@@ -5,7 +5,6 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -70,7 +69,6 @@ public class ActionStartFragment extends ActionFragment {
         return rootView;
     }
 
-	@SuppressLint("ResourceType")
     @TargetApi(android.os.Build.VERSION_CODES.M)
     @Override
     public void onResume() {
@@ -82,7 +80,9 @@ public class ActionStartFragment extends ActionFragment {
         NotificationManager nm = (NotificationManager)
             ac.getSystemService(Context.NOTIFICATION_SERVICE);
         boolean havePermission;
-        if (apiVersion >= android.os.Build.VERSION_CODES.M) {
+        if (   (apiVersion >= android.os.Build.VERSION_CODES.M)
+            && (nm != null))
+        {
             havePermission = nm.isNotificationPolicyAccessGranted();
         } else {
             havePermission = false;

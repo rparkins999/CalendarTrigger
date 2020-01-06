@@ -138,40 +138,43 @@ public class FloatActivity extends Activity
                 (CalendarContract.Events.CONTENT_URI, eventId);
             Cursor cu = cr.query(uri, EVENT_PROJECTION,
                 null, null, null);
-            DateFormat df = DateFormat.getTimeInstance();
-            cu.moveToNext();
-            String title = cu.getString(INDEX_TITLE);
-            long dtstart = cu.getLong(INDEX_DTSTART);
-            if (isChecked) {
-                long offset = TimeZone.getDefault().getOffset(new Date().getTime());
-                long dtend = cu.getLong(INDEX_DTEND);
-                ContentValues uvf = new ContentValues();
-                uvf.put("EVENT_ID", eventId);
-                uvf.put("START_WALLTIME_MILLIS", dtstart + offset);
-                if (dtend > 0) { dtend += offset; }
-                uvf.put("END_WALLTIME_MILLIS", dtend);
-                floatingTimeEvents.insert(uvf);
-                new MyLog(this,
-                    getString(recurring ?
-                        R.string.allinstances : R.string.event)
-                    + title + getString(R.string.settobegin) + df.format(dtstart)
-                    + getString(R.string.walltime));
-            }
-            else
-            {
-                String[] args = new String[] { String.valueOf(eventId) };
-                SQLtable table = new SQLtable(floatingTimeEvents,
-                    "FLOATINGEVENTS",
-                    "WHERE EVENT_ID IS ?", args, null);
-                table.moveToNext();
-                table.delete();
-                table.close();
-                df.setTimeZone(TimeZone.getTimeZone("GMT"));
-                new MyLog(this,
-                    getString(recurring ?
-                        R.string.allinstances :  R.string.event)
-                    + title + getString(R.string.settobegin) + df.format(dtstart)
-                    + getString(R.string.utc));
+            if (cu != null) {
+                DateFormat df = DateFormat.getTimeInstance();
+                cu.moveToNext();
+                String title = cu.getString(INDEX_TITLE);
+                long dtstart = cu.getLong(INDEX_DTSTART);
+                if (isChecked) {
+                    long offset = TimeZone.getDefault().getOffset(new Date().getTime());
+                    long dtend = cu.getLong(INDEX_DTEND);
+                    ContentValues uvf = new ContentValues();
+                    uvf.put("EVENT_ID", eventId);
+                    uvf.put("START_WALLTIME_MILLIS", dtstart + offset);
+                    if (dtend > 0) {
+                        dtend += offset;
+                    }
+                    uvf.put("END_WALLTIME_MILLIS", dtend);
+                    floatingTimeEvents.insert(uvf);
+                    new MyLog(this,
+                        getString(recurring ?
+                            R.string.allinstances : R.string.event)
+                            + title + getString(R.string.settobegin) + df.format(dtstart)
+                            + getString(R.string.walltime));
+                } else {
+                    String[] args = new String[]{String.valueOf(eventId)};
+                    SQLtable table = new SQLtable(floatingTimeEvents,
+                        "FLOATINGEVENTS",
+                        "WHERE EVENT_ID IS ?", args, null);
+                    table.moveToNext();
+                    table.delete();
+                    table.close();
+                    df.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    new MyLog(this,
+                        getString(recurring ?
+                            R.string.allinstances : R.string.event)
+                            + title + getString(R.string.settobegin) + df.format(dtstart)
+                            + getString(R.string.utc));
+                }
+                cu.close();
             }
         }
     }
@@ -203,55 +206,64 @@ public class FloatActivity extends Activity
         ContentUris.appendId(builder, endTime.getTimeInMillis());
         Cursor cu = cr.query(builder.build(), INSTANCE_PROJECTION,
                 null, null, CalendarContract.Instances.BEGIN);
-        if (cu.getCount() == 0)
+        if (cu == null )
         {
             CharSequence date =
                 DateFormat.getDateInstance().format(beginTime.getTimeInMillis());
-            tv.setText(getString(R.string.noevents) + date);
+            tv.setText(getString(R.string.noevents, date));
             ll.addView(tv);
             showDialog();
         }
         else
         {
-            tv.setText(getString(R.string.checkfloat));
-            tv.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    Toast.makeText(floatactivity,
-                        getString(R.string.checkfloathelp),
-                        Toast.LENGTH_LONG).show();
-                    return true;
-                }
-            });
-            ll.addView(tv);
-            while (cu.moveToNext()) {
-                final long eventId = cu.getLong(INDEX_EVENT_ID);
-                final boolean recurring = cu.getString(INDEX_EVENT_RRULE) != null;
-                CheckBox cb = new CheckBox(this);
-                cb.setText(cu.getString(INDEX_EVENT_TITLE));
-                cb.setTextColor(recurring ? 0xFFFF0000 : 0xFF000000);
-                cb.setChecked(isFloating(eventId));
-                cb.setOnCheckedChangeListener (
-                    new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(
-                            CompoundButton buttonView, boolean isChecked) {
-                                doChanged(eventId, isChecked, recurring);
-                        }
-                    });
-                cb.setOnLongClickListener(new View.OnLongClickListener() {
+            if (cu.getCount() == 0) {
+                CharSequence date =
+                    DateFormat.getDateInstance().format(beginTime.getTimeInMillis());
+                tv.setText(getString(R.string.noevents, date));
+                ll.addView(tv);
+                showDialog();
+            } else {
+                tv.setText(getString(R.string.checkfloat));
+                tv.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        String help = recurring ?
-                            getString(R.string.checkfloatrecurringhelp) :
-                            getString(R.string.checkfloatnormalhelp) ;
-                        Toast.makeText(floatactivity, help,
+                        Toast.makeText(floatactivity,
+                            getString(R.string.checkfloathelp),
                             Toast.LENGTH_LONG).show();
                         return true;
                     }
                 });
-                ll.addView(cb);
+                ll.addView(tv);
+                while (cu.moveToNext()) {
+                    final long eventId = cu.getLong(INDEX_EVENT_ID);
+                    final boolean recurring = cu.getString(INDEX_EVENT_RRULE) != null;
+                    CheckBox cb = new CheckBox(this);
+                    cb.setText(cu.getString(INDEX_EVENT_TITLE));
+                    cb.setTextColor(recurring ? 0xFFFF0000 : 0xFF000000);
+                    cb.setChecked(isFloating(eventId));
+                    cb.setOnCheckedChangeListener(
+                        new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(
+                                CompoundButton buttonView, boolean isChecked) {
+                                doChanged(eventId, isChecked, recurring);
+                            }
+                        });
+                    cb.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            String help = recurring ?
+                                getString(R.string.checkfloatrecurringhelp) :
+                                getString(R.string.checkfloatnormalhelp);
+                            Toast.makeText(floatactivity, help,
+                                Toast.LENGTH_LONG).show();
+                            return true;
+                        }
+                    });
+                    ll.addView(cb);
+                }
             }
+            cu.close();
         }
     }
 

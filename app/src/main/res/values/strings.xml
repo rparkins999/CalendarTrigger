@@ -22,20 +22,22 @@
     <string name="immediate">immediate event</string>
     <string name="state">", state "</string>
     <string name="badstate">", invalid state "</string>
+    <string name="badlive">"bad ACTIVE_LIVE value "</string>
     <string name="alarm">", alarm "</string>
+    <string name="targetsteps">", target steps "</string>
     <string name="badcursor">Bad cursor</string>
     <string name="badrowtocolumn">rowToColumn called  with Cursor
         not on a table from CalendarTrigger\'s database</string>
     <string name="table">"Table "</string>
     <string name="creating">" does not exist, creating new one."</string>
     <string name="creatingnew">"Creating new table "</string>
-    <string name="column">"Column "</string>
-    <string name="dropping">" does not exist, dropping and recreating table "</string>
+    <string name="bigcreatingnew">Column %s does not exist,
+        dropping and recreating table %s</string>
     <string name="databaseerror">"Database error"</string>
     <string name="unrecoverable">" unrecoverable error "</string>
-    <string name="badcolnum">Column number %s out of range</string>
-    <string name="getstring">" in call of getString() on table %s"</string>
-    <string name="getunsignedlong">" in call of getUnsignedLong on table %s"</string>
+    <string name="badcolname">Bad column name</string>
+    <string name="getstring">" in call of %s(%s) on table %s"</string>
+    <string name="getunsignedlong">" in call of getUnsignedLong(%s) on table %s"</string>
     <string name="classnotfound">Class %s not found</string>
     <string name="forrow">" for row "</string>
     <string name="deletingit">, deleting it</string>
@@ -50,9 +52,9 @@
     <string name="databasefail">Cannot access floating time event database</string>
     <string name="tablecreatefail">Cannot create table FLOATINGEVENTS</string>
     <string name="nomodifypermission">CalendarTrigger cannot set events to floating
-        time because it does not have permission to modify calendars.
-        You can enable this permission from the device\'s Settings tool by selecting
-        the Application Manager.</string>
+        time because it does not have permission to modify calendars. You can enable
+        this permission from the device\'s Settings tool by selecting the Application
+        Manager.</string>
     <string name="floatnoreadpermission">CalendarTrigger cannot set events to floating
         time because it does not have permission to read from external storage
         where it keeps its database of floating time events.
@@ -68,7 +70,7 @@
     <string name="settobegin">" set to begin at "</string>
     <string name="walltime">" wall clock time"</string>
     <string name="utc">" UTC"</string>
-    <string name="noevents">"No events on "</string>
+    <string name="noevents">No events on %s</string>
     <string name="checkfloat">Check box for floating time</string>
     <string name="checkfloathelp">If a box is checked, the event will retain the same
         wall clock time if the device\'s time zone changes. Changing a recurring
@@ -100,6 +102,7 @@
     <string name="corrupted">" apparently corrupted, deleted"</string>
     <string name="isallday">" is all day, handled in provider"</string>
     <string name="nonexistent">" no longer exists, deleted"</string>
+    <string name="buildstamp">CalendarTrigger %s built %s</string>
     <string name="settings">Debugging</string>
     <string name="lastcalldetail">Last called at %s</string>
     <string name="lastCallHelp">This is the time at which CalendarTrigger was
@@ -167,7 +170,6 @@
         CalendarTrigger does not have permission to read and write external
         storage. You can enable these permissions from the device\'s Settings
         tool by selecting the Application Manager.</string>
-    <string name="logcyclingerror">Error cycling log</string>
     <string name="reset">Reset</string>
     <string name="resethelp">This button forces all classes to be inactive and
         stops all temporary waits. It is for use if the application gets stuck
@@ -186,7 +188,8 @@
     <string name="nextLocationNotAllowed">The next location feature
         requires read and write permission on your contacts list, and cannot
         be enabled because CalendarTrigger does not have that permission.
-        </string>
+        You can enable this permission from the device\'s Settings tool
+        by selecting the Application Manager.</string>
     <string name="savesettings">Save Settings</string>
     <string name="loadsettings">Load Settings</string>
     <string name="settingsfail">Exception opening settings file</string>
@@ -375,6 +378,139 @@
     <string name="usbnothinglabel">nothing</string>
     <string name="usbnothinghelp">Device is not connected to anything via its
         USB port and is not on a wireless charger either.</string>
+    <string name="sendmessage">Send message ...</string>
+    <string name="sendmessagehelp">If this is checked, CalendarTrigger will send
+        a message for the start of the event. Sending messages may incur a cost.
+    </string>
+    <string name="sendmessagedisabled">This option is disabled because your device
+        has neither an email sending application nor an SMS text message sending
+        application available.</string>
+    <string name="sendemailhelp">Send message by email: if email is not available
+        at the time or the specified contact has no email address, no message
+        will be sent.</string>
+    <string name="sendemaildisabled">This option is disabled because your device does
+        not have an email sending service available.</string>
+    <string name="byemail">... by email</string>
+    <string name="emailorsmshelp">Send message by email if possible; if email is not
+        available at the time or the specified contact has no email address, send
+        message by SMS text; if SMS text messaging is also not available at the time
+        or the specified contact has no mobile number, no message will be sent.
+    </string>
+    <string name="emailorsmsdisabled">This option is disabled because your device
+        does not have both an email sending service and an SMS text message sending
+        service available.</string>
+    <string name="emailorsms">... by email or SMS text</string>
+    <string name="sendsmshelp">Send message by SMS text: if SMS text is not available
+        at the time or the specified contact has no mobile number, no message will be
+        sent.</string>
+    <string name="sendsmsdisabled">This option is disabled because your device does
+        not have an SMS text sending service available.</string>
+    <string name="sendsms">... by SMS text</string>
+    <string name="smsoremailhelp">Send message by SMS text if possible; if SMS text
+        is not available at the time or the specified contact has no mobile number,
+        send message by email; if email is also not available at the time
+        or the specified contact has no email address, no message will be sent
+        .</string>
+    <string name="smsoremaildisabled">This option is disabled because your device
+        does not have both an email sending service and an SMS text message sending
+        service available.</string>
+    <string name="smsoremail">... by SMS text or email</string>
+    <string name="destinationhelp">Specify message destinations. Sending an email
+        message requires an email address either typed in or extracted from
+        a contact. Sending an SMS text message requires a mobile number either
+        typed in or extracted from a contact. A contact can be named explicitly
+        or decoded from the event name.</string>
+    <string name="destination">to ...</string>
+    <string name="emailaddresshelp">Send message to an email address</string>
+    <string name="emailaddressdisabled">This option is disabled because the message
+        is not being sent by email.</string>
+    <string name="emailaddress">... email address</string>
+    <string name="emailaddressfield">Email address for message, not checked for
+        validity: if it is empty, no message is sent.</string>
+    <string name="mobilenumberhelp">Send message to a phone number</string>
+    <string name="mobilenumberdisabled">This option is disabled because the message
+        is not being sent by SMS text.</string>
+    <string name="mobilenumber">... mobile number</string>
+    <string name="mobilenumberfield">Mobile number for message, not checked for
+        validity: if it is empty, no message is sent.</string>
+    <string name="tocontacthelp">Send message to a contact</string>
+    <string name="tocontactdisabled">This option is disabled because the message
+        is not being sent by either email or SMS text.</string>
+    <string name="tocontactdenied">This option is disabled because CalendarTrigger
+        does not have permission to read contacts. You can enable this permission
+        from the device\'s Settings tool by selecting the Application Manager.
+    </string>
+    <string name="tocontact">... contact</string>
+    <string name="contacthelpboth">Contact to whom to send the message. As you
+        type in the name it is displayed in red until the name matches a contact
+        with an email address or a mobile phone number, when the colour changes
+        to green.</string>
+    <string name="contacthelpemail">Contact to whom to send the message. As you
+        type in the name it is displayed in red until the name matches a contact
+        with an email address, when the colour changes to green.</string>
+    <string name="contacthelpsms">Contact to whom to send the message. As you
+        type in the name it is displayed in red until the name matches a contact
+        with a mobile number when the colour changes to green.</string>
+    <string name="contactfromnamehelp">Send message to a contact whose name is
+        extracted from the name of the event.</string>
+    <string name="contactfromnamedisabled">This option is disabled because the
+        message is not being sent by either email or SMS text.</string>
+    <string name="contactfromnamedenied">This option is disabled because
+        CalendarTrigger does not have permission to read contacts. You can enable
+        this permission from the device\'s Settings tool by selecting the
+        Application Manager.</string>
+    <string name="contactfromname">... contact from event name</string>
+    <string name="getfirsthelp">Define how to extract the contact\'s first name
+        from the event name.</string>
+    <string name="firstlabel">"First name is word "</string>
+    <string name="firstnumhelp">Position (from 0) of the contact\'s first name
+        from the start or end of the event name.</string>
+    <string name="firstfromhelp">Define how to extract the contact\'s first name
+        from the event name.</string>
+    <string name="fromlabel">" from "</string>
+    <string name="lastnumhelp">Define how to extract the contact\'s last name
+        from the event name.</string>
+    <string name="lastfromhelp">Position (from 0) of the contact\'s last name
+        rom the start or end of the event name.</string>
+    <string name="lastlabel">"Larst name is word "</string>
+    <string name="lastnumhelp">Extract the contact\'s last name counted
+        from the start or end of the event name.</string>
+    <string name="removesuffixhelp">Remove , or \'s from first name and last nam
+        of contact before searching contacts list.</string>
+    <string name="removesuffixdisabled">This option is disabled because the
+        message is not being sent to a contact from the event name.</string>
+    <string name="removesuffixlabel">Remove , or \'s</string>
+    <string name="bodyhelp">Use the event class name, the event name, the event
+        description, or some explicit text as the body of the message. If nothing
+        is selected or the resulting message body is empty, no message will be
+        sent.</string>
+    <string name="bodylabel">with message text ...</string>
+    <string name="bodyclassnamehelp">Message with the event class name as its body
+    </string>
+    <string name="bodyclassnamelabel">event class name</string>
+    <string name="bodyeventnamehelp">Message with the event name as its body</string>
+    <string name="bodyeventnamelabel">event name</string>
+    <string name="bodyeventdescriptionhelp">Message with the event description
+        as its body</string>
+    <string name="bodyeventdescriptionlabel">event description</string>
+    <string name="bodyliteralhelp">Message with typed text as its body</string>
+    <string name="bodyliterallabel">Text typed here is sent as the message</string>
+    <string name="subjecthelp">Use the event class name, the event name, the event
+        description, or some typed in text as the subject of the message. If nothing
+        is selected, or the resulting subject is empty, the message will be sent
+        with an empty subject.</string>
+    <string name="subjectlabel">with subject (email only) ...</string>
+    <string name="subjectclasshelp">Message with the event class name
+        as its subject</string>
+    <string name="subjectclasslabel">event class name</string>
+    <string name="subjectnamehelp">Message with the event name
+        as its subject</string>
+    <string name="subjectnamelabel">event name</string>
+    <string name="subjectdescriptionhelp">Message with the event description
+        as its subject</string>
+    <string name="subjectdescriptionlabel">event description</string>
+    <string name="subjectliteralhelp">Message with typed text as its subject</string>
+    <string name="subjectliterallabel">message subject</string>
     <string name="actionStartLabel">Event start action(s) for class %s</string>
     <string name="actionStartHelp">Define the action(s) to be
         triggered at or before the start of an event in class %s.</string>
@@ -534,15 +670,36 @@
     <string name="eventstart">for start of event</string>
     <string name="ofclass">of class</string>
     <string name="eventend">for end of event</string>
+    <string name="gotmode">"Handler got mode"</string>
+    <string name="delaywaitmessage">DELAY_WAIT message</string>
+    <string name="received">" received"</string>
+    <string name="handlemessage">handle message</string>
+    <string name="nopowermanager">Cannot get Powermanager</string>
+    <string name="gettinglock">Getting lock</string>
+    <string name="endof">"End of "</string>
+    <string name="releasinglock">, releasing lock</string>
+    <string name="retaininglock">, reatining lock</string>
+    <string name="nolock">, no lock</string>
+    <string name="noSensorManager">"Cannot get SensorManager</string>
+    <string name="noSensorManagerimpossible">. This cannot happen because we had
+    to use a SensorManager to register a listener in order to get here.</string>
     <string name="permissionfail">No permission ACCESS_NOTIFICATION_POLICY
 		</string>
-    <string name="permissionfailbig">CalendarTrigger no longer has permission
+    <string name="permissionfailbig">" because "CalendarTrigger no longer has permission
 		ACCESS_NOTIFICATION_POLICY. It needs this permission to set do not
         disturb mode.</string>
+    <string name="setmodefail">Cannot set mode</string>
     <string name="readphonefail">No permission READ_PHONE_STATE
 		</string>
-    <string name="readphonefailbig">CalendarTrigger no longer has permission
+    <string name="readphonefailbig">"because "CalendarTrigger no longer has permission
 		READ_PHONE_STATE. It needs this permission to prevent it from muting
         while a call is active.</string>
+    <string name="cyclingnotenabled">Exited doLogCycling because log cycling disabled
+    </string>
+    <string name="cyclingnotyet">Exited doLogCycling because not time yet</string>
+    <string name="logcyclingerror">Error cycling log</string>
+    <string name="cyclingerrorbig">"Exited doLogCycling because of exception "</string>
+    <string name="nolocationmanager">Cannot get LocationManager</string>
+    <string name="bignomanager">: this may be a permission problem</string>
     <string name="action_settings">Settings</string>
 </resources>

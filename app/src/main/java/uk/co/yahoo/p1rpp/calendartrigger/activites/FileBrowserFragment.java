@@ -48,6 +48,8 @@ public class FileBrowserFragment extends Fragment {
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 		View v = getView();
+		// v can't be null because we created it ourselves in onCreateView()
+		//noinspection ConstantConditions
 		FileListView fileList = (FileListView)v.findViewById(R.id.fileListView);
 		fileList.setOnDirectoryOrFileClickListener(new FileListView.OnDirectoryOrFileClickListener() {
 			public void onDirectoryOrFileClick(File file) {

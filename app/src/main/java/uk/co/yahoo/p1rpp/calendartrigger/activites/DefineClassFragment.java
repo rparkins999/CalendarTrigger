@@ -178,6 +178,7 @@ public class DefineClassFragment extends Fragment
                 calChecks.add(cc);
             }
             ll.addView(lll, ww);
+            cur.close();
         }
         ll.addView(makeComparisons(ac, classNum, first));
         LinearLayout lll = new LinearLayout(ac);
@@ -436,15 +437,13 @@ public class DefineClassFragment extends Fragment
             ac, getArguments().getString(ARG_CLASS_NAME));
         ArrayList<Long> checkedCalendarIds
             = new ArrayList<>(calChecks.size());
-        Iterator<calendarCheck> it = calChecks.iterator();
-        while (it.hasNext()) {
-            calendarCheck ctv = it.next();
+        for (calendarCheck ctv : calChecks) {
             if (ctv.isChecked()) {
                 checkedCalendarIds.add(ctv.id);
             }
         }
         PrefsManager.putCalendars(ac, classNum, checkedCalendarIds);
-        comparisons.updatePreferences(classNum);
+        comparisons.updatePreferences();
         int id = busyState.getCheckedRadioButtonId();
         int index;
         for (index = 0; index <= PrefsManager.BUSY_AND_NOT; ++index) {

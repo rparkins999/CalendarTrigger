@@ -35,7 +35,7 @@ public class AndList extends LinearLayout {
         }
     }
 
-    public void updatePreferences(int classNum) {
+    public void updatePreferences() {
         int n = getChildCount();
         for (int andIndex = 0; andIndex < n; ++andIndex) {
             OrList ol = (OrList)getChildAt(andIndex);

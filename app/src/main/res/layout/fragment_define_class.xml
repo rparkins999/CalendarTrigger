@@ -10,7 +10,7 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <!-- This is an invisible view to request the focus when an EditText gets deleted

@@ -5,6 +5,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -292,6 +293,7 @@ public class PrefsManager {
 	//                        RINGER_MODE_SILENT    INTERRUPTION_FILTER_NONE
 	public static final int RINGER_MODE_SILENT = 60;
 
+	@SuppressLint("SwitchIntDef")
 	@TargetApi(android.os.Build.VERSION_CODES.M)
 	// Work out what the current ringer state should be from our set of states
 	public static int getCurrentMode(Context context)
@@ -1436,23 +1438,6 @@ public class PrefsManager {
 			   .edit().remove(prefName).commit();
 	}
 
-	// is an event of this class currently active?
-	private static final String IS_ACTIVE = "isActive";
-
-	public static void setClassActive(
-		Context context, int classNum, boolean isActive)
-	{
-		String prefName = IS_ACTIVE + (classNum);
-		context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-			   .edit().putBoolean(prefName, isActive).commit();
-	}
-
-	public static boolean isClassActive(Context context, int classNum) {
-		String prefName = IS_ACTIVE + (classNum);
-		return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-					  .getBoolean(prefName, false);
-	}
-
 	// is an event of this class currently waiting after becoming inactive?
 	private static final String IS_WAITING = "isWaiting";
 
@@ -1537,7 +1522,6 @@ public class PrefsManager {
 			  .remove(MESSAGE_LITERAL_TEXT + classNum + "#1")
 			  .remove(IS_TRIGGERED + classNum)
 			  .remove(LAST_TRIGGER_END + classNum)
-			  .remove(IS_ACTIVE + classNum)
 			  .remove(IS_WAITING + classNum)
 			  .remove(LAST_ACTIVE_EVENT + classNum)
 			  .commit();
@@ -1820,34 +1804,34 @@ public class PrefsManager {
 					try {
 						PrefsManager.setLastTimezoneOffset(
 							context, Integer.decode(parts[1]));
-					} catch (NumberFormatException e) { /* just ignore it */ }
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("seenOffset") == 0)
 				{
 					try {
 						PrefsManager.setLastSeenOffset(
 							context, Integer.decode(parts[1]));
-					} catch (NumberFormatException e) { /* just ignore it */ }
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("userringer") == 0)
 				{
 					try {
 						PrefsManager.setUserRinger(
 							context, Integer.decode(parts[1]));
-					} catch (NumberFormatException e) { /* just ignore it */ }
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("lastRinger") == 0)
 				{
 					try {
 						PrefsManager.setLastRinger(
 							context, Integer.decode(parts[1]));
-					} catch (NumberFormatException e) { /* just ignore it */ }
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("lastImmediate") == 0)
 				{
 					try {
 						PrefsManager.setLastImmediate(context, Integer.decode(parts[1]));
-					} catch (NumberFormatException e) { /* just ignore it */ }
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("Class") == 0)
 				{
@@ -1892,7 +1876,7 @@ public class PrefsManager {
 				else if (parts[0].compareTo("agendas") == 0)
 				{
 					prefs.edit().putString(
-						AGENDAS + String.valueOf(i), parts[1]).commit();
+						AGENDAS + i, parts[1]).commit();
 				}
 				else if (parts[0].compareTo("whetherBusy") == 0)
 				{
@@ -1900,7 +1884,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setWhetherBusy(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) { }
+					} catch (NumberFormatException ignore) { }
 				}
 				else if (parts[0].compareTo("whetherAllDay") == 0)
 				{
@@ -1908,7 +1892,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setWhetherAllDay(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) { }
+					} catch (NumberFormatException ignore) { }
 				}
 				else if (parts[0].compareTo("whetherRecurrent") == 0)
 				{
@@ -1918,7 +1902,7 @@ public class PrefsManager {
 						PrefsManager.setWhetherRecurrent(
 							context, i, Integer.valueOf(parts[1]));
 					}
-					catch (NumberFormatException e) { }
+					catch (NumberFormatException ignore) { }
 				}
 				else if (parts[0].compareTo("whetherOrganiser") == 0)
 				{
@@ -1926,7 +1910,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setWhetherOrganiser(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("whetherPublic") == 0)
 				{
@@ -1935,7 +1919,7 @@ public class PrefsManager {
 						
 						PrefsManager.setWhetherPublic(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("whetherAttendees") == 0)
 				{
@@ -1944,7 +1928,7 @@ public class PrefsManager {
 						
 						PrefsManager.setWhetherAttendees(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("ringerAction=") == 0)
 				{
@@ -1953,7 +1937,7 @@ public class PrefsManager {
 
 						PrefsManager.setRingerAction(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("restoreRinger=") == 0)
 				{
@@ -1972,7 +1956,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setAfterMinutes(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("beforeMinutes") == 0)
 				{
@@ -1980,7 +1964,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setBeforeMinutes(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("afterOrientation") == 0)
 				{
@@ -1988,7 +1972,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setAfterOrientation(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("beforeOrientation") == 0)
 				{
@@ -1996,7 +1980,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setBeforeOrientation(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("afterconnection") == 0)
 				{
@@ -2004,7 +1988,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setAfterConnection(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("beforeconnection") == 0)
 				{
@@ -2012,7 +1996,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setBeforeConnection(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("afterSteps") == 0)
 				{
@@ -2020,7 +2004,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setAfterSteps(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("afterMetres") == 0)
 				{
@@ -2028,7 +2012,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setAfterMetres(
 							context, i, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("notifyStart") == 0)
 				{
@@ -2088,7 +2072,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageType(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageType") == 0)
 				{
@@ -2096,7 +2080,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageType(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageAddressNull") == 0)
 				{
@@ -2186,7 +2170,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageFirstCount(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageFirstCount") == 0)
 				{
@@ -2194,7 +2178,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageFirstCount(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageLastCount") == 0)
 				{
@@ -2202,7 +2186,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageLastCount(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageLastCount") == 0)
 				{
@@ -2210,7 +2194,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageLastCount(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageFirstDir") == 0)
 				{
@@ -2218,7 +2202,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageFirstDir(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageFirstDir") == 0)
 				{
@@ -2226,7 +2210,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageFirstDir(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageLastDir") == 0)
 				{
@@ -2234,7 +2218,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageLastDir(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageLastDir") == 0)
 				{
@@ -2242,7 +2226,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageLastDir(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageTrim") == 0)
 				{
@@ -2272,7 +2256,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageTextType(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndMessageTextType") == 0)
 				{
@@ -2280,7 +2264,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setMessageTextType(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartMessageLiteral") == 0)
 				{
@@ -2304,7 +2288,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setSubjectTextType(
 							context, i, SEND_MESSAGE_AT_START, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("EndSubjectTextType") == 0)
 				{
@@ -2312,7 +2296,7 @@ public class PrefsManager {
 					{
 						PrefsManager.setSubjectTextType(
 							context, i, SEND_MESSAGE_AT_END, Integer.valueOf(parts[1]));
-					} catch (NumberFormatException e) {}
+					} catch (NumberFormatException ignore) {}
 				}
 				else if (parts[0].compareTo("StartSubjectLiteral") == 0)
 				{

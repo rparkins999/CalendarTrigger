@@ -5,10 +5,8 @@
 package uk.co.yahoo.p1rpp.calendartrigger.Layouts;
 
 import android.content.Context;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 
@@ -33,10 +31,6 @@ public class OrList extends LinearLayout {
         m_andIndex = andIndex;
         m_first = first;
         removeAllViews();
-        ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
         setOrientation(LinearLayout.VERTICAL);
         int prefix = m_first ? 0 : 1;
         int orIndex;

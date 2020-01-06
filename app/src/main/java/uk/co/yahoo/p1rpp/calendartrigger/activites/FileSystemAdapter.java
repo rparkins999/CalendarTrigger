@@ -30,10 +30,8 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 public class FileSystemAdapter extends ArrayAdapter<FileData> {
 
     private String root;
-    private List<String> paths = new ArrayList<String>();
     private File path;
-    private File file;
-    private Map<String, Integer> mapExtentions = new HashMap<String, Integer>();
+    private Map<String, Integer> mapExtentions = new HashMap<>();
     private OnGetView onGetView;
 
     public FileSystemAdapter(Context context, int rowViewResourceId) {
@@ -45,7 +43,7 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view = null;
+        View view;
         TextView textView;
         ImageView imageView;
 
@@ -66,7 +64,7 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
 
 
         FileData item = getItem(position);
-        textView.setText((CharSequence)item.name);
+        textView.setText(item.name);
 
         if(item.directory) {
             imageView.setImageResource(mapExtentions.get("folder"));
@@ -92,7 +90,7 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
      * Primitive extraction of the file extention in lower case. <br>
      * file.ext -> ext <br>
      * If there is no '.' in the file name, null is returned!
-     * @param fileName
+     * @param fileName name of the file
      * @return extention or null
      */
     private String getFileExtention(String fileName) {
@@ -108,21 +106,19 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
      * Reflect the folder structure to the ui
      */
     public void showFileSystem() {
-        List<FileData> items = new ArrayList<FileData>();
+        List<FileData> items = new ArrayList<>();
         File[] files = path.listFiles();
 
         if (!path.getAbsolutePath().equals(root)) {
             items.add(new FileData(null, "../", true));
         }
 
-        for (int i = 0; i < files.length; i++) {
-            File file = files[i];
-
+        for (File file : files) {
             if (!file.isHidden() && file.canRead()) {
-				/* special check to omit sql journal files */
+                /* special check to omit sql journal files */
                 String s = getFileExtention(file.getName());
-                if (   (s == null)
-                       || (!s.contentEquals("sql-journal"))) {
+                if ((s == null)
+                    || (!s.contentEquals("sql-journal"))) {
                     if (file.isDirectory()) {
                         items.add(new FileData(file, file.getName() + "/", true));
                     } else {
@@ -134,10 +130,6 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
 
         clearNoNotification();
         addAll(items);
-    }
-
-    public String getRoot() {
-        return root;
     }
 
     /**
@@ -175,11 +167,7 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
      * @param resource R.drawable.xxx
      */
     public void addExtention(String ext, int resource) {
-        mapExtentions.put(ext, Integer.valueOf(resource));
-    }
-
-    public void clearExtentionMapping() {
-        mapExtentions.clear();
+        mapExtentions.put(ext, resource);
     }
 
     public boolean hasExtentions() {
@@ -192,10 +180,6 @@ public class FileSystemAdapter extends ArrayAdapter<FileData> {
 
     public void setPath(File path) {
         this.path = path;
-    }
-
-    public void setOnGetView(OnGetView onGetView) {
-        this.onGetView = onGetView;
     }
 
     /**

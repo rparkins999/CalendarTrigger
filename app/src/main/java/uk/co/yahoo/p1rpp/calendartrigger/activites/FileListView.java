@@ -5,7 +5,6 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.AdapterView;
@@ -43,19 +42,10 @@ public class FileListView extends ListView implements AdapterView
 		super(context, attrs);
 				adapter = new FileSystemAdapter(context, R.layout.filemanager_row_icon);
 		setAdapter(adapter);
-				comparator = new ComparatorChain<FileData>();
+				comparator = new ComparatorChain<>();
 		comparator.addComparator(new DirectoryFileComparator());
 		comparator.addComparator(new NameComparator());
 		setOnItemClickListener(this);
-	}
-
-	/**
-	 * Resource id of the row.<br>
-	 * The row must contain a TextView with the id textFileName and an ImageView with the id imageFileType.
-	 * @param rowViewResourceId
-	 */
-	public void setRowView(int rowViewResourceId) {
-		adapter.mResource = rowViewResourceId;
 	}
 
 	/**
@@ -80,20 +70,6 @@ public class FileListView extends ListView implements AdapterView
 		updateUI(adapter.getPath());
 	}
 
-	/**
-	 * Initializes the FileListView <br>
-	 * - sets the root path to the root of the sdcard <br>
-	 * - sets the default extentions if no customs are present <br>
-	 * - updates the UI <br>
-	 * <br>
-	 * Call this method at the end of the onCreate()-Methode.
-	 *
-	 * @param path root directory
-	 */
-	public void init() {
-		init(null);
-	}
-
 	public FileSystemAdapter getAdapter() {
 		return adapter;
 	}
@@ -106,7 +82,7 @@ public class FileListView extends ListView implements AdapterView
 	}
 
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		FileData item = (FileData) adapter.getItem(position);
+		FileData item = adapter.getItem(position);
 		File file = adapter.move(item.name);
 
 		if (file.isDirectory()) {
@@ -163,24 +139,4 @@ public class FileListView extends ListView implements AdapterView
          */
         void onDirectoryOrFileClick(File file);
     }
-
-    /**
-     * Gives back a ComparatorChain that is preset with the following two Comparators: <br>
-     * 1) DirectoryFileComparator <br>
-     * 2) NameComparator <br><br>
-     * To use different Comparators just call comparator.clear() and comparator.addComparator(yourcomparator)
-     *
-     * @return
-     */
-	public ComparatorChain<FileData> getComparator() {
-		return comparator;
-	}
-
-	public void setComparator(ComparatorChain<FileData> comparator) {
-		this.comparator = comparator;
-	}
-
-	public void setOnGetView(FileSystemAdapter.OnGetView onGetView) {
-		adapter.setOnGetView(onGetView);
-	}
 }

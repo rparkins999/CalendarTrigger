@@ -5,13 +5,8 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Environment;
-import android.os.Looper;
-import android.widget.Toast;
 
 import java.io.File;
 
@@ -40,7 +35,7 @@ public class DataStore extends Object {
 
     private static void report(
         Context context, String small, String big, String type) {
-        if (type == context.getString(R.string.typelog))
+        if (type.equals(context.getString(R.string.typelog)))
         {
             // We can't use log in this case because we are reporting failure to create it.
             new Notifier(context, small, big);
@@ -93,7 +88,7 @@ public class DataStore extends Object {
                             big, "Database");
                         return null;
                     }
-                } catch (NullPointerException e) { /* can't actually happen' */ }
+                } catch (NullPointerException ignore) { /* can't actually happen' */ }
             }
             return DATABASEFILE;
         }

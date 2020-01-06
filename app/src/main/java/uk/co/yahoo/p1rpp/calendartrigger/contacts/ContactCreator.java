@@ -1,9 +1,7 @@
 /*
  * Copyright (c) 2018. Richard P. Parkins, M. A.
  * Released under GPL V3 or later
- */
-
-/**
+ *
  * Created by rparkins on 11/03/18.
  */
 
@@ -85,13 +83,16 @@ public class ContactCreator {
 			"WI", "Wis", "Wisconsin",
 			"WY", "Wyo", "Wyoming"
 		};
-		for (int i = 0; i < states.length; ++i)
-			{ if (s.compareTo(states[i]) == 0) {return true;}}
+		for (String state : states) {
+			if (s.compareTo(state) == 0) {
+				return true;
+			}
+		}
 		return false;
 	}
 
 	private boolean isUKcounty(String s) {
-		final String counties[] = {
+		final String[] counties = {
 			"Aberdeenshire", "Aberdeen",
 			"Anglesey",
 			"Angus", "Forfarshire",
@@ -197,9 +198,10 @@ public class ContactCreator {
 			"Worcestershire", "Worcs",
 			"Yorkshire", "Yorks",
 		};
-		for (int i = 0; i < counties.length; ++i)
-		{
-			if (s.compareTo(counties[i]) == 0) {return true;}
+		for (String county : counties) {
+			if (s.compareTo(county) == 0) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -208,18 +210,19 @@ public class ContactCreator {
 		final String[] regions = {
 			"England", "Scotland", "Wales", "Northern Ireland"
 		};
-		for (int i = 0; i < regions.length; ++i)
-		{
-			if (s.compareTo(regions[i]) == 0) {return true;}
+		for (String region : regions) {
+			if (s.compareTo(region) == 0) {
+				return true;
+			}
 		}
 		return false;
 	}
 
 	private String lookupCountry(int mcc) {
 		class mccEntry {
-			public int code;
-			public String country;
-			mccEntry(int i, String s) {code = i; country = s;}
+			private int code;
+			private String country;
+			private mccEntry(int i, String s) {code = i; country = s;}
 		}
 			
 		final mccEntry[] mccList = {
@@ -456,9 +459,10 @@ public class ContactCreator {
 			new mccEntry(746, "Suriname"),
 			new mccEntry(748, "Uruguay"),
 			};
-		for (int i = 0; i < mccList.length; ++i)
-		{
-			if (mccList[i].code == mcc) { return mccList[i].country;}
+		for (mccEntry mccEntry : mccList) {
+			if (mccEntry.code == mcc) {
+				return mccEntry.country;
+			}
 		}
 		return null;
 	}
@@ -504,8 +508,9 @@ public class ContactCreator {
 			null,
 			null);
 		ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-		if (c.getCount() > 0)
-		{
+		boolean updating;
+		if ((c != null) && (c.getCount() > 0)) {
+			updating = true;
 			// the contact already exists, update it
 			c.moveToFirst();
 			long contactId = c.getLong(0);
@@ -513,111 +518,113 @@ public class ContactCreator {
 			op =
 				ContentProviderOperation.newUpdate(
 					ContactsContract.Data.CONTENT_URI)
-						.withSelection(
-							ContactsContract.Data.CONTACT_ID
-							+ " = "
-							+ String.valueOf(contactId)
+					.withSelection(
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + contactId
 							+ " AND "
 							+ ContactsContract.Data.MIMETYPE
 							+ " = '"
 							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
 							+ "'",
-							null)
-						.withValue(CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
-								   formattedaddress)
-						.withValue(CommonDataKinds.StructuredPostal.TYPE,
-								   CommonDataKinds.StructuredPostal.TYPE_HOME)
-						.withValue(CommonDataKinds.StructuredPostal.STREET,
-								   streetaddress)
-						.withValue(CommonDataKinds.StructuredPostal.NEIGHBORHOOD,
-								   neighbourhood)
-						.withValue(CommonDataKinds.StructuredPostal.CITY,
-								   town)
-						.withValue(CommonDataKinds.StructuredPostal.POSTCODE,
-								   postcode)
-						.withValue(CommonDataKinds.StructuredPostal.REGION,
-								   state)
-						.withValue(CommonDataKinds.StructuredPostal.COUNTRY,
-								   country);
+						null)
+					.withValue(CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+						formattedaddress)
+					.withValue(CommonDataKinds.StructuredPostal.TYPE,
+						CommonDataKinds.StructuredPostal.TYPE_HOME)
+					.withValue(CommonDataKinds.StructuredPostal.STREET,
+						streetaddress)
+					.withValue(CommonDataKinds.StructuredPostal.NEIGHBORHOOD,
+						neighbourhood)
+					.withValue(CommonDataKinds.StructuredPostal.CITY,
+						town)
+					.withValue(CommonDataKinds.StructuredPostal.POSTCODE,
+						postcode)
+					.withValue(CommonDataKinds.StructuredPostal.REGION,
+						state)
+					.withValue(CommonDataKinds.StructuredPostal.COUNTRY,
+						country);
 			ops.add(op.build());
-		} else
+			c.close();
+		}
+		else
 		{
+			updating = false;
 			// the contact doesn't exist, create it
 			ContentProviderOperation.Builder op;
 			// null seems to be a valid account, it puts it in phone local
 			op =
 				ContentProviderOperation.newInsert(
 					ContactsContract.RawContacts.CONTENT_URI)
-										.withValue(ContactsContract.RawContacts.ACCOUNT_TYPE,
-												   null)
-										.withValue(ContactsContract.RawContacts.ACCOUNT_NAME,
-												   null);
+					.withValue(ContactsContract.RawContacts.ACCOUNT_TYPE,
+						null)
+					.withValue(ContactsContract.RawContacts.ACCOUNT_NAME,
+						null);
 
 			ops.add(op.build());
 			// We don't handle middle names here, because it's a constructed
 			// contact name which we know doesn't have one.
 			op = ContentProviderOperation
 				.newInsert(ContactsContract.Data.CONTENT_URI)
-				.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+				.withValueBackReference(
+					ContactsContract.Data.RAW_CONTACT_ID, 0)
 				.withValue(ContactsContract.Data.MIMETYPE,
-						   CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+					CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
 				.withValue(CommonDataKinds.StructuredName.DISPLAY_NAME,
-						   first + " " + last)
+					first + " " + last)
 				.withValue(CommonDataKinds.StructuredName.GIVEN_NAME,
-						   first)
+					first)
 				.withValue(CommonDataKinds.StructuredName.FAMILY_NAME,
-						   last);
+					last);
 			ops.add(op.build());
 			// Phone number records seem to contain a duplicate of the number
 			// in DATA4, even though the Android class description doesn't
 			// mention this: we put it in to be on the safe side.
 			op = ContentProviderOperation
 				.newInsert(ContactsContract.Data.CONTENT_URI)
-				.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+				.withValueBackReference(
+					ContactsContract.Data.RAW_CONTACT_ID, 0)
 				.withValue(ContactsContract.Data.MIMETYPE,
-						   CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+					CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
 				.withValue(CommonDataKinds.Phone.NUMBER, "0")
 				.withValue(CommonDataKinds.Phone.TYPE,
-						   CommonDataKinds.Phone.TYPE_HOME)
+					CommonDataKinds.Phone.TYPE_HOME)
 				.withValue(ContactsContract.Data.DATA4, "0");
 			ops.add(op.build());
 			op = ContentProviderOperation
 				.newInsert(ContactsContract.Data.CONTENT_URI)
-				.withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+				.withValueBackReference(
+					ContactsContract.Data.RAW_CONTACT_ID, 0)
 				.withValue(ContactsContract.Data.MIMETYPE,
-						   CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
+					CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
 				.withValue(CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
-						   formattedaddress)
+					formattedaddress)
 				.withValue(CommonDataKinds.StructuredPostal.TYPE,
-						   CommonDataKinds.StructuredPostal.TYPE_HOME)
+					CommonDataKinds.StructuredPostal.TYPE_HOME)
 				.withValue(CommonDataKinds.StructuredPostal.STREET,
-						   streetaddress)
+					streetaddress)
 				.withValue(CommonDataKinds.StructuredPostal.NEIGHBORHOOD,
-						   neighbourhood)
+					neighbourhood)
 				.withValue(CommonDataKinds.StructuredPostal.CITY,
-						   town)
+					town)
 				.withValue(CommonDataKinds.StructuredPostal.POSTCODE,
-						   postcode)
+					postcode)
 				.withValue(CommonDataKinds.StructuredPostal.REGION,
-						   state)
+					state)
 				.withValue(CommonDataKinds.StructuredPostal.COUNTRY,
-						   country);
+					country);
 			ops.add(op.build());
 		}
-		try
-		{
+		try {
 			me.getContentResolver()
-				   .applyBatch(ContactsContract.AUTHORITY, ops);
-		}
-		catch (Exception e)
-		{
+				.applyBatch(ContactsContract.AUTHORITY, ops);
+		} catch (Exception e) {
 			new MyLog(me,
-					  (c.getCount() > 0 ? "Updating" : "Creating")
-					  + " contact " + first + " " + last
-					  + " threw exception "
-					  + e.getCause().toString()
-					  + " with message "
-					  + e.getMessage());
+				(updating ? "Updating" : "Creating")
+					+ " contact " + first + " " + last
+					+ " threw exception "
+					+ e.getCause().toString()
+					+ " with message "
+					+ e.getMessage());
 		}
 	}
 
@@ -625,7 +632,7 @@ public class ContactCreator {
      * 
      * @param first
      * @param last
-     * @param address
+     * @param address the location field of the event
      * @return         true if we've dealt with it
      *
      * Check if the address is @<key> <contactname>
@@ -643,6 +650,7 @@ public class ContactCreator {
      * type of any Contact matching firstname lastname, if there is one.
      * If it isn't one of the above forms or nothing matches we return false.
      */
+	@SuppressWarnings("JavaDoc")
 	private boolean isAtContact(String first, String last, String address) {
 	    if (   (address == null)
             || address.isEmpty()
@@ -669,106 +677,82 @@ public class ContactCreator {
             CONTACT_SELECTION,
             null,
             null);
-        while (c.moveToNext())
-        {
-            String ADDRESS_SELECTION;
-            String[] ADDRESS_ARGS;
-            if (splitup[0].compareTo("@") == 0)
-            {
-                ADDRESS_SELECTION =
-                    ContactsContract.Data.CONTACT_ID
-                    + " = "
-                    + String.valueOf(c.getLong(0))
-                    + " AND "
-                    + RawContactsEntity.MIMETYPE + " IS '"
-                    + CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    + "'";
-                ADDRESS_ARGS = null;
-            }
-            else if (splitup[0].compareTo("@HOME") == 0)
-            {
-                ADDRESS_SELECTION =
-                    ContactsContract.Data.CONTACT_ID
-                    + " = "
-                    + String.valueOf(c.getLong(0))
-                    + " AND "
-                    + RawContactsEntity.MIMETYPE + " IS '"
-                    + CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    + "' AND "
-                    + CommonDataKinds.StructuredPostal.TYPE
-                    + " IS "
-                    + CommonDataKinds.StructuredPostal.TYPE_HOME;
-                ADDRESS_ARGS = null;
-            }
-            else if (splitup[0].compareTo("@OTHER") == 0)
-            {
-                ADDRESS_SELECTION =
-                    ContactsContract.Data.CONTACT_ID
-                    + " = "
-                    + String.valueOf(c.getLong(0))
-                    + " AND "
-                    + RawContactsEntity.MIMETYPE + " IS '"
-                    + CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    + "' AND "
-                    + CommonDataKinds.StructuredPostal.TYPE
-                    + " IS "
-                    + CommonDataKinds.StructuredPostal.TYPE_OTHER;
-                ADDRESS_ARGS = null;
-            }
-            else if (splitup[0].compareTo("@WORK") == 0)
-            {
-                ADDRESS_SELECTION =
-                    ContactsContract.Data.CONTACT_ID
-                    + " = "
-                    + String.valueOf(c.getLong(0))
-                    + " AND "
-                    + RawContactsEntity.MIMETYPE + " IS '"
-                    + CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    + "' AND "
-                    + CommonDataKinds.StructuredPostal.TYPE
-                    + " IS "
-                    + CommonDataKinds.StructuredPostal.TYPE_WORK;
-                ADDRESS_ARGS = null;
-            }
-            else
-            {
-                // must be @<label> because we already returned if it doesn't
-                // begin with an @
-                ADDRESS_SELECTION =
-                    ContactsContract.Data.CONTACT_ID
-                    + " = "
-                    + String.valueOf(c.getLong(0))
-                    + " AND "
-                    + RawContactsEntity.MIMETYPE + " IS '"
-                    + CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    + "' AND "
-                    + CommonDataKinds.StructuredPostal.TYPE
-                    + " IS "
-                    + CommonDataKinds.StructuredPostal.TYPE_CUSTOM
-                    + " AND "
-                    + CommonDataKinds.StructuredPostal.LABEL
-                    + " IS ?";
-                ADDRESS_ARGS = new String[] {splitup[0].substring(1)};
-            }
-            Cursor c1 = me.getContentResolver().query(
-                RawContactsEntity.CONTENT_URI,
-                ADDRESS_PROJECTION,
-                ADDRESS_SELECTION,
-                ADDRESS_ARGS,
-                null);
-            if (c1.moveToFirst())
-            {
-                createOrUpdateContact(first, last,
-                                      c1.getString(0),
-                                      c1.getString(1),
-                                      c1.getString(2),
-                                      c1.getString(3),
-                                      c1.getString(4),
-                                      c1.getString(5),
-                                      c1.getString(6));
-                return true;
-            }
-        }
+        if (c != null) {
+			while (c.moveToNext()) {
+				String ADDRESS_SELECTION;
+				String[] ADDRESS_ARGS;
+				if (splitup[0].compareTo("@") == 0) {
+					ADDRESS_SELECTION =
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + c.getLong(0)
+							+ " AND " + RawContactsEntity.MIMETYPE + " IS '"
+							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+							+ "'";
+					ADDRESS_ARGS = null;
+				} else if (splitup[0].compareTo("@HOME") == 0) {
+					ADDRESS_SELECTION =
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + c.getLong(0)
+							+ " AND " + RawContactsEntity.MIMETYPE + " IS '"
+							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+							+ "' AND " + CommonDataKinds.StructuredPostal.TYPE
+							+ " IS " + CommonDataKinds.StructuredPostal.TYPE_HOME;
+					ADDRESS_ARGS = null;
+				} else if (splitup[0].compareTo("@OTHER") == 0) {
+					ADDRESS_SELECTION =
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + RawContactsEntity.MIMETYPE + " IS '"
+							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+							+ "' AND " + CommonDataKinds.StructuredPostal.TYPE
+							+ " IS " + CommonDataKinds.StructuredPostal.TYPE_OTHER;
+					ADDRESS_ARGS = null;
+				} else if (splitup[0].compareTo("@WORK") == 0) {
+					ADDRESS_SELECTION =
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + c.getLong(0)
+							+ " AND " + RawContactsEntity.MIMETYPE + " IS '"
+							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+							+ "' AND " + CommonDataKinds.StructuredPostal.TYPE
+							+ " IS " + CommonDataKinds.StructuredPostal.TYPE_WORK;
+					ADDRESS_ARGS = null;
+				} else {
+					// must be @<label> because we already returned if it doesn't
+					// begin with an @
+					ADDRESS_SELECTION =
+						ContactsContract.Data.CONTACT_ID
+							+ " = " + c.getLong(0)
+							+ " AND " + RawContactsEntity.MIMETYPE + " IS '"
+							+ CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+							+ "' AND " + CommonDataKinds.StructuredPostal.TYPE
+							+ " IS " + CommonDataKinds.StructuredPostal.TYPE_CUSTOM
+							+ " AND " + CommonDataKinds.StructuredPostal.LABEL
+							+ " IS ?";
+					ADDRESS_ARGS = new String[]{splitup[0].substring(1)};
+				}
+				Cursor c1 = me.getContentResolver().query(
+					RawContactsEntity.CONTENT_URI,
+					ADDRESS_PROJECTION,
+					ADDRESS_SELECTION,
+					ADDRESS_ARGS,
+					null);
+				if (c1 != null) {
+					if (c1.moveToFirst()) {
+						createOrUpdateContact(first, last,
+							c1.getString(0),
+							c1.getString(1),
+							c1.getString(2),
+							c1.getString(3),
+							c1.getString(4),
+							c1.getString(5),
+							c1.getString(6));
+						c1.close();
+						return true;
+					}
+					c1.close();
+				}
+			}
+			c.close();
+		}
         return false;
     }
 
@@ -1318,11 +1302,11 @@ public class ContactCreator {
 					break;
 				case Cursor.FIELD_TYPE_INTEGER:
 					putline(strings,
-							description + " is " + String.valueOf(c.getLong(i)));
+							description + " is " + c.getLong(i));
 					break;
 				case Cursor.FIELD_TYPE_FLOAT:
 					putline(strings, description + " is "
-								+ String.valueOf(c.getDouble(i)));
+								+ c.getDouble(i));
 					break;
 				case Cursor.FIELD_TYPE_STRING:
 					putline(strings,
@@ -1651,7 +1635,7 @@ public class ContactCreator {
 			}
 			for (; i < c.getColumnCount(); ++i)
 			{
-				addLine(strings, "DATA" + String.valueOf(i - 3), c, i);
+				addLine(strings, "DATA" + (i - 3), c, i);
 			}
 			putline(strings,"");
 		}
@@ -1713,13 +1697,15 @@ public class ContactCreator {
 				CONTACT_SELECTION,
 				null,
 				null);
-			if (b.getCount() == 0) { return null; }
+			if (b == null) { return null; }
+			if (b.getCount() == 0) { b.close(); return null; }
 			strings = new ArrayList<>();
 			while (b.moveToNext())
 			{
-				long contactId = b.getLong(0);
-				Cursor c;
-				c = me.getContentResolver()
+				//FIXME this looks wrong
+				// if we're checking a single contact, we should
+				// be selecting for the contact ID
+				Cursor c = me.getContentResolver()
 					  .query(RawContactsEntity.CONTENT_URI,
 							 new String[] {
 								 RawContactsEntity._ID,
@@ -1742,6 +1728,7 @@ public class ContactCreator {
 								 RawContactsEntity.DATA14,
 								 RawContactsEntity.DATA15
 							 }, null, null, null);
+				if (c == null) { continue; }
 				strings.ensureCapacity(c.getCount() * 18);
 				while (c.moveToNext())
 				{
@@ -1753,14 +1740,17 @@ public class ContactCreator {
 									  ContactsContract.RawContacts.ACCOUNT_TYPE
 								  }, ContactsContract.RawContacts._ID
 									 + " IS "
-									 + String.valueOf(c.getLong(0)),
+									 + c.getLong(0),
 								  null, null);
-					if (c1.moveToFirst())
-					{
-						dumpSingle(strings, c, c1);
+					if (c1 != null) {
+						if (c1.moveToFirst()) {
+							dumpSingle(strings, c, c1);
+						}
+						c1.close();
 					}
 				}
 			}
+			b.close();
 			return strings;
 		}
 		return null;
@@ -1807,12 +1797,12 @@ public class ContactCreator {
 								  ContactsContract.RawContacts.ACCOUNT_NAME,
 								  ContactsContract.RawContacts.ACCOUNT_TYPE
 							  }, ContactsContract.RawContacts._ID
-								 + " IS "
-								 + String.valueOf(c.getLong(0)),
+								 + " IS " + c.getLong(0),
 							  null, null);
-				if (c1.moveToFirst())
-				{
-					dumpSingle(strings, c, c1);
+				if (c1 != null) {
+					if (c1.moveToFirst()) {
+						dumpSingle(strings, c, c1);
+					}
 				}
 			}
 			return strings;
@@ -1852,21 +1842,23 @@ public class ContactCreator {
 						 },
 						 null,
 						 null, null);
-			while (c.moveToNext())
-			{
-				Cursor c1;
-				c1 = me.getContentResolver()
-					   .query(ContactsContract.RawContacts.CONTENT_URI,
-							  new String[] {
-								  ContactsContract.RawContacts.ACCOUNT_NAME,
-								  ContactsContract.RawContacts.ACCOUNT_TYPE
-							  }, ContactsContract.RawContacts._ID
-								 + " IS "
-								 + String.valueOf(c.getLong(0)),
-							  null, null);
-				if (c1.moveToFirst())
-				{
-					dumpSingle(null, c, c1);
+			if (c != null) {
+				while (c.moveToNext()) {
+					Cursor c1;
+					c1 = me.getContentResolver()
+						.query(ContactsContract.RawContacts.CONTENT_URI,
+							new String[]{
+								ContactsContract.RawContacts.ACCOUNT_NAME,
+								ContactsContract.RawContacts.ACCOUNT_TYPE
+							}, ContactsContract.RawContacts._ID
+								+ " IS " + c.getLong(0),
+							null, null);
+					if (c1 != null) {
+						if (c1.moveToFirst()) {
+							dumpSingle(null, c, c1);
+						}
+						c1.close();
+					}
 				}
 			}
 		}
@@ -1901,52 +1893,61 @@ public class ContactCreator {
 					CONTACT_SELECTION,
 					null,
 					null);
-				while (c.moveToNext()) {
-					String PHONE_SELECTION =
-						ContactsContract.Data.CONTACT_ID
-							+ " = "
-							+ String.valueOf(c.getLong(0))
-							+ " AND "
-							+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
-							+ ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
-							+ "' AND "
-							+ ContactsContract.CommonDataKinds.Phone.TYPE
-							+ " IS "
-							+ ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
-					Cursor c1 = cr.query(
-						ContactsContract.RawContactsEntity.CONTENT_URI,
-						DATA1_PROJECTION,
-						PHONE_SELECTION,
-						null,
-						null);
-					if (c1.moveToFirst()) {
-						result[0] = c1.getString(0);
-						break;
+				if (c != null) {
+					while (c.moveToNext()) {
+						String PHONE_SELECTION =
+							ContactsContract.Data.CONTACT_ID
+								+ " = " + c.getLong(0)
+								+ " AND "
+								+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
+								+ ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+								+ "' AND "
+								+ ContactsContract.CommonDataKinds.Phone.TYPE
+								+ " IS "
+								+ ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
+						Cursor c1 = cr.query(
+							ContactsContract.RawContactsEntity.CONTENT_URI,
+							DATA1_PROJECTION,
+							PHONE_SELECTION,
+							null,
+							null);
+						if (c1 != null) {
+							if (c1.moveToFirst()) {
+								result[1] = c1.getString(0);
+								c1.close();
+								break;
+							}
+							c1.close();
+						}
 					}
-				}
-				c.moveToPosition(-1);
-				while (c.moveToNext()) {
-					String EMAIL_SELECTION =
-						ContactsContract.Data.CONTACT_ID
-							+ " = "
-							+ String.valueOf(c.getLong(0))
-							+ " AND "
-							+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
-							+ ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-							+ "'";
-					Cursor c1 = cr.query(
-						ContactsContract.RawContactsEntity.CONTENT_URI,
-						DATA1_PROJECTION,
-						EMAIL_SELECTION,
-						null,
-						null);
-					if (c1.moveToFirst()) {
-						result[1] = c1.getString(0);
-						break;
+					c.moveToPosition(-1);
+					while (c.moveToNext()) {
+						String EMAIL_SELECTION =
+							ContactsContract.Data.CONTACT_ID
+								+ " = " + c.getLong(0)
+								+ " AND "
+								+ ContactsContract.RawContactsEntity.MIMETYPE + " IS '"
+								+ ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+								+ "'";
+						Cursor c1 = cr.query(
+							ContactsContract.RawContactsEntity.CONTENT_URI,
+							DATA1_PROJECTION,
+							EMAIL_SELECTION,
+							null,
+							null);
+						if (c1 != null) {
+							if (c1.moveToFirst()) {
+								result[1] = c1.getString(0);
+								c1.close();
+								break;
+							}
+							c1.close();
+						}
 					}
+					c.close();
 				}
 			}
-		} catch (SecurityException e) {}
+		} catch (SecurityException ignore) {}
 		return result;
 	}
 }

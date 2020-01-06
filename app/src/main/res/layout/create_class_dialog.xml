@@ -27,16 +27,16 @@
             android:layout_height="wrap_content"
             android:text="@string/create_it"
             android:id="@+id/create_button"
-            android:gravity="left"
-            android:layout_gravity="left"/>
+            android:gravity="start"
+            android:layout_gravity="start"/>
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cancel_create"
             android:id="@+id/cancel_button"
-            android:gravity="right"
-            android:layout_gravity="right"/>
+            android:gravity="end"
+            android:layout_gravity="end"/>
     </LinearLayout>
 
 </LinearLayout>

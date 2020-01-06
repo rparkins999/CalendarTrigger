@@ -6,6 +6,7 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -41,8 +42,6 @@ import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
  * Created by rparkins on 29/08/16.
  */
 public class SettingsActivity extends Activity {
-    private CheckBox nextLocation;
-    private CheckBox logCycling;
     public SettingsActivity settingsActivity;
     private Button fakecontact;
     private ListView log;
@@ -69,15 +68,14 @@ public class SettingsActivity extends Activity {
             ArrayAdapter<String> adapter
                     = new ArrayAdapter<>(
                     this, R.layout.activity_text_viewer);
-            CalendarDumper cd = new CalendarDumper(this, adapter);
+            new CalendarDumper(this, adapter);
         }
     }
 
     void doLogCalendar() {
         if (BuildConfig.DEBUG)
         {
-            CalendarDumper cd =
-                    new CalendarDumper(this, null);
+            new CalendarDumper(this, null);
         }
     }
 
@@ -144,7 +142,7 @@ public class SettingsActivity extends Activity {
         {
             log = new ListView(this);
             ArrayAdapter<String> adapter
-                = new ArrayAdapter<String> (
+                = new ArrayAdapter<> (
                         this, R.layout.activity_text_viewer);
             try
             {
@@ -159,7 +157,7 @@ public class SettingsActivity extends Activity {
                 }
                 log.setAdapter(adapter);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException ignore)
             {
                 Toast.makeText(this, R.string.nologfile,
                                Toast.LENGTH_LONG).show();
@@ -180,6 +178,50 @@ public class SettingsActivity extends Activity {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    private void debugOptions() {
+        if (BuildConfig.DEBUG)
+        {
+            final SettingsActivity me = this;
+            LinearLayout ll =
+                (LinearLayout)findViewById(R.id.edit_activity_container);
+            if (fakecontact == null)
+            {
+                fakecontact = new Button(this);
+                fakecontact.setText("Fake Contact");
+                fakecontact.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent it = new Intent(me, FakeContact.class);
+                        startActivity(it);
+                    }
+                });
+                ll.addView(fakecontact);
+            }
+            LinearLayout lll = new LinearLayout(this);
+            lll.setOrientation(LinearLayout.HORIZONTAL);
+            Button b = new Button(this);
+            b.setText("dump calendar");
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doDumpCalendar();
+                }
+            });
+            lll.addView(b);
+            b = new Button(this);
+            b.setText("dump calendar to log");
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doLogCalendar();
+                }
+            });
+            lll.addView(b);
+            ll.addView(lll);
+        }
+    }
+
     protected void reResume() {
         final SettingsActivity me = this;
         TextView tv = (TextView)findViewById(R.id.versiontext);
@@ -188,15 +230,10 @@ public class SettingsActivity extends Activity {
         {
             PackageInfo pi = pm.getPackageInfo(
                 "uk.co.yahoo.p1rpp.calendartrigger", 0);
-            tv.setText("CalendarTrigger "
-                           .concat(pi.versionName)
-                           .concat(" built ")
-                           .concat(getString(R.string.build_time))
-                      );
+            tv.setText(getString(R.string.buildstamp, pi.versionName,
+                getString(R.string.build_time)));
         }
-        catch (PackageManager.NameNotFoundException e)
-        {
-        }
+        catch (PackageManager.NameNotFoundException ignore) { }
         tv = (TextView)findViewById(R.id.lastcalltext);
         DateFormat df = DateFormat.getDateTimeInstance();
         long t = PrefsManager.getLastInvocationTime(this);
@@ -257,7 +294,6 @@ public class SettingsActivity extends Activity {
             }
         });
         tv = (TextView)findViewById(R.id.locationtext);
-        mode = PrefsManager.getCurrentMode(this);
         tv.setText(getString(PrefsManager.getLocationState(this) ?
                              R.string.yeslocation :
                              R.string.nolocation));
@@ -352,6 +388,7 @@ public class SettingsActivity extends Activity {
         {
             b.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
+                    //noinspection ResultOfMethodCallIgnored
                     (new File(DataStore.LogFileName())).delete();
                     Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
                          .show();
@@ -417,7 +454,7 @@ public class SettingsActivity extends Activity {
                 }
             });
         }
-        logCycling = (CheckBox)findViewById(R.id.logcyclebox);
+        CheckBox logCycling = (CheckBox) findViewById(R.id.logcyclebox);
         logCycling.setText(R.string.logcyclinglabel);
         if (canRead && canStore)
         {
@@ -445,7 +482,7 @@ public class SettingsActivity extends Activity {
                 }
                 else {
                     state = false;
-                    cb.setChecked(state);
+                    cb.setChecked(false);
                 }
                 PrefsManager.setLogCycleMode(me, state);
             }
@@ -473,7 +510,7 @@ public class SettingsActivity extends Activity {
             }
         });
         logCycling.setChecked(PrefsManager.getLogcycleMode(this));
-        nextLocation = (CheckBox)findViewById(R.id.nextlocationbox);
+        CheckBox nextLocation = (CheckBox) findViewById(R.id.nextlocationbox);
         nextLocation.setText(R.string.nextLocationLabel);
         nextLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -622,45 +659,7 @@ public class SettingsActivity extends Activity {
         tv = (TextView)findViewById(R.id.savefiletext);
         s = DataStore.SettingsFileName();
         tv.setText(getString(R.string.settingsfile, s));
-        if (BuildConfig.DEBUG)
-        {
-            LinearLayout ll =
-                    (LinearLayout)findViewById(R.id.edit_activity_container);
-            if (fakecontact == null)
-            {
-                fakecontact = new Button(this);
-                fakecontact.setText("Fake Contact");
-                fakecontact.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent it = new Intent(me, FakeContact.class);
-                        startActivity(it);
-                    }
-                });
-                ll.addView(fakecontact);
-            }
-            LinearLayout lll = new LinearLayout(this);
-            lll.setOrientation(LinearLayout.HORIZONTAL);
-            b = new Button(this);
-            b.setText("dump calendar");
-            b.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    doDumpCalendar();
-                }
-            });
-            lll.addView(b);
-            b = new Button(this);
-            b.setText("dump calendar to log");
-            b.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    doLogCalendar();
-                }
-            });
-            lll.addView(b);
-            ll.addView(lll);
-        }
+        debugOptions();
     }
 
     @Override
@@ -668,7 +667,6 @@ public class SettingsActivity extends Activity {
         super.onResume();
         if (log == null)
         {
-            final SettingsActivity me = this;
             reResume();
         }
     }

@@ -81,7 +81,7 @@ public class CreateClassDialog extends DialogFragment {
             }
         });
         // Watch for button clicks.
-        ((Button)v.findViewById(R.id.cancel_button))
+        v.findViewById(R.id.cancel_button)
             .setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     dismiss();

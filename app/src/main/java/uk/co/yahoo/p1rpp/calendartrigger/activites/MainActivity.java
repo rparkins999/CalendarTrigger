@@ -4,6 +4,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentValues;
@@ -89,8 +90,8 @@ public class MainActivity extends Activity {
 			&& (apiVersion >= android.os.Build.VERSION_CODES.M))
 		{
 			PowerManager
-				pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-			if (!pm.isIgnoringBatteryOptimizations(
+				pmg = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			if ((pmg != null) && !pmg.isIgnoringBatteryOptimizations(
 				    "uk.co.yahoo.p1rpp.calendartrigger"))
 			{
 				Intent intent = new Intent();
@@ -103,6 +104,7 @@ public class MainActivity extends Activity {
 		}
 		PackageManager pm = getPackageManager();
 		String was = PrefsManager.getPrefVersionCode(this);
+		//noinspection CatchMayIgnoreException
 		try
 		{
 			PackageInfo pi = pm.getPackageInfo(
@@ -132,10 +134,9 @@ public class MainActivity extends Activity {
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
 		super.onPrepareOptionsMenu(menu);
-		MenuItem mi;
-		mi = menu.add(Menu.NONE, -3, Menu.NONE, R.string.floating);
-		mi = menu.add(Menu.NONE, -2, Menu.NONE, R.string.settings);
-		mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
+		menu.add(Menu.NONE, -3, Menu.NONE, R.string.floating);
+		menu.add(Menu.NONE, -2, Menu.NONE, R.string.settings);
+		MenuItem mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
 		mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		int nc = PrefsManager.getNumClasses(this);
 		for (int i = 0; i < nc; ++i)
@@ -157,6 +158,7 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		invalidateOptionsMenu();
+		@SuppressLint("InflateParams")
 		View v = getLayoutInflater().inflate(R.layout.dynamicscrollview, null);
 		setContentView(v);
 		int classNum = PrefsManager.getLastImmediate(mThis);
@@ -178,7 +180,7 @@ public class MainActivity extends Activity {
 					cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
 					cv.put("ACTIVE_NEXT_ALARM", now + CalendarProvider.FIVE_MINUTES);
 					cv.put("ACTIVE_STEPS_TARGET", 0);
-					SQLtable table = new SQLtable(mThis, "ACTIVEEVENTS");
+					SQLtable table = new SQLtable(mThis, "ACTIVEINSTANCES");
 					table.insert(cv);
 					table.close();
 					MuteService.startIfNecessary(mThis, "Immediate Event");

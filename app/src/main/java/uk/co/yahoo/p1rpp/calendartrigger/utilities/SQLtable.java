@@ -24,6 +24,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,13 +36,15 @@ import android.widget.Toast;
 import java.text.DateFormat;
 import java.util.ArrayList;
 
+import org.jetbrains.annotations.Contract;
+
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
-public class SQLtable extends Object {
+public class SQLtable {
     private Context m_context;
     private String m_tableName;
     private String m_query;
-    private String m_args[];
+    private String[] m_args;
     private SQLiteDatabase m_database;
     private SQLtable m_parent;
     private ArrayList<SQLtable> m_children;
@@ -52,95 +55,89 @@ public class SQLtable extends Object {
     private Cursor m_cursor;
     private int m_position;
 
-    // Report a fatal error.
-    // We send a message to the log file (if logging is enabled).
-    // If this thread is the UI thread, we display a Toast:
-    // otherwise we show a notification.
-    // Then we throw an Error exception which will cause Android to
-    // terminate the thread and display a (not so helpful) message.
-    private void fatal(String small, String big) {
-        new MyLog(m_context, big);
-        if (   (Activity.class.isInstance(m_context))
-            && ((Activity)m_context).hasWindowFocus())
-        {
-            Toast.makeText(m_context, big, Toast.LENGTH_LONG).show();
-        }
-        else
-        {
-            new Notifier(m_context, small, big);
-        }
-        throw new Error(big);
-    }
-
     // Here we describe all the tables in our database
 
     // All table names are concatenated words so that they shouldn't be reserved words
     // All column names contain "_" so that they shouldn't be reserved words
     private String getCreator(String s) {
-        if (s.equals("VACUUMDATA")) {
-            return "CREATE TABLE VACUUMDATA (" +
-                // This counts the number of writes to the database.
-                // When it reaches 1000, we try a VACUUM.
-                // If it succeeds, we reset the count to 1.
-                "VACUUM_COUNT INTEGER)";
-        }
-        else if (s.equals("FLOATINGEVENTS")) {
-            // This table keeps track of floating time events.
-            // It is used to adjust the UTC times when the time zone changes.
-            return "CREATE TABLE FLOATINGEVENTS ("
-                // This is the _ID of a floating time event.
-                // Instance_id's are unique, so we don't need the calendar id.
-                + " INSTANCE_ID INTEGER,"
-                // This is the start time of the event in wall clock time.
-                // It is used to recalculate the UTC start time (DTSTART)
-                // from the time zone offset when it changes.
-                + " START_WALLTIME_MILLIS INTEGER,"
-                // This is the end time of the event in wall clock time.,
-                // It is used to recalculate DTEND for non-recurring events.
-                // For recurring events Android uses DURATION instead.
-                + " END_WALLTIME_MILLIS INTEGER )";
-        }
-        else if (s.equals("ACTIVEINSTANCES")) {
-            // This table keeps track of active event instances.
-            return "CREATE TABLE ACTIVEINSTANCES ("
-                // This is the class name of the event.
-                // An instance has a separate entry in this table
-                // for each class in which it is active.
-                // This is because the start or end time offset of
-                // events can be different for different classes.
-                // If the class no longer exists, we delete the record.
-                + " ACTIVE_CLASS_NAME TEXT,"
-                // This is 1 if this is an immediate event, and 0 otherwise.
-                // If it is 1, ACTIVE_INSTANCE_ID is meaningless.
-                + " ACTIVE_IMMEDIATE INTEGER,"
-                // This is the _ID of a non-immediate active instance.
-                // If the instance no longer exists, we try to do the end actions.
-                // Some end actions require information from the event and
-                // so cannot be done if the instance has been deleted.
-                + " ACTIVE_INSTANCE_ID INTEGER,"
-                // This is the state of an active instance:
-                // the states are defined below.
-                + " ACTIVE_STATE INTEGER,"
-                // This is the time when we next need to wake up for this instance.
-                + " ACTIVE_NEXT_ALARM INTEGER,"
-                // This is the target step count for this event,
-                // or zero if it has no step count wait active.
-                + " ACTIVE_STEPS_TARGET"
-                + " )";
+        switch (s) {
+            case "VACUUMDATA":
+                return "CREATE TABLE VACUUMDATA (" +
+                    // This counts the number of writes to the database.
+                    // When it reaches 1000, we try a VACUUM.
+                    // If it succeeds, we reset the count to 1.
+                    "VACUUM_COUNT INTEGER)";
+            case "FLOATINGEVENTS":
+                // This table keeps track of floating time events.
+                // It is used to adjust the UTC times when the time zone changes.
+                return "CREATE TABLE FLOATINGEVENTS ("
+                    // This is the _ID of a floating time event.
+                    // Event_id's are unique, so we don't need the calendar id.
+                    + " EVENT_ID INTEGER,"
+                    // This is the start time of the event in wall clock time.
+                    // It is used to recalculate the UTC start time (DTSTART)
+                    // from the time zone offset when it changes.
+                    + " START_WALLTIME_MILLIS INTEGER,"
+                    // This is the end time of the event in wall clock time.,
+                    // It is used to recalculate DTEND for non-recurring events.
+                    // For recurring events Android uses DURATION instead.
+                    + " END_WALLTIME_MILLIS INTEGER )";
+            case "ACTIVEINSTANCES":
+                // This table keeps track of active event instances.
+                return "CREATE TABLE ACTIVEINSTANCES ("
+                    // This is the class name of the event.
+                    // An instance has a separate entry in this table
+                    // for each class in which it is active.
+                    // This is because the start or end time offset of
+                    // events can be different for different classes.
+                    // If the class no longer exists, we delete the record.
+                    + " ACTIVE_CLASS_NAME TEXT,"
+                    // This is the _ID of a non-immediate active instance.
+                    // If the instance no longer exists, we try to do the end actions.
+                    + " ACTIVE_INSTANCE_ID INTEGER,"
+                    // This is the event name.
+                    // It is "immediate event" for an immediate event
+                    // or "deleted event" for a deleted instance
+                    // We need it here because we can't search the instance table for an
+                    // instance ID.
+                    + " ACTIVE_EVENT_NAME STRING,"
+                    // This is the event location. It is "" for an immediate event.
+                    // We need it here because we can't search the instance table for an
+                    // instance ID.
+                    + " ACTIVE_LOCATION STRING,"
+                    // This is the event description. It is "" for an immediate event.
+                    // We need it here because we can't search the instance table for an
+                    // instance ID.
+                    + " ACTIVE_DESCRIPTION STRING,"
+                    // This is the state of an active instance:
+                    // the states are defined below.
+                    + " ACTIVE_STATE INTEGER,"
+                    // This is another state variable which records immeditae or deleted
+                    // events: possible values are defined below.
+                    + " ACTIVE_LIVE INTEGER,"
+                    // This is the time when we next need to wake up for this instance.
+                    + " ACTIVE_NEXT_ALARM INTEGER,"
+                    // This is the target step count for this event,
+                    // or zero if it has no step count wait active.
+                    + " ACTIVE_STEPS_TARGET"
+                    + " )";
 
         }
         // If this occurs. it's a programming error
         String big = "getCreator(" + s + m_context.getString(R.string.unknowntable);
-        fatal(m_context.getString(R.string.badtable), big);
+        new MyLog(m_context, true, m_context.getString(R.string.badtable), big);
         return null; // unreachable
     }
 
     public static final int ACTIVE_CLASS_NAME = 0;
-    public static final int ACTIVE_IMMEDIATE = 1;
-    public static final int ACTIVE_INSTANCE_ID = 2;
-    public static final int ACTIVE_STATE = 3;
-    public static final int ACTIVE_NEXT_ALARM = 4;
-    public static final int ACTIVE_STEPS_TARGET = 5;
+    public static final int ACTIVE_INSTANCE_ID = 1;
+    public static final int ACTIVE_EVENT_NAME = 2;
+    public static final int ACTIVE_LOCATION = 3;
+    public static final int ACTIVE_DESCRIPTION = 4;
+    public static final int ACTIVE_STATE = 5;
+    public static final int ACTIVE_LIVE = 6;
+    public static final int ACTIVE_NEXT_ALARM = 7;
+    public static final int ACTIVE_STEPS_TARGET = 8;
 
     // Possible values for ACTIVE_STATE:-
     // This state is only here for completeness.
@@ -175,17 +172,36 @@ public class SQLtable extends Object {
     // The next state would be NOT_ACTIVE, but the record gets deleted
     // because we don't need to keep track of this event for this class any more.
 
-    public String getActiveStateName(int n) {
+    private String getActiveStateName(int n) {
         switch (n) {
             case NOT_ACTIVE: return "NOT_ACTIVE";
             case ACTIVE_START_WAITING: return "ACTIVE_START_WAITING";
             case ACTIVE_STARTING: return "ACTIVE_STARTING";
             case ACTIVE_START_SENDING: return "ACTIVE_START_SENDING";
             case ACTIVE_STARTED: return "ACTIVE_STARTED";
-            case ACTIVE_END_WAITING: return "ACTIVE_START_SENDING";
+            case ACTIVE_END_WAITING: return "ACTIVE_END_WAITING";
             case ACTIVE_ENDING: return "ACTIVE_ENDING";
             case ACTIVE_END_SENDING: return "ACTIVE_END_SENDING";
-            default: return "Unknown state" + n;
+            default: return "Unknown state " + n;
+        }
+    }
+
+    // Possible values for ACTIVE_LIVE:
+    // Normal instance, not immediate or deleted.
+    public static final int ACTIVE_LIVE_NORMAL = 0;
+    // Deleted instance. All normal instances are set to deleted at the beginning
+    // of CalendarProvider.fillActive. Those that still exist will be set back to
+    // NORMAL.
+    public static final int ACTIVE_DELETED = 1;
+    // Immediate event: this has no instance ID or name or location or description.
+    public static final int ACTIVE_IMMEDIATE = 2;
+
+    private String getActiveLiveName(int n) {
+        switch (n) {
+            case ACTIVE_LIVE_NORMAL: return "ACTIVE_LIVE_NORMAL";
+            case ACTIVE_DELETED: return "ACTIVE_DELETED";
+            case ACTIVE_IMMEDIATE: return "ACTIVE_IMMEDIATE";
+           default: return "Unknown live value " + n;
         }
     }
 
@@ -204,69 +220,87 @@ public class SQLtable extends Object {
         return m_cursor;
     }
 
-    public String rowVacToString() {
+    private String rowVacToString() {
         return "(" + cursor().getString(0) + ")";
     }
 
-    public String rowFloatToString() {
-        StringBuilder builder =
-            new StringBuilder("(event ID " + cursor().getString(0));
-        builder.append(", ");
-        DateFormat df = DateFormat.getDateTimeInstance();
+    private String rowFloatToString() {
         try {
-            builder.append(df.format(getUnsignedLong(1)));
-        } catch (NumberFormatException e) {
-            builder.append("?);");
-            builder.append(cursor().getString(1));
-            builder.append("?);");
+            StringBuilder builder =
+                new StringBuilder("(event ID " + getString("EVENT_ID"));
+            builder.append(", ");
+            DateFormat df = DateFormat.getDateTimeInstance();
+            try {
+                builder.append(df.format(
+                    getUnsignedLong("START_WALLTIME_MILLIS")));
+            } catch (NumberFormatException ignore) {
+                builder.append("?);");
+                builder.append(getString("START_WALLTIME_MILLIS"));
+                builder.append("?);");
+            }
+            builder.append(" to ");
+            try {
+                builder.append(df.format(getUnsignedLong(
+                    "END_WALLTIME_MILLIS")));
+            } catch (NumberFormatException ignore) {
+                builder.append("?);");
+                builder.append(getString("END_WALLTIME_MILLIS"));
+                builder.append("?);");
+            }
+            builder.append(")");
+            return builder.toString();
+        } catch (NoColumnException ignore) {
+            // This should never happen.
+            return "";
         }
-        builder.append(" to ");
-        try {
-            builder.append(df.format(getUnsignedLong(2)));
-        } catch (NumberFormatException e) {
-            builder.append("?);");
-            builder.append(cursor().getString(2));
-            builder.append("?);");
-        }
-        builder.append(")");
-        return builder.toString();
     }
 
-    public String rowActiveToString() {
-        StringBuilder builder =
-            new StringBuilder("(");
-        builder.append(cursor().getString(ACTIVE_CLASS_NAME));
-        builder.append(", ");
-        if (cursor().getString(ACTIVE_IMMEDIATE) != "0") {
-            builder.append(m_context.getString(R.string.immediate));
-        }
-        else
-        {
-            builder.append("instance ID ");
-
-            builder.append(cursor().getString(ACTIVE_INSTANCE_ID));
-        }
-        builder.append(", ");
+    private String rowActiveToString() {
         try {
-            int n = (int)getUnsignedLong(ACTIVE_STATE);
-            builder.append(m_context.getString(R.string.state));
-            builder.append(getActiveStateName(n));
-        } catch (NumberFormatException e) {
-            builder.append(m_context.getString(R.string.badstate));
-            builder.append(cursor().getString(ACTIVE_STATE));
+            StringBuilder builder =
+                new StringBuilder("(");
+            builder.append(getString("ACTIVE_CLASS_NAME"));
+            builder.append(", ID ");
+            builder.append(getString("ACTIVE_INSTANCE_ID"));
+            builder.append(", ");
+            builder.append(getString("ACTIVE_EVENT_NAME"));
+            builder.append(", ");
+            builder.append(getString("ACTIVE_LOCATION"));
+            builder.append(", ");
+            builder.append(getString("ACTIVE_DESCRIPTION"));
+            try {
+                int n = (int)getUnsignedLong("ACTIVE_STATE");
+                builder.append(m_context.getString(R.string.state));
+                builder.append(getActiveStateName(n));
+            } catch (NumberFormatException ignore) {
+                builder.append(m_context.getString(R.string.badstate));
+                builder.append(getString("ACTIVE_STATE"));
+            }
+            builder.append(", ");
+            try {
+                int n = (int)getUnsignedLong("ACTIVE_LIVE");
+                builder.append(getActiveLiveName(n));
+            } catch (NumberFormatException ignore) {
+                builder.append(m_context.getString(R.string.badlive));
+                builder.append(getString("ACTIVE_LIVE"));
+            }
+            builder.append(m_context.getString(R.string.alarm));
+            try {
+                DateFormat df = DateFormat.getDateTimeInstance();
+                builder.append(df.format(getUnsignedLong("ACTIVE_NEXT_ALARM")));
+            } catch (NumberFormatException ignore) {
+                builder.append("?");
+                builder.append(getString("ACTIVE_NEXT_ALARM"));
+                builder.append("?");
+            }
+            builder.append(m_context.getString(R.string.targetsteps));
+            builder.append(getString("ACTIVE_STEPS_TARGET"));
+            builder.append(")");
+            return builder.toString();
+        } catch (NoColumnException ignore) {
+            // This should never happen.
+            return "";
         }
-        builder.append(", ");
-        builder.append(m_context.getString(R.string.alarm));
-        try {
-            DateFormat df = DateFormat.getDateTimeInstance();
-            builder.append(df.format(getUnsignedLong(ACTIVE_NEXT_ALARM)));
-        } catch (NumberFormatException e) {
-            builder.append("?");
-            builder.append(cursor().getString(ACTIVE_NEXT_ALARM));
-            builder.append("?");
-        }
-        builder.append(")");
-        return builder.toString();
     }
 
     // Return a string describing the row pointed to by our Cursor.
@@ -276,25 +310,25 @@ public class SQLtable extends Object {
     // elsewhere.
     // The versions above can be used if we know which table it is from.
     public String rowToString() {
-        if (m_tableName.equals("VACUUMDATA")) {
-            return rowVacToString();
+        switch (m_tableName) {
+            case "VACUUMDATA":
+                return rowVacToString();
+            case "FLOATINGEVENTS":
+                return rowFloatToString();
+            case "ACTIVEINSTANCES":
+                return rowActiveToString();
+            default:
+                // If this occurs. it's a programming error
+                String small = m_context.getString(R.string.badcursor);
+                String big = m_context.getString(R.string.badrowtocolumn);
+                new MyLog(m_context, true, small, big);
+                return null; // unreachable
         }
-        else if (m_tableName.equals("FLOATINGEVENTS")) {
-            return rowFloatToString();
-        }
-        else if (m_tableName.equals("ACTIVEINSTANCES")) {
-            return rowActiveToString();
-        }
-        // If this occurs. it's a programming error
-        String small = m_context.getString(R.string.badcursor);
-        String big = m_context.getString(R.string.badrowtocolumn);
-        fatal(small, big);
-        return null; // unreachable
     }
 
     // This normally returns, having patched up the database if necessary
     // so that the caller can try again if it wants to.
-    // Unrecoverable problems result in a call to fatal() above.
+    // Unrecoverable problems result in a fatal error.
     // We assume here that our column names don't contain spaces
     private void handleException (int i, SQLiteException e, String tableName) {
         String s = e.getMessage();
@@ -313,12 +347,14 @@ public class SQLtable extends Object {
             String columnName = s.split(" ")[3];
             new MyLog(m_context,
                 m_context.getString(R.string.creatingnew) + tableName,
-                m_context.getString(R.string.column) + columnName +
-                    m_context.getString(R.string.dropping) + tableName + ".");
+                m_context.getString(R.string.bigcreatingnew,
+                    columnName, tableName));
             try {
                 m_database.execSQL("DROP TABLE " + tableName);
                 m_database.execSQL(getCreator(tableName));
-                return ;
+                m_cursor = null;
+                m_position = -1;
+                return;
             } catch (SQLiteException ee) {
                 e = ee;
             }
@@ -334,7 +370,7 @@ public class SQLtable extends Object {
                 if (i > 0) {
                     try {
                         Thread.sleep(100);
-                    } catch (InterruptedException ee) {}
+                    } catch (InterruptedException ignore) { return; }
                     return;
                 }
             }
@@ -344,7 +380,7 @@ public class SQLtable extends Object {
         String big = DataStore.getDatabaseFile(m_context) +
             m_context.getString(R.string.unrecoverable)
             + e.getCause().toString() + e.getLocalizedMessage();
-        fatal(small, big);
+        new MyLog(m_context, true, small, big);
     }
 
     // Open the (fixed) database
@@ -355,24 +391,25 @@ public class SQLtable extends Object {
                 try {
                     m_database = SQLiteDatabase.openOrCreateDatabase(
                         fileName, null, null);
+                    m_parent = null;
+                    m_children = new ArrayList<>();
+                    return;
                 } catch (SQLiteException e) {
                     handleException(i, e, m_tableName);
                 }
             }
         }
-        m_parent = null;
-        m_children = new ArrayList<SQLtable>();
     }
 
-    private void makeQuery(String tableName, String where, String order) {
+    private void makeQuery(String where, String order) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT * FROM " + m_tableName);
+        builder.append("SELECT * FROM ").append(m_tableName);
         if (where != null) {
             String w = " WHERE " + where;
             builder.append(w);
         }
         if (order != null) {
-            builder.append(" ORDER BY " + order);
+            builder.append(" ORDER BY ").append(order);
         }
         m_query = builder.toString();
     }
@@ -381,7 +418,7 @@ public class SQLtable extends Object {
     // all cursors on the same table are invalid, so we close them.
     // Any cursor which is referenced later will be recreated.
     private void invalidate(SQLtable top, String tableName) {
-        if (top.m_tableName == tableName) {
+        if (top.m_tableName.equals(tableName)) {
             if (top.m_cursor != null) {
                 top.m_cursor.close();
                 top.m_cursor = null;
@@ -413,10 +450,10 @@ public class SQLtable extends Object {
     // and an optional ORDER BY clause excluding the ORDER BY.
     // Unused optional items are nulls.
     public SQLtable(Context context, String tableName,
-                    String where, String args[], String order) {
+                    String where, String[] args, String order) {
         m_context = context;
         m_tableName = tableName;
-        makeQuery(tableName, where, order);
+        makeQuery(where, order);
         m_args = args;
         open();
         m_cursor = null;
@@ -427,7 +464,7 @@ public class SQLtable extends Object {
                     String where, ArrayList<String> args, String order) {
         m_context = context;
         m_tableName = tableName;
-        makeQuery(tableName, where, order);
+        makeQuery(where, order);
         m_args = args.toArray(m_args);
         open();
         m_cursor = null;
@@ -443,6 +480,7 @@ public class SQLtable extends Object {
         m_database = m_parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
+        m_children = new ArrayList<>();
         m_cursor = null;
         m_position = -1;
     }
@@ -455,11 +493,12 @@ public class SQLtable extends Object {
                     String where, String[] args, String order) {
         m_context = parent.m_context;
         m_tableName = tableName;
-        makeQuery(tableName, where, order);
+        makeQuery(where, order);
         m_args = args;
         m_database = parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
+        m_children = new ArrayList<>();
         m_cursor = null;
         m_position = -1;
     }
@@ -472,11 +511,12 @@ public class SQLtable extends Object {
                     String where, ArrayList<String> args, String order) {
         m_context = parent.m_context;
         m_tableName = tableName;
-        makeQuery(tableName, where, order);
+        makeQuery(where, order);
         m_args = args.toArray(m_args);
         m_database = parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
+        m_children = new ArrayList<>();
         m_cursor = null;
         m_position = -1;
     }
@@ -494,41 +534,66 @@ public class SQLtable extends Object {
         return result;
     }
 
-    // IllegalStateException is incorrectly thrown if the columnIndex
-    // is out of range. This is a known Android bug.
-    // It can only be a programming error so I report a fatal error if it
-    // happens.
-    public String getString(int columnIndex) {
-        try {
-            return cursor().getString(columnIndex);
-        } catch (IllegalStateException e) {
-            String small = m_context.getString(
-                R.string.badcolnum, String.valueOf(columnIndex));
-            String big = m_context.getString(R.string.getstring, m_tableName);
-            fatal(small, big);
-        }
-        return null; //unreachable
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean moveToPosition(int position) {
+        boolean result = cursor().moveToPosition(position);
+        if (result) { m_position = position; }
+        return result;
     }
 
-    public long getUnsignedLong(int columnIndex)
-        throws NumberFormatException
-    {
-        try {
-            String s = getString(columnIndex);
-            if ((s != null) && s.matches("^[0-9]+$")) {
-                return Long.parseLong(s);
+    private String getString(String columnName, String caller)
+    throws NoColumnException {
+        for (int i = 10; ; --i) {
+            int columnIndex = cursor().getColumnIndex(columnName);
+            if (columnIndex < 0) {
+                // The named column does not exist
+                new MyLog(m_context,
+                    m_context.getString(R.string.creatingnew) + m_tableName,
+                    m_context.getString(R.string.bigcreatingnew,
+                        columnName, m_tableName));
+                try {
+                    m_database.execSQL("DROP TABLE " + m_tableName);
+                    m_database.execSQL(getCreator(m_tableName));
+                } catch (SQLiteException e) {
+                    handleException(i, e, m_tableName);
+                }
+                m_cursor = null;
+                m_position = -1;
+                // Force our caller to break out of its loop.
+                throw (new NoColumnException());
+            } else {
+                try {
+                    //FIXME what happens if cursor is before first?
+                    return cursor().getString(columnIndex);
+                } catch (IllegalStateException ignore) {
+                    // This is definitely a programming error: we
+                    // asked for a column which isn't in the recreated table.
+                    String small = m_context.getString(
+                        R.string.badcolname);
+                    String big = small + m_context.getString(
+                        R.string.getstring, caller, columnName, m_tableName);
+                    new MyLog(m_context, true, small, big);
+                }
             }
-            else
-            {
-                throw(new NumberFormatException("Bad number " + s));
-            }
-        } catch (IllegalStateException e) {
-            String small = m_context.getString(
-                R.string.badcolnum, String.valueOf(columnIndex));
-            String big = m_context.getString(R.string.getunsignedlong, m_tableName);
-            fatal(small, big);
         }
-        return 0; //unreachable
+    }
+
+    public String getString(String columnName)
+    throws NoColumnException {
+        return getString(columnName, "getString");
+    }
+
+    public long getUnsignedLong(String columnName)
+        throws NumberFormatException, NoColumnException
+    {
+        String s = getString(columnName, "getUnsignedLong");
+        if ((s != null) && s.matches("^[0-9]+$")) {
+            return Long.parseLong(s);
+        }
+        else
+        {
+            throw(new NumberFormatException("Bad number " + s));
+        }
     }
 
     // The Android implementation doesn't guarantee that a cursor on this
@@ -536,6 +601,7 @@ public class SQLtable extends Object {
     // So we call invalidate() to destroy all the cursors on this table owned
     // by this database connection. Any cursor which is subsequently referenced
     // will be recreated.
+    @SuppressWarnings("UnusedReturnValue")
     public long insert(ContentValues values)  {
         for (int i = 10; ; --i) {
             try {
@@ -551,7 +617,7 @@ public class SQLtable extends Object {
     // This updates the row that our cursor is looking at.
     public int update(ContentValues cv) {
         StringBuilder whereClause = new StringBuilder();
-        ArrayList<String> whereArgs = new ArrayList<String>();
+        ArrayList<String> whereArgs = new ArrayList<>();
         int columns = cursor().getColumnCount();
         boolean first = true;
         int i;
@@ -588,6 +654,7 @@ public class SQLtable extends Object {
         return update(cv);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public int update(String columnName, long value) {
         ContentValues cv = new ContentValues();
         cv.put(columnName, value);
@@ -601,9 +668,10 @@ public class SQLtable extends Object {
     // after the deletion and positioned to the row before the deleted one
     // so that moveToNext() will do as expected and move to the row after
     // the deleted one.
+    @SuppressWarnings("UnusedReturnValue")
     public int delete() {
         StringBuilder whereClause = new StringBuilder();
-        ArrayList<String> whereArgs = new ArrayList<String>();
+        ArrayList<String> whereArgs = new ArrayList<>();
         int columns = cursor().getColumnCount();
         boolean first = true;
         int i;
@@ -647,7 +715,7 @@ public class SQLtable extends Object {
 
     // Vacuuming needs to be done from time to time, but it isn't urgent.
     private static final int WRITECOUNT = 1000;
-    public void tryVacuum()  {
+    private void tryVacuum()  {
         long count = 0;
         try {
             Cursor cr = m_database.rawQuery(
@@ -676,6 +744,7 @@ public class SQLtable extends Object {
                     m_context.getString(R.string.norows));
                 m_database.execSQL("INSERT INTO VACUUMDATA ( VACUUM_COUNT ) VALUES ( "
                     + (count + 1) + " )");
+                cr.close();
                 return;
             }
         } catch (SQLiteException e) {
@@ -684,7 +753,6 @@ public class SQLtable extends Object {
         }
         try {
             m_database.execSQL("UPDATE VACUUMDATA SET VACUUM_COUNT = " + (count + 1));
-            return;
         } catch (SQLiteException e) {
             handleException(1, e, "VACUUMDATA");
             invalidate("VACUUMDATA");

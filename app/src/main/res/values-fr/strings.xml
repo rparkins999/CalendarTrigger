@@ -57,7 +57,7 @@
     <string name="settobegin">" réglé à commencer à "</string>
     <string name="walltime">" heure locale"</string>
     <string name="utc">" UTC"</string>
-    <string name="noevents">"Pas d\'événements à la date "</string>
+    <string name="noevents">"Pas d\'événements à la date %s"</string>
     <string name="checkfloat">Cocher pour heure flottante</string>
     <string name="checkfloathelp">Si coché, l\'événement retiendra la même heure
         locale si le fuseau horaire de l\'appareil est changé. Si l\'événement est

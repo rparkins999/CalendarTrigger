@@ -465,7 +465,7 @@ public class ActionFragment extends Fragment
         subjectText = new EditText(ac);
 
         int n = PrefsManager.getMessageType(ac, classNum, startOrEnd);
-        sendMessage.setText("Send message ...");
+        sendMessage.setText(getString(R.string.sendmessage));
         if (canEmail || canSms) {
             sendMessage.setEnabled(true);
             if (n != PrefsManager.SEND_NO_MESSAGE) {
@@ -490,10 +490,7 @@ public class ActionFragment extends Fragment
             sendMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "If this is checked, CalendarTrigger will"
-                        + " send a message for the start of the event."
-                        + " Sending messages may incur a cost.",
+                    Toast.makeText(ac, getString(R.string.sendmessagehelp),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -506,10 +503,7 @@ public class ActionFragment extends Fragment
             sendMessage.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "This option is disabled because your device has"
-                            + " neither an email sending application nor an SMS text"
-                            + " message sending application available.",
+                    Toast.makeText(ac, getString(R.string.sendmessagedisabled),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -537,10 +531,7 @@ public class ActionFragment extends Fragment
             sendEmail.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "Send message by email: if email is not available"
-                            + "at the time or the specified contact has no email"
-                        + " address, no message will be sent",
+                    Toast.makeText(ac, getString(R.string.sendemailhelp),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -558,9 +549,7 @@ public class ActionFragment extends Fragment
             sendEmail.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "This option is disabled because your device does"
-                            + " not have an email sending service available.",
+                    Toast.makeText(ac, getString(R.string.sendemaildisabled),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -568,7 +557,7 @@ public class ActionFragment extends Fragment
             sendEmail.setChecked(false);
             sendEmail.setEnabled(false);
         }
-        sendEmail.setText("... by email");
+        sendEmail.setText(getString(R.string.byemail));
         lll.addView(sendEmail, -1, ww);
         if (canEmail && canSms) {
             sendEmailOrText.setOnClickListener(new View.OnClickListener() {
@@ -590,13 +579,7 @@ public class ActionFragment extends Fragment
             sendEmailOrText.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "Send message by email if possible; if email is not"
-                        + " available at the time or the specified contact"
-                        + " has no email address, send message by SMS text;"
-                        + " if SMS text messaging is also not available at the time"
-                        + " or the specified contact has no mobile number,"
-                        + " no message will be sent.",
+                    Toast.makeText(ac, getString(R.string.emailorsmshelp),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -614,10 +597,7 @@ public class ActionFragment extends Fragment
             sendEmailOrText.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "This option is disabled because your device does"
-                        + " not have both an email sending service and an SMS text"
-                        + " message sending service available.",
+                    Toast.makeText(ac, getString(R.string.emailorsmsdisabled),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -625,7 +605,7 @@ public class ActionFragment extends Fragment
             sendEmailOrText.setChecked(false);
             sendEmailOrText.setEnabled(false);
         }
-        sendEmailOrText.setText("... by email or SMS text");
+        sendEmailOrText.setText(getString(R.string.emailorsms));
         lll.addView(sendEmailOrText, -1, ww);
         if (canSms) {
             sendText.setOnClickListener(new View.OnClickListener() {
@@ -647,10 +627,7 @@ public class ActionFragment extends Fragment
             sendText.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "Send message by SMS text: if SMS text is not available"
-                            + " at the time or the specified contact has no mobile"
-                        + " number, no message will be sent",
+                    Toast.makeText(ac, getString(R.string.sendsmshelp),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -668,9 +645,7 @@ public class ActionFragment extends Fragment
             sendText.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "This option is disabled because your device does"
-                        + " not have an SMS text sending service available.",
+                    Toast.makeText(ac, getString(R.string.sendsmsdisabled),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -678,7 +653,7 @@ public class ActionFragment extends Fragment
             sendText.setChecked(false);
             sendText.setEnabled(false);
         }
-        sendText.setText("... by SMS text");
+        sendText.setText(getString(R.string.sendsms));
         lll.addView(sendText, -1, ww);
         if (canEmail && canSms) {
             sendTextOrEmail.setOnClickListener(new View.OnClickListener() {
@@ -700,13 +675,7 @@ public class ActionFragment extends Fragment
             sendTextOrEmail.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "Send message by SMS text if possible; if SMS text is not"
-                            + " available at the time or the specified contact"
-                            + " has no mobile number, send message by email;"
-                            + " if email is also not available at the time"
-                            + " or the specified contact has no email address,"
-                            + " no message will be sent.",
+                    Toast.makeText(ac, getString(R.string.smsoremailhelp),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -724,10 +693,7 @@ public class ActionFragment extends Fragment
             sendTextOrEmail.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(ac,
-                        "This option is disabled because your device does"
-                        + " not have both an email sending service and an SMS text"
-                        + " message sending service available.",
+                    Toast.makeText(ac, getString(R.string.smsoremaildisabled),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -735,25 +701,18 @@ public class ActionFragment extends Fragment
             sendTextOrEmail.setChecked(false);
             sendTextOrEmail.setEnabled(false);
         }
-        sendTextOrEmail.setText("... by SMS text or email");
+        sendTextOrEmail.setText(getString(R.string.smsoremail));
         lll.addView(sendTextOrEmail, -1, ww);
         TextView tv = new TextView(ac);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Specify message destinations."
-                        + " Sending an email message requires an email address"
-                        + " either typed in or extracted from a contact."
-                        + " Sending an SMS text message requires a mobile number"
-                        + " either typed in or extracted from a contact."
-                        + " A contact can be named explicitly or decoded from the"
-                        + " event name.",
+                Toast.makeText(ac, getString(R.string.destinationhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        tv.setText("to ...");
+        tv.setText(getString(R.string.destination));
         lll.addView(tv, -1, ww);
         LinearLayout llll = new LinearLayout(ac);
         llll.setOrientation(LinearLayout.HORIZONTAL);
@@ -787,18 +746,16 @@ public class ActionFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 if (sendToEmail.isEnabled()) {
-                    Toast.makeText(ac, "Send message to an email address",
+                    Toast.makeText(ac, getString(R.string.emailaddresshelp),
                         Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(ac,
-                        "This option is disabled because the message"
-                            + " is not being sent by email.",
+                    Toast.makeText(ac, getString(R.string.emailaddressdisabled),
                         Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
         });
-        sendToEmail.setText("... email address");
+        sendToEmail.setText(getString(R.string.emailaddress));
         llll.addView(sendToEmail, -1, ww);
         emailAddress.setMaxLines(1);
         emailAddress.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
@@ -806,9 +763,7 @@ public class ActionFragment extends Fragment
         emailAddress.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Email address for message, not checked for validity:"
-                    + " if it is empty, no message is sent.",
+                Toast.makeText(ac, getString(R.string.emailaddressfield),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -867,20 +822,18 @@ public class ActionFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 if (sendToNumber.isEnabled()) {
-                    Toast.makeText(ac, "Send message to a phone number",
+                    Toast.makeText(ac, getString(R.string.mobilenumberhelp),
                         Toast.LENGTH_LONG).show();
                 }
                 else
                 {
-                    Toast.makeText(ac,
-                        "This option is disabled because the message"
-                            + " is not being sent by SMS text.",
+                    Toast.makeText(ac, getString(R.string.mobilenumberdisabled),
                         Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
         });
-        sendToNumber.setText("... phone number");
+        sendToNumber.setText(getString(R.string.mobilenumber));
         llll.addView(sendToNumber, -1, ww);
         smsNumber.setMaxLines(1);
         smsNumber.setInputType(InputType.TYPE_CLASS_PHONE);
@@ -888,9 +841,7 @@ public class ActionFragment extends Fragment
         smsNumber.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Phone number for message, not checked for validity:"
-                    + " if it is empty, no message is sent.",
+                Toast.makeText(ac, getString(R.string.mobilenumberfield),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -951,27 +902,23 @@ public class ActionFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 if (sendToContact.isEnabled()) {
-                    Toast.makeText(ac, "Send message to a contact",
+                    Toast.makeText(ac, getString(R.string.tocontacthelp),
                         Toast.LENGTH_LONG).show();
                 }
                 else if (haveContactsPermission)
                 {
-                    Toast.makeText(ac,
-                        "This option is disabled because the message"
-                            + " is not being sent by either email or SMS text.",
+                    Toast.makeText(ac, getString(R.string.tocontactdisabled),
                         Toast.LENGTH_LONG).show();
                 }
                 else
                 {
-                    Toast.makeText(ac,
-                        "This option is disabled because CalendarTrigger"
-                        + " does not have permission to read contacts.",
+                    Toast.makeText(ac, getString(R.string.tocontactdenied),
                         Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
         });
-        sendToContact.setText("... contact");
+        sendToContact.setText(getString(R.string.tocontact));
         llll.addView(sendToContact, -1, ww);
         contactName.setMaxLines(1);
         contactName.setInputType(InputType.TYPE_TEXT_VARIATION_PERSON_NAME);
@@ -979,30 +926,17 @@ public class ActionFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 if (sendEmailOrText.isChecked() || sendTextOrEmail.isChecked()) {
-                    Toast.makeText(ac,
-                        "Contact to whom to send the message."
-                            + " As you type in the name it is displayed in red until"
-                            + " the name matches a contact with an email address"
-                            + " or a mobile phone number, when the colour changes to"
-                            + " green.",
+                    Toast.makeText(ac, getString(R.string.contacthelpboth),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
                 else if (sendEmail.isChecked()) {
-                    Toast.makeText(ac,
-                        "Contact to whom to send the message."
-                            + " As you type in the name it is displayed in red until"
-                            + " the name matches a contact with an email address"
-                            + " when the colour changes to green.",
+                    Toast.makeText(ac, getString(R.string.contacthelpemail),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
                 else if (sendText.isChecked()) {
-                    Toast.makeText(ac,
-                        "Contact to whom to send the message."
-                            + " As you type in the name it is displayed in red until"
-                            + " the name matches a contact with a mobile number"
-                            + " when the colour changes to green.",
+                    Toast.makeText(ac, getString(R.string.contacthelpsms),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -1064,29 +998,23 @@ public class ActionFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 if (sendToContactFromEventName.isEnabled()) {
-                    Toast.makeText(ac,
-                        "Send message to a contact whose name is extracted"
-                            + " from the name of the event.",
+                    Toast.makeText(ac, getString(R.string.contactfromnamehelp),
                         Toast.LENGTH_LONG).show();
                 }
                 else if (haveContactsPermission)
                 {
-                    Toast.makeText(ac,
-                        "This option is disabled because the message"
-                            + " is not being sent by either email or SMS text.",
+                    Toast.makeText(ac, getString(R.string.contactfromnamedisabled),
                         Toast.LENGTH_LONG).show();
                 }
                 else
                 {
-                    Toast.makeText(ac,
-                        "This option is disabled because CalendarTrigger"
-                            + " does not have permission to read contacts.",
+                    Toast.makeText(ac, getString(R.string.contactfromnamedenied),
                         Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
         });
-        sendToContactFromEventName.setText("... contact from event name");
+        sendToContactFromEventName.setText(getString(R.string.contactfromname));
         lll.addView(sendToContactFromEventName, -1, ww);
         llll = new LinearLayout(ac);
         llll.setOrientation(LinearLayout.HORIZONTAL);
@@ -1094,16 +1022,14 @@ public class ActionFragment extends Fragment
         firstLabel.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Define how to extract the contact's first name"
-                        + " from the event name.",
+                Toast.makeText(ac, getString(R.string.getfirsthelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        firstLabel.setText("First name is word ");
+        firstLabel.setText(getString(R.string.firstlabel));
         llll.addView(firstLabel, -1, ww);
-        firstWordNum.setText(Integer.toString(PrefsManager.getMessageFirstCount(
+        firstWordNum.setText(String.valueOf(PrefsManager.getMessageFirstCount(
             ac, classNum, startOrEnd)));
         firstWordNum.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL);
         firstWordNum.setFilters(digits);
@@ -1111,9 +1037,7 @@ public class ActionFragment extends Fragment
         firstWordNum.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Position (from 0) of the contact's first name"
-                        + " from the start or end of the event name.",
+                Toast.makeText(ac, getString(R.string.firstnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1122,14 +1046,12 @@ public class ActionFragment extends Fragment
         firstFrom.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Define how to extract the contact's first name"
-                        + " from the event name.",
+                Toast.makeText(ac, getString(R.string.firstfromhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        firstFrom.setText(" from ");
+        firstFrom.setText(getString(R.string.fromlabel));
         llll.addView(firstFrom, -1, ww);
         ArrayAdapter<?> ad = ArrayAdapter.createFromResource(
             ac, R.array.startorend, R.layout.activity_text_viewer);
@@ -1141,9 +1063,7 @@ public class ActionFragment extends Fragment
         firstWordStartEnd.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Extract the contact's first name counted"
-                        + " from the start or end of the event name.",
+                Toast.makeText(ac, getString(R.string.firstnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1158,16 +1078,14 @@ public class ActionFragment extends Fragment
         lastLabel.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Define how to extract the contact's last name"
-                        + " from the event name.",
+                Toast.makeText(ac, getString(R.string.lastnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        lastLabel.setText("Last name is word ");
+        lastLabel.setText(getString(R.string.lastlabel));
         llll.addView(lastLabel, -1, ww);
-        lastWordNum.setText(Integer.toString(PrefsManager.getMessageLastCount(
+        lastWordNum.setText(String.valueOf(PrefsManager.getMessageLastCount(
             ac, classNum, startOrEnd)));
         lastWordNum.setInputType(InputType.TYPE_NUMBER_VARIATION_NORMAL);
         lastWordNum.setFilters(digits);
@@ -1175,9 +1093,7 @@ public class ActionFragment extends Fragment
         lastWordNum.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Position (from 0) of the contact's last name"
-                        + " from the start or end of the event name.",
+                Toast.makeText(ac, getString(R.string.lastfromhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1186,14 +1102,12 @@ public class ActionFragment extends Fragment
         lastFrom.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Define how to extract the contact's last name"
-                        + " from the event name.",
+                Toast.makeText(ac, getString(R.string.lastnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        lastFrom.setText(" from ");
+        lastFrom.setText(getString(R.string.fromlabel));
         llll.addView(lastFrom, -1, ww);
         ad = ArrayAdapter.createFromResource(
             ac, R.array.startorend, R.layout.activity_text_viewer);
@@ -1205,9 +1119,7 @@ public class ActionFragment extends Fragment
         lastWordStartEnd.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Extract the contact's last name counted"
-                        + " from the start or end of the event name.",
+                Toast.makeText(ac, getString(R.string.lastnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1229,16 +1141,12 @@ public class ActionFragment extends Fragment
                 @Override
                 public boolean onLongClick(View v) {
                     if (removePunctuation.isEnabled()) {
-                        Toast.makeText(ac,
-                            "Remove , or 's from first name and last name"
-                                + " of before searching contacts list.",
+                        Toast.makeText(ac, getString(R.string.removesuffixhelp),
                             Toast.LENGTH_LONG).show();
                     }
                     else
                     {
-                        Toast.makeText(ac,
-                            "This option is disabled because the message is not"
-                                + " being sent to a contact from the event name.",
+                        Toast.makeText(ac, getString(R.string.removesuffixdisabled),
                             Toast.LENGTH_LONG).show();
                     }
                     return true;
@@ -1246,23 +1154,19 @@ public class ActionFragment extends Fragment
             });
         removePunctuation.setChecked(
             PrefsManager.getMessageTrim(ac, classNum, startOrEnd));
-        removePunctuation.setText("Remove , or 's");
+        removePunctuation.setText(getString(R.string.removesuffixlabel));
         llll.addView(removePunctuation, -1, ww);
         lll.addView(llll, -1, ww);
         tv = new TextView(ac);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Use the event class name, the event name,"
-                        + " the event description, or some typed in text"
-                        + " as the body of the message. If nothing is selected or the,"
-                        + " resulting message body is empty, no message will be sent.",
+                Toast.makeText(ac, getString(R.string.bodyhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        tv.setText("with message text ...");
+        tv.setText(getString(R.string.bodylabel));
         lll.addView(tv, -1, ww);
         n = PrefsManager.getMessageTextType(ac, classNum, startOrEnd);
         smsTextClass.setChecked(n == PrefsManager.MESSAGE_TEXT_CLASSNAME);
@@ -1280,12 +1184,12 @@ public class ActionFragment extends Fragment
         smsTextClass.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with the event class name as its text",
+                Toast.makeText(ac, getString(R.string.bodyclassnamehelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        smsTextClass.setText("event class name");
+        smsTextClass.setText(getString(R.string.bodyclassnamelabel));
         lll.addView(smsTextClass, -1, ww);
         smsTextName.setChecked(n == PrefsManager.MESSAGE_TEXT_EVENTNAME);
         smsTextName.setEnabled(sendMessage.isChecked());
@@ -1302,12 +1206,12 @@ public class ActionFragment extends Fragment
         smsTextName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with the event name as its text",
+                Toast.makeText(ac, getString(R.string.bodyeventnamehelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        smsTextName.setText("event name");
+        smsTextName.setText(getString(R.string.bodyeventnamelabel));
         lll.addView(smsTextName, -1, ww);
         smsTextDescription.setChecked(n == PrefsManager.MESSAGE_TEXT_EVENTDESCRIPTION);
         smsTextDescription.setEnabled(sendMessage.isChecked());
@@ -1324,12 +1228,12 @@ public class ActionFragment extends Fragment
         smsTextDescription.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with the event description as its text",
+                Toast.makeText(ac, getString(R.string.bodyeventdescriptionhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        smsTextDescription.setText("event description");
+        smsTextDescription.setText(R.string.bodyeventdescriptionlabel);
         lll.addView(smsTextDescription, -1, ww);
         llll = new LinearLayout(ac);
         llll.setOrientation(LinearLayout.HORIZONTAL);
@@ -1348,7 +1252,7 @@ public class ActionFragment extends Fragment
         smsTextLiteral.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with literal text",
+                Toast.makeText(ac, getString(R.string.bodyliteralhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1358,7 +1262,7 @@ public class ActionFragment extends Fragment
         messageText.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Text for SMS message",
+                Toast.makeText(ac, getString(R.string.bodyliterallabel),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1385,14 +1289,6 @@ public class ActionFragment extends Fragment
                 smsTextLiteral.setChecked(true);
             }
         });
-        messageText.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Text Typed here is sent as the message.",
-                    Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
         messageText.setOnFocusChangeListener(this);
         llll.addView(messageText, -1, ww);
         lll.addView(llll, -1, ww);
@@ -1400,17 +1296,12 @@ public class ActionFragment extends Fragment
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                    "Use the event class name, the event name,"
-                        + " the event description, or some typed in text"
-                        + " as the subject of the message. If nothing is selected,"
-                        + " or the resulting subject is empty,"
-                        + " the message will be sent with an empty subject.",
+                Toast.makeText(ac, getString(R.string.subjecthelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        tv.setText("with subject text (email only) ...");
+        tv.setText(getString(R.string.subjectlabel));
         lll.addView(tv, -1, ww);
         n = PrefsManager.getSubjectTextType(ac, classNum, startOrEnd);
         subjectClass.setChecked(n == PrefsManager.SUBJECT_TEXT_CLASSNAME);
@@ -1428,12 +1319,12 @@ public class ActionFragment extends Fragment
         subjectClass.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with the event class name as its text",
+                Toast.makeText(ac, getString(R.string.subjectnamehelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        subjectClass.setText("event class name");
+        subjectClass.setText(getString(R.string.subjectclasslabel));
         lll.addView(subjectClass, -1, ww);
         subjectName.setChecked(n == PrefsManager.SUBJECT_TEXT_EVENTNAME);
         subjectName.setEnabled(sendMessage.isChecked());
@@ -1455,7 +1346,7 @@ public class ActionFragment extends Fragment
                 return true;
             }
         });
-        subjectName.setText("event name");
+        subjectName.setText(getString(R.string.subjectnamelabel));
         lll.addView(subjectName, -1, ww);
         subjectDescription.setChecked(n == PrefsManager.SUBJECT_TEXT_EVENTDESCRIPTION);
         subjectDescription.setEnabled(sendMessage.isChecked());
@@ -1472,12 +1363,12 @@ public class ActionFragment extends Fragment
         subjectDescription.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with the event description as its text",
+                Toast.makeText(ac, getString(R.string.subjectdescriptionhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
-        subjectDescription.setText("event description");
+        subjectDescription.setText(getString(R.string.subjectdescriptionlabel));
         lll.addView(subjectDescription, -1, ww);
         llll = new LinearLayout(ac);
         llll.setOrientation(LinearLayout.HORIZONTAL);
@@ -1496,7 +1387,7 @@ public class ActionFragment extends Fragment
         subjectLiteral.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Message with literal text",
+                Toast.makeText(ac, getString(R.string.subjectliteralhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1508,7 +1399,7 @@ public class ActionFragment extends Fragment
         subjectText.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, "Text for SMS message",
+                Toast.makeText(ac,getString(R.string.subjectliterallabel),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1595,6 +1486,7 @@ public class ActionFragment extends Fragment
         PrefsManager.setMessageContact(ac, classNum, startOrEnd, s);
         PrefsManager.setMessageExtract(
             ac, classNum, startOrEnd, sendToContactFromEventName.isChecked());
+        //noinspection CatchMayIgnoreException
         try {
             n = Integer.valueOf(firstWordNum.getText().toString());
         } catch (Exception e) {
@@ -1602,6 +1494,7 @@ public class ActionFragment extends Fragment
         }
         PrefsManager.setMessageFirstCount(
             ac, classNum, startOrEnd, n);
+        //noinspection CatchMayIgnoreException
         try {
             n = Integer.valueOf(lastWordNum.getText().toString());
         } catch (Exception e) {

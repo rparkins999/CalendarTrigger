@@ -8,10 +8,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="left|top"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|top"
         android:padding="10dp"
         android:orientation="vertical"
         android:id="@+id/dynamicscrollview">
