@@ -100,7 +100,6 @@ public class ActionStopFragment extends ActionFragment {
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.VERTICAL);
-        lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         ringerRestore = new CheckBox(ac);
         ringerRestore.setText(R.string.restaurer_etat_precedent);
         ringerRestore.setChecked(PrefsManager.getRestoreRinger(ac, classNum));

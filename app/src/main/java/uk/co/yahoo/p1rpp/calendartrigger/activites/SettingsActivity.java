@@ -114,7 +114,7 @@ public class SettingsActivity extends Activity {
             v.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(settingsActivity, R.string.nextLocationHelp,
+                    Toast.makeText(settingsActivity, R.string.nextlocationhelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -127,8 +127,10 @@ public class SettingsActivity extends Activity {
             v.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(settingsActivity, R.string.nextLocationNotAllowed,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(settingsActivity,
+                        getString(R.string.nextlocationnotallowed,
+                            getString(R.string.canenable)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
@@ -241,7 +243,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.lastCallHelp,
+                Toast.makeText(me, R.string.lastcallhelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -252,7 +254,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.lastAlarmHelp,
+                Toast.makeText(me, R.string.lastalarmhelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -264,7 +266,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.lastStateHelp,
+                Toast.makeText(me, R.string.laststatehelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -276,7 +278,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.userStateHelp,
+                Toast.makeText(me, R.string.userstatehelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -288,7 +290,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.currentStateHelp,
+                Toast.makeText(me, R.string.currentstatehelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -300,7 +302,7 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.LocationStateHelp,
+                Toast.makeText(me, R.string.locationstatehelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -316,14 +318,14 @@ public class SettingsActivity extends Activity {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.wakelockHelp,
+                Toast.makeText(me, R.string.wakelockhelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
         });
         tv = (TextView)findViewById(R.id.logfiletext);
         String s = DataStore.LogFileName();
-        tv.setText(getString(R.string.Logging, s));
+        tv.setText(getString(R.string.logging, s));
         boolean canStore = PackageManager.PERMISSION_GRANTED ==
                            PermissionChecker.checkSelfPermission(
                                me, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -331,7 +333,7 @@ public class SettingsActivity extends Activity {
                            PermissionChecker.checkSelfPermission(
                                me, Manifest.permission.READ_EXTERNAL_STORAGE);
         final RadioGroup rg = (RadioGroup)findViewById(R.id.radioGroupLogging);
-        Button b = (Button)findViewById(R.id.radioLoggingOn);
+        Button b = (Button)findViewById(R.id.radiologgingon);
         b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
         if (canStore)
         {
@@ -343,7 +345,7 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.loggingOnHelp,
+                    Toast.makeText(me, R.string.loggingonhelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -353,19 +355,20 @@ public class SettingsActivity extends Activity {
             PrefsManager.setLoggingMode(me, false);
             b.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    rg.check(R.id.radioLoggingOff);
+                    rg.check(R.id.radiologgingoff);
                 }
             });
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.cantLogHelp,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.cantloghelp,
+                            getString(R.string.canenable)), Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
         }
-        b = (Button)findViewById(R.id.radioLoggingOff);
+        b = (Button)findViewById(R.id.radiologgingoff);
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 PrefsManager.setLoggingMode(me, false);
@@ -374,13 +377,13 @@ public class SettingsActivity extends Activity {
         b.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.loggingOffHelp,
+                Toast.makeText(me, R.string.loggingoffhelp,
                                Toast.LENGTH_LONG).show();
                 return true;
             }
         });
         rg.check(PrefsManager.getLoggingMode(me)
-                 ? R.id.radioLoggingOn : R.id.radioLoggingOff);
+                 ? R.id.radiologgingon : R.id.radiologgingoff);
         b = (Button)findViewById(R.id.clear_log);
         b.setText(R.string.clearLog);
         b.setTextColor(canStore ? 0xFF000000 : 0x80000000);
@@ -390,14 +393,14 @@ public class SettingsActivity extends Activity {
                 public void onClick(View v) {
                     //noinspection ResultOfMethodCallIgnored
                     (new File(DataStore.LogFileName())).delete();
-                    Toast.makeText(me, R.string.logCleared, Toast.LENGTH_SHORT)
+                    Toast.makeText(me, R.string.logcleared, Toast.LENGTH_SHORT)
                          .show();
                 }
             });
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.clearLogHelp,
+                    Toast.makeText(me, R.string.clearloghelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -413,14 +416,15 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.noclearLogHelp,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.noclearloghelp, getString(R.string.canenable)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
         }
         b = (Button)findViewById(R.id.show_log);
-        b.setText(R.string.showLog);
+        b.setText(R.string.showlog);
         b.setTextColor(canRead ? 0xFF000000 : 0x80000000);
         if (canRead)
         {
@@ -432,7 +436,7 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.showLogHelp,
+                    Toast.makeText(me, R.string.showloghelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -448,8 +452,9 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.noshowLogHelp,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.noshowloghelp, getString(R.string.canenable)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
@@ -503,15 +508,16 @@ public class SettingsActivity extends Activity {
                 }
                 else
                 {
-                    Toast.makeText(me, R.string.logcyclingnotallowed,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.logcyclingnotallowed,
+                            getString(R.string.canenable)), Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
         });
         logCycling.setChecked(PrefsManager.getLogcycleMode(this));
         CheckBox nextLocation = (CheckBox) findViewById(R.id.nextlocationbox);
-        nextLocation.setText(R.string.nextLocationLabel);
+        nextLocation.setText(R.string.nextlocationlabel);
         nextLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -522,21 +528,6 @@ public class SettingsActivity extends Activity {
         });
         setNextLocationState(nextLocation,
                              PrefsManager.getNextLocationMode(this));
-        b = (Button)findViewById(R.id.resetbutton);
-        b.setText(R.string.reset);
-        b.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                doReset();
-            }
-        });
-        b.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(me, R.string.resethelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
         b = (Button)findViewById(R.id.resetbutton);
         b.setText(R.string.reset);
         b.setOnClickListener(new View.OnClickListener() {
@@ -584,7 +575,7 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.saveSettingsHelp,
+                    Toast.makeText(me, R.string.savesettingshelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -600,8 +591,10 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.noSaveSettingsHelp,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.nosavesettingshelp,
+                            getString(R.string.canenable)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });
@@ -634,7 +627,7 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.loadSettingsHelp,
+                    Toast.makeText(me, R.string.loadsettingshelp,
                                    Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -650,8 +643,10 @@ public class SettingsActivity extends Activity {
             b.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Toast.makeText(me, R.string.noLoadSettingsHelp,
-                                   Toast.LENGTH_LONG).show();
+                    Toast.makeText(me,
+                        getString(R.string.noloadsettingshelp,
+                            getString(R.string.canenable)),
+                        Toast.LENGTH_LONG).show();
                     return true;
                 }
             });

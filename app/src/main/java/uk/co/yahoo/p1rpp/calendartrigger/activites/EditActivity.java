@@ -112,7 +112,7 @@ public class EditActivity extends Activity {
             public void onClick(View v) {
                 FragmentTransaction ft =
                     getFragmentManager().beginTransaction();
-                Fragment f = DefineClassFragment.newInstance(className);
+                Fragment f = DefineClassFragment.newInstance(ac, className);
                 ft.replace(R.id.edit_activity_container, f, "dcf")
                   .addToBackStack(null)
                   .commit();

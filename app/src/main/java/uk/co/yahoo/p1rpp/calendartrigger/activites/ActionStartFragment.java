@@ -8,10 +8,12 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -76,17 +78,6 @@ public class ActionStartFragment extends ActionFragment {
         final EditActivity ac = (EditActivity) getActivity();
         ac.setButtonVisibility(View.INVISIBLE);
         gettingFile = false;
-        int apiVersion = android.os.Build.VERSION.SDK_INT;
-        NotificationManager nm = (NotificationManager)
-            ac.getSystemService(Context.NOTIFICATION_SERVICE);
-        boolean havePermission;
-        if (   (apiVersion >= android.os.Build.VERSION_CODES.M)
-            && (nm != null))
-        {
-            havePermission = nm.isNotificationPolicyAccessGranted();
-        } else {
-            havePermission = false;
-        }
         String s = getArguments().getString(ARG_CLASS_NAME);
         int classNum = PrefsManager.getClassNum(ac, s);
         final String className = "<i>" + htmlEncode(s) + "</i>";
@@ -110,12 +101,43 @@ public class ActionStartFragment extends ActionFragment {
             }
         });
         ll.addView(tv, ww);
+        int apiVersion = android.os.Build.VERSION.SDK_INT;
+        NotificationManager nm = (NotificationManager)
+            ac.getSystemService(Context.NOTIFICATION_SERVICE);
+        boolean havePermission;
+        if (   (apiVersion >= android.os.Build.VERSION_CODES.M)
+            && (nm != null))
+        {
+            havePermission = nm.isNotificationPolicyAccessGranted();
+            if (!havePermission) {
+                Button b = new Button(ac);
+                b.setText(R.string.requestdisturb);
+                b.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(
+                android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+                    }
+                });
+                b.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac, R.string.requestdisturbhelp,
+                            Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+                ll.addView(b, ww);
+            }
+        } else {
+            havePermission = false;
+        }
         tv = new TextView(ac);
         tv.setText(fromHtml(getString(R.string.actionstartlist, className)));
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
-        lll.setPadding((int) (scale * 25.0), 0, 0, 0);
+        lll.setPadding((int) (scale * 4.0), 0, 0, 0);
         tv = new TextView(ac);
         tv.setText(R.string.setRinger);
         tv.setOnLongClickListener(new View.OnLongClickListener() {

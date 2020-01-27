@@ -5,6 +5,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -25,7 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import uk.co.yahoo.p1rpp.calendartrigger.Layouts.AndList;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -33,15 +33,27 @@ import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
+import static uk.co.yahoo.p1rpp.calendartrigger.R.string.defineclasspopup;
 
 /**
  * Created by rparkins on 01/07/16.
  */
 public class DefineClassFragment extends Fragment
-    implements AdapterView.OnItemSelectedListener {
-    private static final String ARG_CLASS_NAME = "class name";
+    implements View.OnLongClickListener, AdapterView.OnItemSelectedListener {
+
+    private Activity ac;
+    private String italicClassName;
+    private int classNum;
     private float scale;
     private AndList comparisons;
+    private ArrayList<calendarCheck> calChecks;
+    private TextView invisible;
+    private RadioGroup busyState;
+    private RadioGroup allDayState;
+    private RadioGroup recurrentState;
+    private RadioGroup organiserState;
+    private RadioGroup publicState;
+    private RadioGroup attendeeState;
 
     // Projection for calendar queries
     public static final String[] CALENDAR_PROJECTION = new String[] {
@@ -58,28 +70,29 @@ public class DefineClassFragment extends Fragment
             id = calId;
         }
     }
-    private ArrayList<calendarCheck> calChecks;
-    private TextView invisible;
-    private RadioGroup busyState;
-    private RadioGroup allDayState;
-    private RadioGroup recurrentState;
-    private RadioGroup organiserState;
-    private RadioGroup publicState;
-    private RadioGroup attendeeState;
 
     public DefineClassFragment() {
     }
 
-    public static DefineClassFragment newInstance(String className ) {
+    public static DefineClassFragment newInstance(Activity caller, String name) {
         DefineClassFragment fragment = new DefineClassFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_CLASS_NAME, className);
-        fragment.setArguments(args);
+        fragment.ac = caller;
+        fragment.italicClassName = "<i>" + htmlEncode(name) + "</i>";
+        fragment.classNum = PrefsManager.getClassNum(fragment.ac, name);
         return fragment;
     }
 
+    @Override
+    public boolean onLongClick(View v) {
+        Toast.makeText(ac,
+            fromHtml(getString(defineclasspopup,
+                italicClassName)),
+            Toast.LENGTH_LONG).show();
+        return true;
+    }
+
     public void onItemSelected(AdapterView<?> parent, View view,
-            int pos, long id) {
+                               int pos, long id) {
         String item = parent.getItemAtPosition(pos).toString();
         Toast.makeText(getActivity(), item, Toast.LENGTH_LONG).show();
     }
@@ -101,7 +114,7 @@ public class DefineClassFragment extends Fragment
         invisible.requestFocus();
     }
 
-    public LinearLayout makeComparisons(EditActivity ac, int classNum, boolean first) {
+    public LinearLayout makeComparisons(boolean first) {
         comparisons = new AndList(ac);
         comparisons.setup(this, classNum, first);
         return comparisons;
@@ -113,11 +126,6 @@ public class DefineClassFragment extends Fragment
         final EditActivity ac = (EditActivity)getActivity();
         ac.setButtonVisibility(View.INVISIBLE);
         Configuration config = getResources().getConfiguration();
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
-        final String className =
-            "<i>" + htmlEncode(getArguments().getString(ARG_CLASS_NAME)) +
-            "</i>";
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
@@ -130,18 +138,12 @@ public class DefineClassFragment extends Fragment
         ll.removeAllViews();
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);
-        tv.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-	                fromHtml(getString(R.string.defineclasspopup, className)),
-                    Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        tv.setOnLongClickListener(this);
         ll.addView(tv, ww);
         tv = new TextView(ac);
-        tv.setText(fromHtml(getString(R.string.defineclasslist, className)));
+        tv.setText(fromHtml(getString(R.string.defineclasslist,
+            italicClassName)));
+        tv.setOnLongClickListener(this);
         ll.addView(tv, ww);
         ArrayList<Long> checkedCalendarIds
             = PrefsManager.getCalendars(ac, classNum);
@@ -157,7 +159,8 @@ public class DefineClassFragment extends Fragment
                 @Override
                 public boolean onLongClick(View v) {
                     Toast.makeText(ac,
-                        fromHtml(getString(R.string.allcalendars, className)),
+                        fromHtml(getString(R.string.allcalendars,
+                            italicClassName)),
                         Toast.LENGTH_LONG).show();
                     return true;
                 }
@@ -169,18 +172,29 @@ public class DefineClassFragment extends Fragment
             lll.setPadding((int)(scale * 50.0), 0, 0, 0);
             while (cur.moveToNext()) {
                 long calId = cur.getLong(CALENDAR_PROJECTION_ID_INDEX);
-                String calName
+                final String calName
                     = cur.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX);
                 calendarCheck cc = new calendarCheck(ac, calId);
                 cc.setText(calName);
                 cc.setChecked(checkedCalendarIds.contains(calId));
+                cc.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Toast.makeText(ac,
+                            fromHtml(getString(R.string.thisCalendar,
+                                italicClassName,
+                                "<i>" + htmlEncode(calName) + "</i>")),
+                            Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
                 lll.addView(cc, ww);
                 calChecks.add(cc);
             }
             ll.addView(lll, ww);
             cur.close();
         }
-        ll.addView(makeComparisons(ac, classNum, first));
+        ll.addView(makeComparisons(first));
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -189,7 +203,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.busyhelp, className)),
+                    fromHtml(getString(R.string.busyhelp, italicClassName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -209,14 +223,41 @@ public class DefineClassFragment extends Fragment
         int id = -1;
         RadioButton rb = new RadioButton(ac);
         rb.setText(R.string.onlybusy);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlybusychecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         busyState.addView(rb, PrefsManager.ONLY_BUSY, ww);
         if (index == PrefsManager.ONLY_BUSY) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.onlynotbusy);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlynotbusychecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         busyState.addView(rb, PrefsManager.ONLY_NOT_BUSY, ww);
         if (index == PrefsManager.ONLY_NOT_BUSY) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.busyandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.busyandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         busyState.addView(rb, PrefsManager.BUSY_AND_NOT, ww);
         if (index == PrefsManager.BUSY_AND_NOT) { id = rb.getId(); }
         busyState.check(id);
@@ -229,7 +270,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.alldayhelp, className)),
+                    fromHtml(getString(R.string.alldayhelp, italicClassName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -249,14 +290,41 @@ public class DefineClassFragment extends Fragment
         id = -1;
         rb = new RadioButton(ac);
         rb.setText(R.string.onlyallday);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlyalldaychecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         allDayState.addView(rb, PrefsManager.ONLY_ALL_DAY, ww);
         if (index == PrefsManager.ONLY_ALL_DAY) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.onlynotallday);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlynotalldaychecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         allDayState.addView(rb, PrefsManager.ONLY_NOT_ALL_DAY, ww);
         if (index == PrefsManager.ONLY_NOT_ALL_DAY) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.alldayandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.alldayandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         allDayState.addView(rb, PrefsManager.ALL_DAY_AND_NOT, ww);
         if (index == PrefsManager.ALL_DAY_AND_NOT) { id = rb.getId(); }
         allDayState.check(id);
@@ -270,7 +338,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.recurrenthelp, className)),
+                    fromHtml(getString(R.string.recurrenthelp, italicClassName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -290,14 +358,42 @@ public class DefineClassFragment extends Fragment
         id = -1;
         rb = new RadioButton(ac);
         rb.setText(R.string.onlyrecurrent);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlyrecurrentchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         recurrentState.addView(rb, PrefsManager.ONLY_RECURRENT, ww);
         if (index == PrefsManager.ONLY_RECURRENT) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.onlynotrecurrent);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlynotrecurrentchecked,
+                        italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         recurrentState.addView(rb, PrefsManager.ONLY_NOT_RECURRENT, ww);
         if (index == PrefsManager.ONLY_NOT_RECURRENT) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.recurrentandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.recurrentandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         recurrentState.addView(rb, PrefsManager.RECURRENT_AND_NOT, ww);
         if (index == PrefsManager.RECURRENT_AND_NOT) { id = rb.getId(); }
         recurrentState.check(id);
@@ -311,7 +407,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.organiserhelp, className)),
+                    fromHtml(getString(R.string.organiserhelp, italicClassName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -331,14 +427,42 @@ public class DefineClassFragment extends Fragment
         id = -1;
         rb = new RadioButton(ac);
         rb.setText(R.string.onlyorganiser);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlyorganiserchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         organiserState.addView(rb, PrefsManager.ONLY_ORGANISER, ww);
         if (index == PrefsManager.ONLY_ORGANISER) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.onlynotorganiser);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlynotorganiserchecked,
+                        italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         organiserState.addView(rb, PrefsManager.ONLY_NOT_ORGANISER, ww);
         if (index == PrefsManager.ONLY_NOT_ORGANISER) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.organiserandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.organiserandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         organiserState.addView(rb, PrefsManager.ORGANISER_AND_NOT, ww);
         if (index == PrefsManager.ORGANISER_AND_NOT) { id = rb.getId(); }
         organiserState.check(id);
@@ -352,7 +476,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.privatehelp, className)),
+                    fromHtml(getString(R.string.privatehelp, italicClassName)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -372,14 +496,41 @@ public class DefineClassFragment extends Fragment
         id = -1;
         rb = new RadioButton(ac);
         rb.setText(R.string.onlyprivate);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlyprivatechecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         publicState.addView(rb, PrefsManager.ONLY_PUBLIC, ww);
         if (index == PrefsManager.ONLY_PUBLIC) { id = rb.getId(); }
         rb = new RadioButton(ac);
-        rb.setText(R.string.onlynotprivate);
+        rb.setText(R.string.onlypublic);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlypublicchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         publicState.addView(rb, PrefsManager.ONLY_PRIVATE, ww);
         if (index == PrefsManager.ONLY_PRIVATE) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.privateandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.privateandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         publicState.addView(rb, PrefsManager.PUBLIC_AND_PRIVATE, ww);
         if (index == PrefsManager.PUBLIC_AND_PRIVATE) { id = rb.getId(); }
         publicState.check(id);
@@ -393,7 +544,7 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-                    fromHtml(getString(R.string.attendeeshelp, className)),
+                    fromHtml(getString(R.string.attendeeshelp, italicClassName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -414,14 +565,41 @@ public class DefineClassFragment extends Fragment
         id = -1;
         rb = new RadioButton(ac);
         rb.setText(R.string.onlyattendees);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlyattendeeschecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         attendeeState.addView(rb, PrefsManager.ONLY_WITH_ATTENDEES, ww);
         if (index == PrefsManager.ONLY_WITH_ATTENDEES) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.onlynoattendees);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.onlynoattendeeschecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         attendeeState.addView(rb, PrefsManager.ONLY_WITHOUT_ATTENDEES, ww);
         if (index == PrefsManager.ONLY_WITHOUT_ATTENDEES) { id = rb.getId(); }
         rb = new RadioButton(ac);
         rb.setText(R.string.attendeesandnot);
+        rb.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(ac,
+                    fromHtml(getString(R.string.attendeesandnotchecked, italicClassName)),
+                    Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
         attendeeState.addView(rb, PrefsManager.ATTENDEES_AND_NOT, ww);
         if (index == PrefsManager.ATTENDEES_AND_NOT) { id = rb.getId(); }
         attendeeState.check(id);
@@ -433,8 +611,6 @@ public class DefineClassFragment extends Fragment
     public void onPause() {
         super.onPause();
         final EditActivity ac = (EditActivity)getActivity();
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
         ArrayList<Long> checkedCalendarIds
             = new ArrayList<>(calChecks.size());
         for (calendarCheck ctv : calChecks) {

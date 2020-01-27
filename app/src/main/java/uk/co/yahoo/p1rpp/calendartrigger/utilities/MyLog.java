@@ -7,6 +7,7 @@ package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
 import android.content.Context;
 
+import java.io.Console;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;

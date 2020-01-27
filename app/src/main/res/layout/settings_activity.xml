@@ -73,16 +73,16 @@
             android:layout_height="wrap_content" >
 
             <RadioButton
-                android:id="@+id/radioLoggingOn"
+                android:id="@+id/radiologgingon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/LoggingOn" />
+                android:text="@string/loggingon" />
 
             <RadioButton
-                android:id="@+id/radioLoggingOff"
+                android:id="@+id/radiologgingoff"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/LoggingOff" />
+                android:text="@string/loggingoff" />
 
         </RadioGroup>
 

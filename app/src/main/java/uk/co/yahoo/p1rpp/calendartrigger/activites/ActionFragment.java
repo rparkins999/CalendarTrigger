@@ -17,23 +17,26 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 
+import uk.co.yahoo.p1rpp.calendartrigger.Widgets.ClickableSpinner;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledCheckBox;
 import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledRadioButton;
+
+import static android.view.MotionEvent.ACTION_DOWN;
 
 /**
  * Created by rparkins on 25/12/17.
@@ -43,7 +46,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.Widgets.DisabledRadioButton;
  */
 
 public class ActionFragment extends Fragment
-    implements View.OnFocusChangeListener, TextWatcher {
+    implements View.OnFocusChangeListener, TextWatcher, View.OnTouchListener {
 
     private final Intent intentm
         = new Intent(Intent.ACTION_SENDTO).setData(Uri.parse("mailto:"));
@@ -71,11 +74,11 @@ public class ActionFragment extends Fragment
     private TextView firstLabel;
     protected EditText firstWordNum;
     private TextView firstFrom;
-    protected Spinner firstWordStartEnd;
+    protected ClickableSpinner firstWordStartEnd;
     private TextView lastLabel;
     protected EditText lastWordNum;
     private TextView lastFrom;
-    protected Spinner lastWordStartEnd;
+    protected ClickableSpinner lastWordStartEnd;
     protected DisabledCheckBox removePunctuation;
     protected DisabledRadioButton smsTextClass;
     protected DisabledRadioButton smsTextName;
@@ -113,6 +116,14 @@ public class ActionFragment extends Fragment
     public void onTextChanged(
         CharSequence s, int start, int before, int count) {
         // nothing
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if ((event.getActionMasked() == ACTION_DOWN) && !v.hasFocus()) {
+            v.requestFocus();
+        }
+        return false;
     }
 
     public void enableSendToContact(boolean enable) {
@@ -447,11 +458,11 @@ public class ActionFragment extends Fragment
         firstLabel = new TextView(ac);
         firstWordNum = new EditText(ac);
         firstFrom = new TextView(ac);
-        firstWordStartEnd = new Spinner(ac);
+        firstWordStartEnd = new ClickableSpinner(ac);
         lastLabel = new TextView(ac);
         lastWordNum = new EditText(ac);
         lastFrom = new TextView(ac);
-        lastWordStartEnd = new Spinner(ac);
+        lastWordStartEnd = new ClickableSpinner(ac);
         removePunctuation = new DisabledCheckBox(ac);
         smsTextClass = new DisabledRadioButton(ac);
         smsTextName = new DisabledRadioButton(ac);
@@ -1060,14 +1071,14 @@ public class ActionFragment extends Fragment
         n = PrefsManager.getMessageFirstDir(ac, classNum, startOrEnd);
         if ((n < 0) || (n >= ad.getCount())) { n = 0; }
         firstWordStartEnd.setSelection(n);
-        firstWordStartEnd.setOnLongClickListener(new View.OnLongClickListener() {
+        firstWordStartEnd.setup(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac, getString(R.string.firstnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
-        });
+        }, this);
         llll.addView(firstWordStartEnd);
         if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
             lll.addView(llll, -1, ww);
@@ -1078,7 +1089,7 @@ public class ActionFragment extends Fragment
         lastLabel.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, getString(R.string.lastnumhelp),
+                Toast.makeText(ac, getString(R.string.getlasthelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1093,7 +1104,7 @@ public class ActionFragment extends Fragment
         lastWordNum.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, getString(R.string.lastfromhelp),
+                Toast.makeText(ac, getString(R.string.lastnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1102,7 +1113,7 @@ public class ActionFragment extends Fragment
         lastFrom.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(ac, getString(R.string.lastnumhelp),
+                Toast.makeText(ac, getString(R.string.lastfromhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
@@ -1116,14 +1127,14 @@ public class ActionFragment extends Fragment
         n = PrefsManager.getMessageLastDir(ac, classNum, startOrEnd);
         if ((n < 0) || (n >= ad.getCount())) { n = 0; }
         lastWordStartEnd.setSelection(n);
-        lastWordStartEnd.setOnLongClickListener(new View.OnLongClickListener() {
+        lastWordStartEnd.setup(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac, getString(R.string.lastnumhelp),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
-        });
+        }, this);
         llll.addView(lastWordStartEnd);
         lll.addView(llll, -1, ww);
         llll = new LinearLayout(ac);

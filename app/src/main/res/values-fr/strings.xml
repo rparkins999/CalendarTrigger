@@ -21,8 +21,6 @@
     <string name="table">"Table "</string>
     <string name="creating">" n\'existe pas, créant nouvelle."</string>
     <string name="creatingnew">"Créant nouvelle table "</string>
-    <string name="column">"Colonne "</string>
-    <string name="dropping">" n\'existe pas, supprimant et recréant table "</string>
     <string name="databaseerror">"Faute base de données"</string>
     <string name="unrecoverable">" faute irrécupérable "</string>
     <string name="notablename">"Pas de nom de table dans requête "</string>
@@ -40,18 +38,13 @@
     <string name="tablecreatefail">Impossible de créer table FLOATINGEVENTS</string>
     <string name="nomodifypermission">CalendarTrigger ne peut pas fixer aucun
         événements comme heure flottante parce que CalendarTrigger n\'a pas la
-        permission WRITE_CALENDAR. Vous pouvez activer cette permission en employant
-        l\'outil \'Paramètres\'.</string>
+        permission WRITE_CALENDAR.%s</string>
     <string name="floatnoreadpermission">CalendarTrigger ne peut pas fixer aucun
         événements comme heure flottante parce que CalendarTrigger n\'a pas la
-        permission READ_EXTERNAL_STORAGE.
-        Vous pouvez activer cette permission en employant
-        l\'outil \'Paramètres\'.</string>
+        permission READ_EXTERNAL_STORAGE.%s</string>
     <string name="floatnowritepermission">CalendarTrigger ne peut pas fixer aucun
         événements comme heure flottante parce que CalendarTrigger n\'a pas la
-        permission WRITE_EXTERNAL_STORAGE.
-        Vous pouvez activer cette permission en employant
-        l\'outil \'Paramètres\'.</string>
+        permission WRITE_EXTERNAL_STORAGE.%s</string>
     <string name="eventdate">Date des événement(s)</string>
     <string name="allinstances">"Tous exemples de l\'événement récurrent "</string>
     <string name="settobegin">" réglé à commencer à "</string>
@@ -80,84 +73,84 @@
     <string name="cancel_create">Annuler</string>
     <string name="floating">Flotter événements</string>
     <string name="deletinginvalid">"Supprimant rangée invalide "</string>
-    <string name="fromfloating">") de table FLOATINGEVENTS"</string>
-    <string name="event">"Événement "</string>
+    <string name="event">"événement "</string>
     <string name="corrupted">" apparemment corrompu, supprimé"</string>
     <string name="isallday">" dure toute la journée, traité par pourvoyeur"</string>
     <string name="nonexistent">" n\'existe plue, supprimé"</string>
     <string name="settings">Débogage</string>
+    <string name="nextlocationhelp">Si coché, CalendarTrigger créera un
+        contact virtuel nommé $Next $Location dont l\'addresse est toujours
+        le lieu du prochain événement dans votre calendrier dont le lieu
+        existe. Ce contact peut être utile si vous avez un système de navigation
+        par satellite qui peut naviguer vers l\'addresse d\'un contact tiré
+        de votre téléphone portable.</string>
+    <string name="nextlocationnotallowed">Cette option n\'est pas permise parce
+        que CalendarTrigger n\'a pas les permissions READ_CONTACTS et
+        WRITE_CONTACTS.%s</string>
+    <string name="canenable">" Vous pouvez activer permissions en employant
+        l\'outil \'Paramètres\' et seclectionnant Applications et notifications.</string>
+    <string name="nologfile">Fichier journal n\'existe pas (l\'avez-vous vidé?)
+        </string>
+    <string name="buildstamp">CalendarTrigger %s construit %s</string>
     <string name="lastcalldetail">Dernier appel à %s</string>
-    <string name="lastCallHelp">Ceci est l\'heure quand CalendarTrigger a été
+    <string name="lastcallhelp">Ceci est l\'heure quand CalendarTrigger a été
         invoqué le plus récemment, soit par l\'usager, soit par une alarme
         provoqué par CalendarTrigger soi-même.</string>
     <string name="lastalarmdetail">Dernière alarme à %s</string>
-    <string name="lastAlarmHelp">Ceci est l\'heure de l\'alarme le plus récent
+    <string name="lastalarmhelp">Ceci est l\'heure de l\'alarme le plus récent
         installé par CalendarTrigger.</string>
     <string name="laststatedetail">Dernière mode de la sonnerie %s</string>
-    <string name="lastStateHelp">Ceci est la dernière mode de la sonnerie
+    <string name="laststatehelp">Ceci est la dernière mode de la sonnerie
         fixé par CalendarTrigger.</string>
     <string name="userstatedetail">Usager mode de la sonnerie %s</string>
-    <string name="userStateHelp">Ceci est la dernière mode de la sonnerie
+    <string name="userstatehelp">Ceci est la dernière mode de la sonnerie
         fixé par l\'usager avant d\'avoir été changée par CalendarTrigger.
     </string>
     <string name="currentstatedetail">Actuelle mode de la sonnerie %s</string>
-    <string name="currentStateHelp">Ceci est la actuelle mode de la sonnerie
+    <string name="currentstatehelp">Ceci est la actuelle mode de la sonnerie
         fixé par n\'importe qui.</string>
     <string name="yeslocation">CalendarTrigger surveillant location</string>
     <string name="nolocation">CalendarTrigger non surveillant location</string>
-    <string name="LocationStateHelp">Montrer si CalendarTrigger est en train
+    <string name="locationstatehelp">Montrer si CalendarTrigger est en train
         d\'utiliser les services de location.</string>
-    <string name="yeswakelock">CalendarTrigger tient un verrouillage de
-        réveil.</string>
     <string name="nowakelock">CalendarTrigger ne tient aucun verrouillage de
         réveil.</string>
-    <string name="wakelockHelp">Montrer si CalendarTrigger tient un
+    <string name="yeswakelock">CalendarTrigger tient un verrouillage de
+        réveil.</string>
+    <string name="wakelockhelp">Montrer si CalendarTrigger tient un
         verrouillage de réveil.</string>
-    <string name="Logging">Écrire journal sur fichier %s</string>
-    <string name="LoggingOn">Oui</string>
-    <string name="loggingOnHelp">Activer journal. Le répertoire et le fichier
+    <string name="logging">Écrire journal sur fichier %s</string>
+    <string name="loggingon">Oui</string>
+    <string name="loggingonhelp">Activer journal. Le répertoire et le fichier
         pour le journal seront crées quand nécessaires s\'ils n\'existent pas.
     </string>
-    <string name="cantLogHelp">Journal ne peut pas être activé parce que
-        CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE. Vous
-        pouvez activer cette permission en employant l\'outil \'Paramètres\'.
-    </string>string>
-    <string name="LoggingOff">Non</string>
-    <string name="loggingOffHelp">Désactiver journal. Le fichier journal s\'il
+    <string name="cantloghelp">Journal ne peut pas être activé parce que
+        CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE.%s</string>
+    <string name="loggingoff">Non</string>
+    <string name="loggingoffhelp">Désactiver journal. Le fichier journal s\'il
 		existe ne sera pas vidé.</string>
     <string name="clearLog">Faire vider fichier journal</string>
-    <string name="clearLogHelp">Ce bouton détruit le fichier journal. Le
+    <string name="logcleared">Fichier journal vidé</string>
+    <string name="clearloghelp">Ce bouton détruit le fichier journal. Le
         prochain écriture recréera le fichier, alors en effet ce bouton le
-        fait vider.
-    </string>
-    <string name="noclearLogHelp">Journal ne peut pas être vidé parce que
-    CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE. Vous
-    pouvez activer cette permission en employant l\'outil \'Paramètres\'.
-    </string>
-    <string name="logCleared">Fichier journal vidé</string>
-    <string name="showLog">Exposer fichier journal</string>
-    <string name="showLogHelp">Ce bouton expose le fichier journal dans une
+        fait vider.</string>
+    <string name="noclearloghelp">Journal ne peut pas être vidé parce que
+    CalendarTrigger n\'a pas la permission WRITE_EXTERNAL_STORAGE.%s</string>
+    <string name="showlog">Exposer fichier journal</string>
+    <string name="showloghelp">Ce bouton expose le fichier journal dans une
         fenêtre défilante: touchez le bouton de retour pour revoir l\'ecran
         de debogage.</string>
-    <string name="noshowLogHelp">Journal ne peut pas être exposé parce que
-    CalendarTrigger n\'a pas la permission READ_EXTERNAL_STORAGE. Vous
-    pouvez activer cette permission en employant l\'outil \'Paramètres\'.
-    </string>
-    <string name="nologfile">Fichier journal n\'existe pas (l\'avez-vous vidé?)
-        </string>
+    <string name="noshowloghelp">Journal ne peut pas être exposé parce que
+    CalendarTrigger n\'a pas la permission READ_EXTERNAL_STORAGE.%s</string>
     <string name="logcyclinglabel">Activer recyclage du fichier journal</string>
     <string name="logcyclinghelp">Si coché, CalendarTrigger effacera chaque
         jour toutes les entrées du fichier journal plus anciens que
         vingt-quatre heures. Ce contact peut être utile pour laisser le journal
-        activé en évitant que le fichier devient trop grand.
-    </string>
-    <string name="logcyclingerror">Faute pendant recyclage du fichier journal
-    </string>
+        activé en évitant que le fichier devient trop grand.</string>
     <string name="logcyclingnotallowed">Cette option n\'est pas permise parce
         que CalendarTrigger n\'a pas les permissions READ_EXTERNAL_STORAGE et
-        WRITE_EXTERNAL_STORAGE Vous pouvez activer ces permissions en employant
-        l\'outil \'Paramètres\'.
-    </string>
+        WRITE_EXTERNAL_STORAGE.%s</string>
+    <string name="nextlocationlabel">Activer prochaine position</string>
     <string name="reset">Réinitialiser</string>
     <string name="resethelp">Ce bouton contraint tous les classes de devenir
         inactives et termine tous les delais temporaires. Il faut le toucher si
@@ -165,39 +158,22 @@
         actif. Remarquer que si vous êtes entre le temps du début et le temps
         de la fin d\'un événement, tous les classes auxquels l\'événement
         appartient redeviendront immédiatement actives.</string>
-    <string name="nextLocationLabel">Activer prochaine position</string>
-    <string name="nextLocationHelp">Si coché, CalendarTrigger créera un
-        contact virtuel nommé $Next $Location dont l\'addresse est toujours
-        le lieu du prochain événement dans votre calendrier dont le lieu
-        existe. Ce contact peut être utile si vous avez un système de navigation
-        par satellite qui peut naviguer vers l\'addresse d\'un contact tiré
-        de votre téléphone portable.
-    </string>
-    <string name="nextLocationNotAllowed">Cette option n\'est pas permise parce
-        que CalendarTrigger n\'a pas les permissions READ_CONTACTS et
-        WRITE_CONTACTS. Vous pouvez activer ces permissions en employant
-        l\'outil \'Paramètres\'.
-        </string>
-    <string name="savesettings">Save Settings</string>
-    <string name="loadsettings">Load Settings</string>
-    <string name="settingsfail">Exception en ouvrant fichier de paramètres
-    </string>
-    <string name="saveSettingsHelp">Ce bouton écrit les paramètres de
+    <string name="savesettings">Écrire Paramètres</string>
+    <string name="savesettingshelp">Ce bouton écrit les paramètres de
         CalendarTrigger dans un fichier.
     </string>
-    <string name="noSaveSettingsHelp">CalendarTrigger ne peut pas écrire ses
+    <string name="nosavesettingshelp">CalendarTrigger ne peut pas écrire ses
         paramètres parce que CalendarTrigger n\'a pas la permission
-        WRITE_EXTERNAL_STORAGE. Vous pouvez activer cette permission en
-        employant l\'outil \'Paramètres\'
+        WRITE_EXTERNAL_STORAGE.%s</string>
+    <string name="loadsettings">Lire Paramètres</string>
+    <string name="settingsfail">Exception en ouvrant fichier de paramètres
     </string>
-    <string name="loadSettingsHelp">Ce bouton détruit les paramètres de
+    <string name="loadsettingshelp">Ce bouton détruit les paramètres de
         CalendarTrigger el le replace avec les les paramètres lus du fichier.
     </string>
-    <string name="noLoadSettingsHelp">CalendarTrigger ne peut pas lire ses
+    <string name="noloadsettingshelp">CalendarTrigger ne peut pas lire ses
         paramètres parce que CalendarTrigger n\'a pas la permission
-        READ_EXTERNAL_STORAGE. Vous pouvez activer cette permission en
-        employant l\'outil \'Paramètres\'
-    </string>
+        READ_EXTERNAL_STORAGE.%s</string>
     <string name="settingsfile">Fichier paramètres %s</string>
     <string name="packageinfofail">Exception obtenant signature</string>
     <string name="edit_event_class">Changer classe %s</string>
@@ -236,23 +212,7 @@
     <string name="and">et</string>
     <string name="or">ou</string>
     <string name="nametypeevent">le nom de l\'événement</string>
-    <string name="eventnameconthelp">Choisir événements dont le nom contient
-        certains caractères. Une chaîne de caractères vide correspond
-        à tous événements. Si la chaîne est longue, vous pouvez traîner
-        la ligne vers la gauche ou la droite.</string>
-    <string name="eventnamenothelp">Choisir événements dont le nom ne contient pas
-        certains caractères. Une chaîne de caractères vide correspond
-        à tous événements. Si la chaîne est longue, vous pouvez traîner
-        la ligne vers la gauche ou la droite.</string>
     <string name="nametypelocation">le lieu de l\'événement</string>
-    <string name="locationconthelp">Choisir événements dont le lieu contient
-        certains caractères. Une chaîne de caractères vide correspond à tous
-        événements. Si la chaîne est longue, vous pouvez traîner
-        la ligne vers la gauche ou la droite.</string>
-    <string name="locationnothelp">Choisir événements dont le lieune contient pas
-        certains caractères. Une chaîne de caractères vide correspond à tous
-        événements. Si la chaîne est longue, vous pouvez traîner
-        la ligne vers la gauche ou la droite.</string>
     <string name="nametypedescription">le description de l\'événement</string>
     <string name="descriptionconthelp">Choisir événements dont le description
         contient certains caractères. Une chaîne de caractères vide
@@ -294,7 +254,7 @@
         publiciques, ou n\'importe lequel.</string>
     <string name="privatelabel">et l\'événement est:</string>
     <string name="onlyprivate">privé</string>
-    <string name="onlynotprivate">publicique</string>
+    <string name="onlypublic">publicique</string>
     <string name="privateandnot">n\'importe</string>
     <string name="attendeeshelp">Choisir événements pour las classe %s qui ont
         participants, ou n\'ont pas participants, ou n\'importe lequel.</string>
@@ -493,15 +453,13 @@
         la fin de l\'événement, par example si vous entrez dans une chambre
         \'silence\' et vous voulez bloquer votre sonnerie jusq\'a ce que vouz
         êtes sorti(e).</string>
-    <string name="erreur_listing_agendas">Erreur de listing de vos agendas;
-        Google Calendar est-il installé ?</string>
     <string name="chargement">Chargement&#8230;</string>
     <string name="synchronise">Synchronisé</string>
     <string name="non_synchronise">Non synchronisé</string>
     <string name="rafraichir_calendriers">Rafraîchir les calendriers</string>
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
     <string name="afficher_notification">Afficher une notification</string>
-	<string name="mode_sonnerie_change">Mode d\'audio changé à\ </string>
+	<string name="mode_sonnerie_change">"Mode d\'audio changé à "</string>
     <string name="name">nom</string>
     <string name="settingTo">Mode de sonnerie</string>
     <string name="ringerModeNone">non changée</string>
@@ -527,4 +485,6 @@
 		le téléphone en sourdine quand vous êtes au milieu d\'un appel.
         </string>
     <string name="action_settings">Paramètres</string>
+    <string name="logcyclingerror">Faute pendant recyclage du fichier journal
+    </string>
 </resources>

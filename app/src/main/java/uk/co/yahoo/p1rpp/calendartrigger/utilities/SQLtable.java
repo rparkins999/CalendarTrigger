@@ -24,19 +24,15 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-
-import org.jetbrains.annotations.Contract;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
@@ -115,6 +111,8 @@ public class SQLtable {
                     // This is another state variable which records immeditae or deleted
                     // events: possible values are defined below.
                     + " ACTIVE_LIVE INTEGER,"
+                    // This is the end time of this instance.
+                    + " ACTIVE_END_TIME INTEBER,"
                     // This is the time when we next need to wake up for this instance.
                     + " ACTIVE_NEXT_ALARM INTEGER,"
                     // This is the target step count for this event,
@@ -129,6 +127,7 @@ public class SQLtable {
         return null; // unreachable
     }
 
+    // Some of these aren't used (yet) but defined for completeness
     public static final int ACTIVE_CLASS_NAME = 0;
     public static final int ACTIVE_INSTANCE_ID = 1;
     public static final int ACTIVE_EVENT_NAME = 2;
@@ -136,43 +135,52 @@ public class SQLtable {
     public static final int ACTIVE_DESCRIPTION = 4;
     public static final int ACTIVE_STATE = 5;
     public static final int ACTIVE_LIVE = 6;
-    public static final int ACTIVE_NEXT_ALARM = 7;
-    public static final int ACTIVE_STEPS_TARGET = 8;
+    public static final int ACTIVE_END_TIME = 7;
+    public static final int ACTIVE_NEXT_ALARM = 8;
+    public static final int ACTIVE_STEPS_TARGET = 9;
 
     // Possible values for ACTIVE_STATE:-
     // This state is only here for completeness.
     // It should never occur because inactive instances get deleted from the table.
     public static final int NOT_ACTIVE = 0;
+
     // The instance has reached its start time, but is waiting for other conditions
     // to be satisfied before it can become fully active.
     public static final int ACTIVE_START_WAITING = 1;
+
     // The instance was inactive before and has become fully active.
     // This state exists only for one pass through the table.
     // Currently it is never actually set in the database because we always fall
     // through into it and then immediately set ACTIVE_START_SENDING or ACTIVE_STARTED.
     public static final int ACTIVE_STARTING = 2;
+
     // The instance has completed some of the class's start actions,
     // but is waiting for some resource (such as an internet connection) to
     // become available before it can complete others.
     public static final int ACTIVE_START_SENDING = 3;
+
     // The instance has completed all the class's start actions and is now fully active.
     public static final int ACTIVE_STARTED = 4;
+
     // The instance has reached its end time, but is waiting for other conditions
     // to be satisfied before it can become inactive.
     public static final int ACTIVE_END_WAITING = 5;
+
     // The instance was active and has become inactive.
     // This state exists only for one pass through the table.
     // Currently it is never actually set in the database because we always fall
     // through into it and then immediately set ACTIVE_END_SENDING or NOT_ACTIVE.
     public static final int ACTIVE_ENDING = 6;
+
     // The instance has completed some of the class's end actions,
     // but is waiting for some resource (such as an internet connection) to
     // become available before it can complete others.
     public static final int ACTIVE_END_SENDING = 7;
+
     // The next state would be NOT_ACTIVE, but the record gets deleted
     // because we don't need to keep track of this event for this class any more.
 
-    private String getActiveStateName(int n) {
+    public String getActiveStateName(int n) {
         switch (n) {
             case NOT_ACTIVE: return "NOT_ACTIVE";
             case ACTIVE_START_WAITING: return "ACTIVE_START_WAITING";
@@ -201,7 +209,7 @@ public class SQLtable {
             case ACTIVE_LIVE_NORMAL: return "ACTIVE_LIVE_NORMAL";
             case ACTIVE_DELETED: return "ACTIVE_DELETED";
             case ACTIVE_IMMEDIATE: return "ACTIVE_IMMEDIATE";
-           default: return "Unknown live value " + n;
+            default: return "Unknown live value " + n;
         }
     }
 
@@ -391,6 +399,9 @@ public class SQLtable {
                 try {
                     m_database = SQLiteDatabase.openOrCreateDatabase(
                         fileName, null, null);
+                    // Useful for debugging
+                    m_database.disableWriteAheadLogging();
+
                     m_parent = null;
                     m_children = new ArrayList<>();
                     return;
@@ -436,47 +447,73 @@ public class SQLtable {
 
     // Constructor, open the database and query the whole table
     public SQLtable(Context context, String tableName) {
+        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
+            .append(tableName);
+        new MyLog(context, sb.toString());
         m_context = context;
         m_tableName = tableName;
         m_query = "SELECT * FROM " + m_tableName;
-        m_args = null;
+        m_args = new String[]{};
         open();
         m_cursor = null;
         m_position = -1;
+        m_parent = null;
     }
 
     // Constructor, open the database and query the whole table with an
     // (optional) WHERE clause excluding the WHERE and some (optional) arguments
     // and an optional ORDER BY clause excluding the ORDER BY.
     // Unused optional items are nulls.
+    // Not used yet but I may need it later.
+    @SuppressWarnings("unused")
     public SQLtable(Context context, String tableName,
                     String where, String[] args, String order) {
+        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
+            .append(tableName);
+        new MyLog(context, sb.toString());
         m_context = context;
         m_tableName = tableName;
         makeQuery(where, order);
-        m_args = args;
+        m_args = args != null ? args : new String[]{};
         open();
         m_cursor = null;
         m_position = -1;
+        m_parent = null;
     }
 
+    // Constructor, open the database and query the whole table with an
+    // (optional) WHERE clause excluding the WHERE and some (optional) arguments
+    // and an optional ORDER BY clause excluding the ORDER BY.
+    // Unused optional items are nulls.
+    // Not used yet but I may need it later.
+    @SuppressWarnings("unused")
     public SQLtable(Context context, String tableName,
                     String where, ArrayList<String> args, String order) {
+        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
+            .append(tableName);
+        new MyLog(context, sb.toString());
         m_context = context;
         m_tableName = tableName;
         makeQuery(where, order);
-        m_args = args.toArray(m_args);
+        m_args = new String[]{};
+        if (args != null) { m_args = args.toArray(m_args); }
         open();
         m_cursor = null;
         m_position = -1;
+        m_parent = null;
     }
 
     // Constructor, query another table in the same database
     public SQLtable(SQLtable parent, String tableName) {
+        StringBuilder sb = new StringBuilder("SQLtable, parent = ")
+            .append(parent.m_tableName)
+            .append(", tableName = ")
+            .append(tableName);
+        new MyLog(parent.m_context, sb.toString());
         m_context = parent.m_context;
         m_tableName = tableName;
         m_query = "SELECT * FROM " + m_tableName;
-        m_args = null;
+        m_args = new String[]{};
         m_database = m_parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
@@ -491,10 +528,12 @@ public class SQLtable {
     // Unused optional items are nulls.
     public SQLtable(SQLtable parent, String tableName,
                     String where, String[] args, String order) {
+        new MyLog(parent.m_context,
+            "SQLtable, parent = " + parent.m_tableName + ", tableName = " + tableName);
         m_context = parent.m_context;
         m_tableName = tableName;
         makeQuery(where, order);
-        m_args = args;
+        m_args = args != null ? args : new String[]{};
         m_database = parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
@@ -507,12 +546,20 @@ public class SQLtable {
     // (optional) WHERE clause excluding the WHERE and some (optional) arguments
     // and an optional ORDER BY clause excluding the ORDER BY.
     // Unused optional items are nulls.
+    // Not used yet but I may need it later.
+    @SuppressWarnings("unused")
     public SQLtable(SQLtable parent, String tableName,
                     String where, ArrayList<String> args, String order) {
+        StringBuilder sb = new StringBuilder("SQLtable, parent = ")
+            .append(parent.m_tableName)
+            .append(", tableName = ")
+            .append(tableName);
+        new MyLog(parent.m_context, sb.toString());
         m_context = parent.m_context;
         m_tableName = tableName;
         makeQuery(where, order);
-        m_args = args.toArray(m_args);
+        m_args = new String[]{};
+        if (args != null) { m_args = args.toArray(m_args); }
         m_database = parent.m_database;
         m_parent = parent;
         m_parent.m_children.add(this);
@@ -527,17 +574,26 @@ public class SQLtable {
 
     // These methods basically wrap the corresponding methods of Cursor
     // but with some error recovery. I only wrap the ones that I use.
+    // Unused return values are for compatibility with the wrapped methods.
 
     public boolean moveToNext() {
         boolean result = cursor().moveToNext();
-        if (result) { m_position++; }
+        m_position = m_cursor.getPosition();
+        new MyLog(m_context,
+            " moveToNext() set m_position on table "
+            + m_tableName + " to " + m_position);
         return result;
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public boolean moveToPosition(int position) {
         boolean result = cursor().moveToPosition(position);
-        if (result) { m_position = position; }
+        if (result) {
+            m_position = position;
+            new MyLog(m_context,
+                " moveToPosition() set m_position on table "
+                    + m_tableName + " to " + m_position);
+        }
         return result;
     }
 
@@ -563,15 +619,24 @@ public class SQLtable {
                 throw (new NoColumnException());
             } else {
                 try {
-                    //FIXME what happens if cursor is before first?
-                    return cursor().getString(columnIndex);
+                    // It's safe to use m_cursor here because we called cursor() above.
+                    return m_cursor.getString(columnIndex);
                 } catch (IllegalStateException ignore) {
                     // This is definitely a programming error: we
                     // asked for a column which isn't in the recreated table.
                     String small = m_context.getString(
                         R.string.badcolname);
                     String big = small + m_context.getString(
-                        R.string.getstring, caller, columnName, m_tableName);
+                        R.string.incall, caller, columnName, m_tableName);
+                    new MyLog(m_context, true, small, big);
+                } catch (CursorIndexOutOfBoundsException ignore) {
+                    // This is definitely a programming error: we called getString
+                    // when the cursor was before first or after last.
+                    String small = m_context.getString(
+                        m_cursor.isBeforeFirst() ? R.string.cursorbeforefirst
+                                                 : R.string.cursorafterlast);
+                    String big = small + m_context.getString(
+                        R.string.incall, caller, columnName, m_tableName);
                     new MyLog(m_context, true, small, big);
                 }
             }
@@ -615,9 +680,9 @@ public class SQLtable {
     }
 
     // This updates the row that our cursor is looking at.
+    // We should use bind arguments here, but it doesn't seem to work....
     public int update(ContentValues cv) {
         StringBuilder whereClause = new StringBuilder();
-        ArrayList<String> whereArgs = new ArrayList<>();
         int columns = cursor().getColumnCount();
         boolean first = true;
         int i;
@@ -627,14 +692,26 @@ public class SQLtable {
             }
             // It's safe to use m_cursor here because we called cursor() above.
             whereClause.append(m_cursor.getColumnName(i));
-            whereClause.append(" IS ?");
-            whereArgs.add(m_cursor.getString(i));
+            whereClause.append(" IS ");
+            String s = m_cursor.getString(i);
+            if (s == null) {
+                whereClause.append("NULL");
+            }
+            else if (s.matches("^-?[0-9]+$"))
+            {
+                whereClause.append(s);
+            }
+            else
+            {
+                whereClause.append("'");
+                whereClause.append(s.replace("'", "''"));
+                whereClause.append("'");
+            }
         }
         for (i = 10; ; --i) {
             try {
-                // m_args is only used for its type here.
                 int result = m_database.update(m_tableName, cv,
-                    whereClause.toString(), whereArgs.toArray(m_args));
+                    whereClause.toString(), null);
                 invalidate(m_tableName);
                 return result;
             } catch (SQLiteException e) {
@@ -648,6 +725,7 @@ public class SQLtable {
         }
     }
 
+    @SuppressWarnings("unused")
     public int update(String columnName, String value) {
         ContentValues cv = new ContentValues();
         cv.put(columnName, value);
@@ -664,15 +742,27 @@ public class SQLtable {
     // This deletes the row that our cursor is looking at.
     // The Android implementation uses AbstractWindowedCursor, so it doesn't
     // guarantee that the cursor caches all the rows selected.
-    // So we make a new Cursor using the previous query, created on the table
-    // after the deletion and positioned to the row before the deleted one
-    // so that moveToNext() will do as expected and move to the row after
-    // the deleted one.
+    // So we invalidate all cursors on this table.
+    // SQLite says that when you SELECT from a table, the rows are returned in an
+    // undefined order. Here we assume that the order is at least consistent,
+    // so that repeated SELECTs return the rows in the same order.
     @SuppressWarnings("UnusedReturnValue")
     public int delete() {
         StringBuilder whereClause = new StringBuilder();
-        ArrayList<String> whereArgs = new ArrayList<>();
         int columns = cursor().getColumnCount();
+        // It's safe to use m_cursor here because we called cursor() above.
+        int position = m_cursor.getPosition();
+        if ((position == -1) || (position >= m_cursor.getCount())) {
+            // This is definitely a programming error: we tried to delete
+            // when the cursor is not pointing at a record.
+            String big = new StringBuilder("Called delete() when cursor at position ")
+                .append(position).append(" where there is no record").toString();
+            new MyLog(m_context, true, "delete() on no record", big);
+        }
+        // Move back to before deleted record so that moveToNext() will
+        // get to the record after it.
+        m_position = position - 1;
+        // We should use bind arguments here, but it doesn't seem to work....
         boolean first = true;
         int i;
         for ( i = 0; i < columns; ++i) {
@@ -681,17 +771,31 @@ public class SQLtable {
             }
             // It's safe to use m_cursor here because we called cursor() above.
             whereClause.append(m_cursor.getColumnName(i));
-            whereClause.append(" IS ?");
-            whereArgs.add(m_cursor.getString(i));
+            whereClause.append(" IS ");
+            // If there is no current record we'll fail here
+            String s = m_cursor.getString(i);
+            if (s == null) {
+                whereClause.append("NULL");
+            }
+            else if (s.matches("^-?[0-9]+$"))
+            {
+                whereClause.append(s);
+            }
+            else
+            {
+                whereClause.append("'");
+                whereClause.append(s.replace("'", "''"));
+                whereClause.append("'");
+            }
         }
         for (i = 10; ; --i) {
             try {
                 int result = m_database.delete(
-                    m_tableName, whereClause.toString(), whereArgs.toArray(m_args));
+                    m_tableName, whereClause.toString(), null);
                 invalidate(m_tableName);
                 // Move back to before deleted record so that moveToNext() will
                 // get to the record after it.
-                if (m_position >= 0) { --m_position; }
+                m_position = position - 1;
                 return result;
             } catch (SQLiteException e) {
                 // Nonexistent table or column is almost certainly a programming error:
@@ -716,6 +820,7 @@ public class SQLtable {
     // Vacuuming needs to be done from time to time, but it isn't urgent.
     private static final int WRITECOUNT = 1000;
     private void tryVacuum()  {
+        new MyLog(m_context, "tryVacuum()");
         long count = 0;
         try {
             Cursor cr = m_database.rawQuery(
@@ -736,6 +841,7 @@ public class SQLtable {
                     new MyLog(m_context, m_context.getString(R.string.countnoninteger, s));
                     // fall through to replace invalid count with 1
                 }
+                cr.close();
             }
             else
             {
@@ -764,37 +870,27 @@ public class SQLtable {
         StringBuilder sb = new StringBuilder("calendartrigger.utilities.SQLtable(");
         sb.append(m_tableName);
         sb.append(", ");
-        if (m_args == null) {
-            sb.append(m_query);
+        String q = m_query;
+        for (String s : m_args) {
+            q = q.replaceFirst("\\?",
+                "'" + s.replace("'", "''") + "'");
         }
-        else
-        {
-            String q = m_query;
-            for (String s : m_args) {
-                q = q.replaceFirst("\\?",
-                    "'" + s.replace("'", "''") + "'");
-            }
-            sb.append(q);
-        }
+        sb.append(q);
         sb.append(")");
         return sb.toString();
     }
 
     public void close() {
+        new MyLog(m_context, "close(), m_tableName = " + m_tableName);
         if (m_cursor != null) {
             m_cursor.close();
             m_cursor = null;
             m_position = -1;
         }
-    }
-
-    // Arrange to close the database when we have no more tables open on it.
-    @Override
-    protected void finalize() throws Throwable {
-        if (m_cursor != null) { m_cursor.close(); }
-        tryVacuum();
+        // Arrange to close the database when we have no more tables open on it.
         if (m_children.size() == 0) {
             if (m_parent == null) {
+                tryVacuum();
                 m_database.close();
             }
             else
@@ -806,6 +902,7 @@ public class SQLtable {
         {
             // oops, closing a parent before its child(ren)
             // Relink so as to maintain the references of the database.
+            new MyLog(m_context, "closing parent before child");
             SQLtable firstChild = m_children.get(0);
             firstChild.m_parent = m_parent;
             m_children.remove(0);
@@ -820,6 +917,5 @@ public class SQLtable {
                 m_parent.m_children.add(firstChild);
             }
         }
-        super.finalize();
     }
 }

@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
@@ -134,6 +135,9 @@ public class MainActivity extends Activity {
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.clear();
 		super.onPrepareOptionsMenu(menu);
+		if (BuildConfig.DEBUG) {
+			menu.add(Menu.NONE, -4, Menu.NONE, "Run BG");
+		}
 		menu.add(Menu.NONE, -3, Menu.NONE, R.string.floating);
 		menu.add(Menu.NONE, -2, Menu.NONE, R.string.settings);
 		MenuItem mi = menu.add(Menu.NONE, -1, Menu.NONE, R.string.new_event_class);
@@ -202,7 +206,11 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int i = item.getItemId();
-		if (i == -3)
+		if (i == -4)
+		{
+			MuteService.startIfNecessary(this, "MainActivity");
+		}
+		else if (i == -3)
 		{
 			Intent it = new Intent(this, FloatActivity.class);
 			startActivity(it);
@@ -226,5 +234,65 @@ public class MainActivity extends Activity {
 			startActivity(it);
 		}
 		return true;
+	}
+
+	@Override
+	public void onDetachedFromWindow() {
+		super.onDetachedFromWindow();
+	}
+
+	@Override
+	public void finish() {
+		super.finish();
+	}
+
+	@Override
+	public void finishAffinity() {
+		super.finishAffinity();
+	}
+
+	@Override
+	public void finishAndRemoveTask() {
+		super.finishAndRemoveTask();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
+	public void onActivityReenter(int resultCode, Intent data) {
+		super.onActivityReenter(resultCode, data);
+	}
+
+	@Override
+	public boolean moveTaskToBack(boolean nonRoot) {
+		return super.moveTaskToBack(nonRoot);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+
+	@Override
+	public void onLowMemory() {
+		super.onLowMemory();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 	}
 }

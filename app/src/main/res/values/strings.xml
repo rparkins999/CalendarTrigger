@@ -20,6 +20,7 @@
     <string name="unknowncolumn">") unknown column name"</string>
     <string name="badcolumn">Bad column name</string>
     <string name="immediate">immediate event</string>
+    <string name="deleted">deleted event</string>
     <string name="state">", state "</string>
     <string name="badstate">", invalid state "</string>
     <string name="badlive">"bad ACTIVE_LIVE value "</string>
@@ -36,11 +37,30 @@
     <string name="databaseerror">"Database error"</string>
     <string name="unrecoverable">" unrecoverable error "</string>
     <string name="badcolname">Bad column name</string>
-    <string name="getstring">" in call of %s(%s) on table %s"</string>
-    <string name="getunsignedlong">" in call of getUnsignedLong(%s) on table %s"</string>
+    <string name="incall">" in call of %s(%s) on table %s"</string>
+    <string name="cursorbeforefirst">Cursor before first</string>
+    <string name="cursorafterlast">Cursor after last</string>
+    <string name="lastis">"last mode is "</string>
+    <string name="currentis">", current mode is "</string>
+    <string name="setuser">"Setting user ringer to "</string>
+    <string name="stepactive">"Step counter running"</string>
     <string name="classnotfound">Class %s not found</string>
     <string name="forrow">" for row "</string>
     <string name="deletingit">, deleting it</string>
+    <string name="forstart">" for start of "</string>
+    <string name="modeset">"Ringer mode set to "</string>
+    <string name="modeunchanged">Ringer mode unchanged</string>
+    <string name="bforb">" for "</string>
+    <string name="ofclass">" of class "</string>
+    <string name="settingaudio">"Setting audio mode to "</string>
+    <string name="afterreset">" after reset"</string>
+    <string name="fortimezone">" for time zone change"</string>
+    <string name="alarmcancelled">Alarm cancelled</string>
+    <string name="delayedmessage">"Delayed message set for "</string>
+    <string name="stepcounteroff">Step counter deactivated</string>
+    <string name="smsfailed">SMS send fail (</string>
+    <string name="forpart">" for part number "</string>
+    <string name="msgforevent">" of message for event "</string>
     <string name="notablename">"No table name in query "</string>
     <string name="norows">"Table VACUUMDATA has no rows, creating new valid row."</string>
     <string name="value">"Value \""</string>
@@ -52,19 +72,13 @@
     <string name="databasefail">Cannot access floating time event database</string>
     <string name="tablecreatefail">Cannot create table FLOATINGEVENTS</string>
     <string name="nomodifypermission">CalendarTrigger cannot set events to floating
-        time because it does not have permission to modify calendars. You can enable
-        this permission from the device\'s Settings tool by selecting the Application
-        Manager.</string>
+        time because it does not have permission to modify calendars.%s</string>
     <string name="floatnoreadpermission">CalendarTrigger cannot set events to floating
         time because it does not have permission to read from external storage
-        where it keeps its database of floating time events.
-        You can enable this permission from the device\'s Settings tool by selecting
-        the Application Manager.</string>
+        where it keeps its database of floating time events.%s</string>
     <string name="floatnowritepermission">CalendarTrigger cannot set events to floating
         time because it does not have permission to write to external storage
-        where it keeps its database of floating time events.
-        You can enable this permission from the device\'s Settings tool by selecting
-        the Application Manager.</string>
+        where it keeps its database of floating time events.%s</string>
     <string name="eventdate">Event date</string>
     <string name="allinstances">"All instances of recurring event "</string>
     <string name="settobegin">" set to begin at "</string>
@@ -84,6 +98,8 @@
     <string name="badactivestate">Bad active state</string>
     <string name="bigbadactivestate">Bad active state %s for event %s,
         entry removed from active table.</string>
+    <string name="forend">" for end of "</string>
+    <string name="anonymous">with no title</string>
     <string name="nonrecurring">"Non-recurring event "</string>
     <string name="settingstart">" setting start time to "</string>
     <string name="settingend">" UTC and end time to "</string>
@@ -98,78 +114,79 @@
     <string name="floating">Make Events Floating</string>
     <string name="deletinginvalid">"Deleting invalid record "</string>
     <string name="fromtable">") from table "</string>
-    <string name="event">"Event "</string>
+    <string name="event">"event "</string>
     <string name="corrupted">" apparently corrupted, deleted"</string>
     <string name="isallday">" is all day, handled in provider"</string>
     <string name="nonexistent">" no longer exists, deleted"</string>
-    <string name="buildstamp">CalendarTrigger %s built %s</string>
     <string name="settings">Debugging</string>
+    <string name="nextlocationhelp">If checked, this option causes
+        CalendarTrigger to create a virtual contact !NextEventLocation
+        whose address is always the location of the next event in your
+        calendar which has a nonempty location. This can be useful if
+        you have a satnav which can navigate to the address of a
+        contact from your phone.</string>
+    <string name="nextlocationnotallowed">The next location feature
+        requires read and write permission on your contacts list, and cannot
+        be enabled because CalendarTrigger does not have that permission.%s</string>
+    <string name="canenable">" You can enable permissions from the device\'s"
+        Settings tool by selecting the Application Manager.</string>
+    <string name="nologfile">No log file (did you clear it?)</string>
+    <string name="buildstamp">CalendarTrigger %s built %s</string>
     <string name="lastcalldetail">Last called at %s</string>
-    <string name="lastCallHelp">This is the time at which CalendarTrigger was
+    <string name="lastcallhelp">This is the time at which CalendarTrigger was
         most recently called, either directly by the user, or as a result of an
         alarm set by CalendarTrigger itself.</string>
     <string name="lastalarmdetail">Last alarm set for %s</string>
-    <string name="lastAlarmHelp">This is the time of the alarm set by
+    <string name="lastalarmhelp">This is the time of the alarm set by
         CalendarTrigger the last time it was called.</string>
     <string name="laststatedetail">Audio state last set to %s</string>
-    <string name="lastStateHelp">This is the last audio state set by
+    <string name="laststatehelp">This is the last audio state set by
         CalendarTrigger.</string>
     <string name="userstatedetail">Saved user state is %s</string>
-    <string name="userStateHelp">This is the saved audio state last set by
+    <string name="userstatehelp">This is the saved audio state last set by
         the user before CalendarTrigger changed it.</string>
     <string name="currentstatedetail">Current actual audio state is %s</string>
-    <string name="currentStateHelp">This is the actual current audio
+    <string name="currentstatehelp">This is the actual current audio
         state.</string>
     <string name="yeslocation">Monitoring location</string>
     <string name="nolocation">Not monitoring location</string>
-    <string name="LocationStateHelp">This tells if CalendarTrigger currently
+    <string name="locationstatehelp">This tells if CalendarTrigger currently
         has a pending location update request.</string>
-    <string name="yeswakelock">Holding a wake lock</string>
     <string name="nowakelock">Not holding a wake lock</string>
-    <string name="wakelockHelp">This tells if CalendarTrigger is holding a wake
+    <string name="yeswakelock">Holding a wake lock</string>
+    <string name="wakelockhelp">This tells if CalendarTrigger is holding a wake
         lock.</string>
-    <string name="Logging">Logging to file %s</string>
-    <string name="LoggingOn">On</string>
-    <string name="loggingOnHelp">This enables logging. The log file directory
+    <string name="logging">Logging to file %s</string>
+    <string name="loggingon">On</string>
+    <string name="loggingonhelp">This enables logging. The log file directory
         and the log file itself are created when necessary if nonexistent.
         </string>
-    <string name="cantLogHelp">Logging cannot be enabled because
-        CalendarTrigger does not have permission to write to external
-        storage. You can enable this permission from the device\'s Settings
-        tool by selecting the Application Manager.
-    </string>
-    <string name="LoggingOff">Off</string>
-    <string name="loggingOffHelp">This disables logging. The log file if it
+    <string name="cantloghelp">Logging cannot be enabled because
+        CalendarTrigger does not have permission WRITE_EXTERNAL_STORAGE.%s</string>
+    <string name="loggingoff">Off</string>
+    <string name="loggingoffhelp">This disables logging. The log file if it
 		exists is not cleared.</string>
     <string name="clearLog">Clear Log</string>
-    <string name="clearLogHelp">This button deletes the log file. The next
+    <string name="logcleared">Log cleared</string>
+    <string name="clearloghelp">This button deletes the log file. The next
         attempt to write to the log will automatically recreate it, so this
         effectively clears the log.</string>
-    <string name="noclearLogHelp">CalendarTrigger cannot clear the log because
-        it does not have permission to write to external storage. You can enable
-        this permission from the device\'s Settings tool by selecting the
-        Application Manager.
-    </string>
-    <string name="logCleared">Log cleared</string>
-    <string name="showLog">Show Log</string>
-    <string name="showLogHelp">This button displays the log file in a scrolling
+    <string name="noclearloghelp">CalendarTrigger cannot clear the log because
+        it does not have permission to write to external storage.%s</string>
+    <string name="showlog">Show Log</string>
+    <string name="showloghelp">This button displays the log file in a scrolling
         window: press the back button to return to this screen.</string>
-    <string name="noshowLogHelp">CalendarTrigger cannot show the log because
-        it does not have permission to read external storage. You can enable
-        this permission from the device\'s Settings tool by selecting the
-        Application Manager.
-    </string>
-    <string name="nologfile">No log file (did you clear it?)</string>
+    <string name="noshowloghelp">CalendarTrigger cannot show the log because
+        it does not have permission to read external storage.%s</string>
     <string name="logcyclinglabel">Enable log cycling</string>
     <string name="logcyclinghelp">If checked, this option causes
         CalendarTrigger to once per day delete all log entries
         older than 24 hours. This can be used to leave logging active
-        over along period without the log file getting too big.
-    </string>
+        over along period without the log file getting too big.</string>
     <string name="logcyclingnotallowed">Log cycling cannot be enabled because
         CalendarTrigger does not have permission to read and write external
-        storage. You can enable these permissions from the device\'s Settings
-        tool by selecting the Application Manager.</string>
+        storage.%s.</string>
+    <string name="nextlocationlabel">Enable next location</string>
     <string name="reset">Reset</string>
     <string name="resethelp">This button forces all classes to be inactive and
         stops all temporary waits. It is for use if the application gets stuck
@@ -177,39 +194,20 @@
         if you are between the start and finish times of a calendar event, any
         class(es) to which that event belongs will immediately become active
         again.</string>
-    <string name="nextLocationLabel">Enable next location</string>
-    <string name="nextLocationHelp">If checked, this option causes
-        CalendarTrigger to create a virtual contact !NextEventLocation
-        whose address is always the location of the next event in your
-        calendar which has a nonempty location. This can be useful if
-        you have a satnav which can navigate to the address of a
-        contact from your phone.
-    </string>
-    <string name="nextLocationNotAllowed">The next location feature
-        requires read and write permission on your contacts list, and cannot
-        be enabled because CalendarTrigger does not have that permission.
-        You can enable this permission from the device\'s Settings tool
-        by selecting the Application Manager.</string>
     <string name="savesettings">Save Settings</string>
+    <string name="savesettingshelp">This button writes CalendarTrigger\'s
+        settings to a file.</string>
+    <string name="nosavesettingshelp">CalendarTrigger cannot save
+        settings because it does not have permission to write to
+        external storage.%s</string>
     <string name="loadsettings">Load Settings</string>
     <string name="settingsfail">Exception opening settings file</string>
-    <string name="saveSettingsHelp">This button writes CalendarTrigger\'s
-        settings to a file.
-    </string>
-    <string name="noSaveSettingsHelp">CalendarTrigger cannot save
-        settings because it does not have permission to write to
-        external storage. You can enable this permission from the device\'s
-        Settings tool by selecting the Application Manager.
-    </string>
-    <string name="loadSettingsHelp">This button deletes all of 
+    <string name="loadsettingshelp">This button deletes all of
         CalendarTrigger\'s current settings and replaces them with the
-        settings from the Settings file.
-    </string>
-    <string name="noLoadSettingsHelp">CalendarTrigger cannot load
+        settings from the Settings file.</string>
+    <string name="noloadsettingshelp">CalendarTrigger cannot load
         settings because it does not have permission to read from
-        external storage. You can enable this permission from the device\'s
-        Settings tool by selecting the Application Manager.
-    </string>
+        external storage.%s</string>
     <string name="settingsfile">Settings file %s</string>
     <string name="packageinfofail">Exception getting signature</string>
     <string name="edit_event_class">Edit class %s</string>
@@ -241,28 +239,54 @@
     <string name="allcalendars">If no calendar is checked, the event
         can be in class %s if it is in any calendar. Note that this is
         different from checking all calendars: if a new calendar is
-        added later, it will not be checked unless you explicitly edit the
+        added later, it will not be included unless you explicitly edit the
         class again.</string>
+    <string name="thisCalendar">If this is checked, the event can be in class
+        %s if it is in calendar %s.</string>
     <string name="and">and</string>
     <string name="or">or</string>
     <string name="nametypeevent">the event name</string>
-    <string name="eventnameconthelp">Choose events whose name contains
-        a specific character string. An empty match string matches any
-        event name or an event with no name at all. If the match string is long
+    <string name="nameconthelp">Choose events whose event name contains the match string
+        to be in class %s. An empty match string always matches. If the match string
+        is long you can drag the line to the left or right.</string>
+    <string name="namenothelp">Choose events whose event name does not contain
+        the match string to be in class %s. An empty match string always matches.
+        If the match string is long you can drag the line to the left or right.</string>
+    <string name="locconthelp">Choose events whose event location contains the match string
+        to be in class %s. An empty match string always matches. If the match string
+        is long you can drag the line to the left or right.</string>
+    <string name="locnothelp">Choose events whose event location does not contain
+        the match string to be in class %s. An empty match string always matches.
+        If the match string is long you can drag the line to the left or right.</string>
+    <string name="descconthelp">Choose events whose event descritpion contains
+        the match string to be in class %s. An empty match string always matches.
+        If the match string is long you can drag the line to the left or right.</string>
+    <string name="descnothelp">Choose events whose event description does not contain
+        the match string to be in class %s. An empty match string always matches.
+        If the match string is long you can drag the line to the left or right.</string>
+    <string name="eventnamehelp">Click here to select whether the event name
+        should contain or not contain the match string for the event to be in
+        class %s. An empty match string always matches. If the match string is long
         you can drag the line to the left or right.</string>
-    <string name="eventnamenothelp">Choose events whose name does not contain
-        a specific character string. An empty match string matches any
-        event name or an event with no name at all. If the match string is long
+    <string name="eventlocationhelp">Click here to select whether the event location
+        should contain or not contain the match string for the event to be in
+        class %s. An empty match string always matches. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="eventdescriptionhelp">Click here to select whether the event description,
+        should contain or not contain the match string for the event to be in
+        class %s. An empty match string always matches. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="eventconthelp">Click here to select the event name,
+        the event location, or the event description to be tested to contain
+        the match string for the event to be in class %s. An empty match string
+        always matches. If the match string is long
+        you can drag the line to the left or right.</string>
+    <string name="eventnotconthelp">Click here to select the event name,
+        the event location, or the event description to be tested not to contain
+        the match string for the event to be in class %s. An empty match string
+        always matches. If the match string is long
         you can drag the line to the left or right.</string>
     <string name="nametypelocation">the event location</string>
-    <string name="locationconthelp">Choose events whose location contain
-        a specific character string. An empty match string matches any
-        event location or an event with no location at all. If the match string is long
-        you can drag the line to the left or right.</string>
-    <string name="locationnothelp">Choose events whose location does not contain
-        a specific character string. An empty match string matches any
-        event location or an event with no location at all. If the match string is long
-        you can drag the line to the left or right.</string>
     <string name="nametypedescription">the event description</string>
     <string name="descriptionconthelp">Choose events whose description contains
         a specific character string. An empty match string matches any
@@ -275,43 +299,89 @@
     <string name="contains">contains</string>
     <string name="doesnotcontain">does not contain</string>
     <string name="busyhelp">Determine whether events which are busy, not busy,
-        or either (the default), are in class %s.</string>
+        or either (the default), can be in class %s.</string>
     <string name="busylabel">and the event is:</string>
     <string name="onlybusy">busy</string>
+    <string name="onlybusychecked">If this is checked,
+        events which are busy can be in class %s</string>
     <string name="onlynotbusy">not busy</string>
+    <string name="onlynotbusychecked">If this is checked,
+        events which are not busy can be in class %s</string>
     <string name="busyandnot">either</string>
+    <string name="busyandnotchecked">if this is checked,
+        both events which are busy and events which are not busy can be in class %s</string>
     <string name="alldayhelp">Determine whether events which are or are not all day events,
-        or either (the default), are in class %s.</string>
+        or either (the default), can be in class %s.</string>
     <string name="alldaylabel">and the event is:</string>
     <string name="onlyallday">all day</string>
+    <string name="onlyalldaychecked">If this is checked,
+        events which are all day can be in class %s</string>
     <string name="onlynotallday">not all day</string>
+    <string name="onlynotalldaychecked">If this is checked,
+        events which are not all day can be in class %s</string>
     <string name="alldayandnot">either</string>
+    <string name="alldayandnotchecked">If this is checked,
+        both events which are all day and events which are not all day can be in class %s
+    </string>
     <string name="recurrenthelp">Determine whether events which are recurrent,
-        not recurrent, or either (the default), are in class %s.</string>
+        not recurrent, or either (the default), can be in class %s.</string>
     <string name="recurrentlabel">and the event is:</string>
     <string name="onlyrecurrent">recurrent</string>
+    <string name="onlyrecurrentchecked">If this is checked,
+        events which are recurrent can be in class %s</string>
     <string name="onlynotrecurrent">not recurrent</string>
+    <string name="onlynotrecurrentchecked">If this is checked,
+        events which are not recurrent can be in class %s</string>
     <string name="recurrentandnot">either</string>
+    <string name="recurrentandnotchecked">If this is checked,
+        events which are either recurrent or not recurrent can be in class %s
+    </string>
     <string name="organiserhelp">Determine whether events for which you are the
-        organiser, or not the organiser, or either (the default), are in
+        organiser, or not the organiser, or either (the default), can be in
         class %s.</string>
     <string name="organiserlabel">and the event\'s organiser is:</string>
     <string name="onlyorganiser">you</string>
+    <string name="onlyorganiserchecked">If this is checked,
+        events for which you are the organiser can be in class %s</string>
     <string name="onlynotorganiser">not you</string>
+    <string name="onlynotorganiserchecked">If this is checked,
+        events for which you are not the organiser can be in class %s
+    </string>
     <string name="organiserandnot">either</string>
+    <string name="organiserandnotchecked">If this is checked,
+        events for which you either are or are not the organiser can be in class %s
+    </string>
     <string name="privatehelp">Determine whether events which are private,
-        public, or either (the default), are in class %s.</string>
+        public, or either (the default), can be in class %s.</string>
     <string name="privatelabel">and the event is:</string>
     <string name="onlyprivate">private</string>
-    <string name="onlynotprivate">public</string>
+    <string name="onlyprivatechecked">If this is checked,
+        events which are private can be in class %s</string>
+    <string name="onlypublic">public</string>
+    <string name="onlypublicchecked">If this is checked,
+        events which are public can be in class %s</string>
     <string name="privateandnot">either</string>
+    <string name="privateandnotchecked">If this is checked,
+        events which are either private or not private can be in class %s
+    </string>
     <string name="attendeeshelp">Determine whether events which have attendees,
-        or do not have attendees, or either (the default), are in class %s.
+        or do not have attendees, or either (the default), can be in class %s.
         </string>
     <string name="attendeeslabel">and the event has:</string>
     <string name="onlyattendees">attendees</string>
+    <string name="onlyattendeeschecked">If this is checked,
+        events which have attendees can be in class %s. Note that some calendar
+        editors erroneously set the have attendees flag for all events: if you use
+        such an editor, this test is not very useful.</string>
     <string name="onlynoattendees">no attendees</string>
+    <string name="onlynoattendeeschecked">If this is checked,
+        events which have attendees can be in class %s. Note that some calendar
+        editors erroneously set the have attendees flag for all events: if you use
+        such an editor, this test is not very useful.</string>
     <string name="attendeesandnot">either</string>
+    <string name="attendeesandnotchecked">If this is checked,
+        events can be in class %s regardless of whether or not they have attendees.
+    </string>
     <string name="defineStartLabel">Event start definition for class %s</string>
     <string name="defineStartHelp">Define the conditions for the event start
         action(s) to be triggered for an event in class %s.</string>
@@ -333,10 +403,13 @@
 		</string>
     <string name="before">before</string>
     <string name="after">after</string>
+    <string name="beforeafterstarthelp">Choose whether the minutes count is before
+    or after the start of the event</string>
+    <string name="beforeafterendhelp">Choose whether the minutes count is before
+    or after the end of the event</string>
     <string name="startnotuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">Here you can delay the start action(s)
-        until the device is in some particular state.
-    </string>
+        until the device is in some particular state.</string>
     <string name="devicepositionlabel">the device is any of:-</string>
     <string name="devicepositionhelp">Here you can delay the action(s) until the
         device is in some particular orientation. If no box is checked, no
@@ -409,8 +482,8 @@
     <string name="smsoremailhelp">Send message by SMS text if possible; if SMS text
         is not available at the time or the specified contact has no mobile number,
         send message by email; if email is also not available at the time
-        or the specified contact has no email address, no message will be sent
-        .</string>
+        or the specified contact has no email address, no message will be sent.
+    </string>
     <string name="smsoremaildisabled">This option is disabled because your device
         does not have both an email sending service and an SMS text message sending
         service available.</string>
@@ -468,13 +541,13 @@
     <string name="firstfromhelp">Define how to extract the contact\'s first name
         from the event name.</string>
     <string name="fromlabel">" from "</string>
-    <string name="lastnumhelp">Define how to extract the contact\'s last name
+    <string name="getlasthelp">Define how to extract the contact\'s st name
         from the event name.</string>
-    <string name="lastfromhelp">Position (from 0) of the contact\'s last name
-        rom the start or end of the event name.</string>
     <string name="lastlabel">"Larst name is word "</string>
-    <string name="lastnumhelp">Extract the contact\'s last name counted
+    <string name="lastnumhelp">Position (from 0) of the contact\'s last name
         from the start or end of the event name.</string>
+    <string name="lastfromhelp">Define how to extract the contact\'s last name
+        from the event name.</string>
     <string name="removesuffixhelp">Remove , or \'s from first name and last nam
         of contact before searching contacts list.</string>
     <string name="removesuffixdisabled">This option is disabled because the
@@ -518,6 +591,10 @@
         action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help
         information about it.</string>
+    <string name="requestdisturb">Request permission to set Do not disturb</string>
+    <string name="requestdisturbhelp">Click this button to go to the notification
+        policy controller which will allow you to give CalendarTrigger permission
+        to set or clear Do not disturn mode</string>
     <string name="actionstartlist">At start of an event in class %s:-</string>
     <string name="setRinger">Set audio to at most</string>
     <string name="setRingerHelp">This sets the state of the audio during the
@@ -525,8 +602,7 @@
         than it is already in, as set by the user or an overlapping event.
         Silent is weaker than alarms-only which is weaker than muted which is
         weaker than do-not-disturb which is weaker than vibrate which is
-        weaker than normal ringtone.
-    </string>
+        weaker than normal ringtone.</string>
     <string name="normal">normal</string>
     <string name="normalhelp">the normal mode in which all notification sounds
         are played and the phone can ring: since CalendarTrigger will only set
@@ -539,8 +615,8 @@
         configured from the device\'s settings page</string>
     <string name="priorityforbidden">This option is disabled because
 		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to
-        set do not disturb mode. You can enable this permission from the
-        device\'s Settings tool by selecting the Application Manager.</string>
+        set do not disturb mode. You can request this permission ny clicking the
+        button above.</string>
     <string name="unsupported">The device\'s operating system does not
         support this option.</string>
     <string name="muted">muted</string>
@@ -550,12 +626,16 @@
     <string name="alarmshelp">only alarms (as defined by Android) will sound
        </string>
     <string name="alarmsforbidden">This option is disabled because
-		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set alarms only mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set
+        alarms only mode. You can request this permission ny clicking the
+        button above.</string>
     <string name="silent">silent</string>
     <string name="silenthelp">all sounds including media play are suppressed
     </string>
     <string name="silentforbidden">This option is disabled because
-		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to set sielnt mode. You can enable this permission from the device\'s Settings tool by selecting the Application Manager.</string>
+		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY
+        to set silent mode. You can request this permission ny clicking the
+        button above.</string>
     <string name="startNotifyHelp">If this is checked, CalendarTrigger will
         show a notification at the start of the event. The way in which the
         notification is presented depends on the user\'s notification settings.
@@ -565,17 +645,14 @@
         play a sound at the start of the event. The sound can be selected
         using a file browser. If this class mutes the audio, the sound will not
         be heard. Use a separate class to play the sound before the start of
-        the event.
-    </string>
+        the event.</string>
     <string name="endPlaySoundHelp">If this is checked, CalendarTrigger will
         play a sound at the end of the event. The sound can be selected
-        using a file browser.
-    </string>
+        using a file browser.</string>
     <string name="browsenofile">Browse for a sound file</string>
     <string name="browsenofileHelp">Click here to browse for a sound file
     </string>
-    <string name="browsefileHelp">Click here to browse for a different sound
-        file
+    <string name="browsefileHelp">Click here to browse for a different sound file
     </string>
     <string name="start">start</string>
     <string name="end">end</string>
@@ -649,14 +726,13 @@
         useful when the class provides a movement delay on its end action, if
         for example you walk into a quiet room and want to mute your ringer
         until you leave the room again.</string>
-    <string name="erreur_listing_agendas">Error listing your agendas; is Google Agenda installed?</string>
     <string name="chargement">Loading&#8230;</string>
     <string name="synchronise">Synchronized</string>
     <string name="non_synchronise">Not synchronized</string>
     <string name="rafraichir_calendriers">Refresh calendars</string>
     <string name="rafraichir_calendriers_short">Refresh calendars</string>
     <string name="afficher_notification">Show a notification</string>
-    <string name="mode_sonnerie_change">Setting audio mode at\ </string>
+    <string name="mode_sonnerie_change">"Setting audio mode at "</string>
     <string name="name">name</string>
     <string name="settingTo">Setting audio mode to</string>
     <string name="ringerModeNone">Ringer Mode unchanged</string>
@@ -668,38 +744,65 @@
     <string name="ringerModeSilent">totally silent</string>
     <string name="invalidmode">[error-invalid]</string>
     <string name="eventstart">for start of event</string>
-    <string name="ofclass">of class</string>
     <string name="eventend">for end of event</string>
-    <string name="gotmode">"Handler got mode"</string>
+    <string name="gotmode">"Handler got mode "</string>
     <string name="delaywaitmessage">DELAY_WAIT message</string>
     <string name="received">" received"</string>
     <string name="handlemessage">handle message</string>
     <string name="nopowermanager">Cannot get Powermanager</string>
+    <string name="bignomanager">: this may be a permission problem</string>
     <string name="gettinglock">Getting lock</string>
     <string name="endof">"End of "</string>
     <string name="releasinglock">, releasing lock</string>
-    <string name="retaininglock">, reatining lock</string>
+    <string name="retaininglock">, retaining lock</string>
     <string name="nolock">, no lock</string>
     <string name="noSensorManager">"Cannot get SensorManager</string>
     <string name="noSensorManagerimpossible">. This cannot happen because we had
-    to use a SensorManager to register a listener in order to get here.</string>
+        to use a SensorManager to register a listener in order to get here.</string>
     <string name="permissionfail">No permission ACCESS_NOTIFICATION_POLICY
 		</string>
+    <string name="setmodefail">"Cannot set mode "</string>
     <string name="permissionfailbig">" because "CalendarTrigger no longer has permission
 		ACCESS_NOTIFICATION_POLICY. It needs this permission to set do not
-        disturb mode.</string>
-    <string name="setmodefail">Cannot set mode</string>
-    <string name="readphonefail">No permission READ_PHONE_STATE
-		</string>
-    <string name="readphonefailbig">"because "CalendarTrigger no longer has permission
-		READ_PHONE_STATE. It needs this permission to prevent it from muting
-        while a call is active.</string>
+        disturb mode. You can enable this permission from the device\'s Settings tool
+        by selecting the Application Manager.</string>
+    <string name="readphonefail">No permission READ_PHONE_STATE</string>
+    <string name="readphonefailbig">"Cannot read phone state because CalendarTrigger
+        no longer has permission READ_PHONE_STATE. It needs this permission to prevent
+        it from muting while a call is active. You can enable this permission
+        from the device\'s Settings tool by selecting the Application Manager.</string>
     <string name="cyclingnotenabled">Exited doLogCycling because log cycling disabled
     </string>
     <string name="cyclingnotyet">Exited doLogCycling because not time yet</string>
     <string name="logcyclingerror">Error cycling log</string>
     <string name="cyclingerrorbig">"Exited doLogCycling because of exception "</string>
+    <string name="stepstarted">"Step counter activated for class "</string>
     <string name="nolocationmanager">Cannot get LocationManager</string>
-    <string name="bignomanager">: this may be a permission problem</string>
+    <string name="locationstopped">Removing location updates</string>
+    <string name="gpsstarting">"Requesting first GPS location for class "</string>
+    <string name="finestarting">
+        "No GPS, available, requesting first fine location for class "</string>
+    <string name="setgeofence">"Set up geofence for class "</string>
+    <string name="atlocation">" at location "</string>
+    <string name="withingeofence">"Still within geofence for class "</string>
+    <string name="Exitedgeofence">"Exited geofence for class "</string>
+    <string name="Requestedaccelerometer">
+        "Requested accelerometer value for class "</string>
+    <string name="accelerometerx">"accelerometerX = "</string>
+    <string name="accelerometery">", accelerometerY = "</string>
+    <string name="accelerometerz">", accelerometerZ = "</string>
+    <string name="orientationwaiting">"Still waiting for orientation for class "</string>
+    <string name="trysetmode">"Tried to set mode "</string>
+    <string name="actuallygot">", actually got "</string>
+    <string name="mhandlerhasmessages">"mHandler.hasMessages() returns "</string>
+    <string name="logicallytrue">true</string>
+    <string name="logicallyfalse">false</string>
+    <string name="noword">"No word "</string>
+    <string name="nodestination">"No destination specified for "</string>
+    <string name="nomsgbody">"No message sent because of empty message body for "</string>
+    <string name="nophonenumber">"Could not find phone number for </string>
+    <string name="smallnosms">No permission to send SMS</string>
+    <string name="bignosms">
+        "CalendarTrigger does not have permission to send an SMS message for "</string>
     <string name="action_settings">Settings</string>
 </resources>

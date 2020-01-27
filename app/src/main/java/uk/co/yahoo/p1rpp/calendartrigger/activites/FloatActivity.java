@@ -54,7 +54,7 @@ public class FloatActivity extends Activity
     private boolean isFloating (long eventid) {
         String[] args = new String[] { String.valueOf(eventid) };
         SQLtable table = new SQLtable(floatingTimeEvents, "FLOATINGEVENTS",
-            "WHERE EVENT_ID IS ?", args, null);
+            "EVENT_ID IS ?", args, null);
         boolean result = !table.isEmpty();
         table.close();
         return result;
@@ -91,7 +91,8 @@ public class FloatActivity extends Activity
             LinearLayout ll =
                     (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
-            tv.setText(getString(R.string.nomodifypermission));
+            tv.setText(getString(R.string.nomodifypermission,
+                getString(R.string.canenable)));
             ll.addView(tv);
         }
         else if (PackageManager.PERMISSION_GRANTED !=
@@ -101,7 +102,8 @@ public class FloatActivity extends Activity
             LinearLayout ll =
                 (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
-            tv.setText(getString(R.string.floatnoreadpermission));
+            tv.setText(getString(R.string.floatnoreadpermission,
+                getString(R.string.canenable)));
             ll.addView(tv);
         }
         else if (PackageManager.PERMISSION_GRANTED !=
@@ -111,7 +113,8 @@ public class FloatActivity extends Activity
             LinearLayout ll =
                 (LinearLayout)findViewById(R.id.dynamicscrollview);
             TextView tv = new TextView(this);
-            tv.setText(getString(R.string.floatnowritepermission));
+            tv.setText(getString(R.string.floatnowritepermission,
+                getString(R.string.canenable)));
             ll.addView(tv);
         }
         else
@@ -141,7 +144,10 @@ public class FloatActivity extends Activity
             if (cu != null) {
                 DateFormat df = DateFormat.getTimeInstance();
                 cu.moveToNext();
-                String title = cu.getString(INDEX_TITLE);
+                String name = cu.getString(INDEX_TITLE);
+                if ((name == null) || name.isEmpty()) {
+                    name = getString(R.string.anonymous);
+                }
                 long dtstart = cu.getLong(INDEX_DTSTART);
                 if (isChecked) {
                     long offset = TimeZone.getDefault().getOffset(new Date().getTime());
@@ -157,13 +163,13 @@ public class FloatActivity extends Activity
                     new MyLog(this,
                         getString(recurring ?
                             R.string.allinstances : R.string.event)
-                            + title + getString(R.string.settobegin) + df.format(dtstart)
+                            + name + getString(R.string.settobegin) + df.format(dtstart)
                             + getString(R.string.walltime));
                 } else {
                     String[] args = new String[]{String.valueOf(eventId)};
                     SQLtable table = new SQLtable(floatingTimeEvents,
                         "FLOATINGEVENTS",
-                        "WHERE EVENT_ID IS ?", args, null);
+                        "EVENT_ID IS ?", args, null);
                     table.moveToNext();
                     table.delete();
                     table.close();
@@ -171,7 +177,7 @@ public class FloatActivity extends Activity
                     new MyLog(this,
                         getString(recurring ?
                             R.string.allinstances : R.string.event)
-                            + title + getString(R.string.settobegin) + df.format(dtstart)
+                            + name + getString(R.string.settobegin) + df.format(dtstart)
                             + getString(R.string.utc));
                 }
                 cu.close();
@@ -238,7 +244,11 @@ public class FloatActivity extends Activity
                     final long eventId = cu.getLong(INDEX_EVENT_ID);
                     final boolean recurring = cu.getString(INDEX_EVENT_RRULE) != null;
                     CheckBox cb = new CheckBox(this);
-                    cb.setText(cu.getString(INDEX_EVENT_TITLE));
+                    String name = cu.getString(INDEX_EVENT_TITLE);
+                    if ((name == null) || name.isEmpty()) {
+                        name = getString(R.string.event) + getString(R.string.anonymous);
+                    }
+                    cb.setText(name);
                     cb.setTextColor(recurring ? 0xFFFF0000 : 0xFF000000);
                     cb.setChecked(isFloating(eventId));
                     cb.setOnCheckedChangeListener(

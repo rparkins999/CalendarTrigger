@@ -110,6 +110,7 @@ public class CalendarProvider {
 					if (first)
 					{
 						first = false;
+						selClause.append("( ");
 					}
 					else
 					{
@@ -365,6 +366,7 @@ public class CalendarProvider {
 		activeInstances.moveToPosition(-1);
 		// Force all normal instances to be deleted:
 		// we will undelete any which are still alive below.
+        new MyLog(context, "moveToNext() called from CalendarProvider line 369");
 		while (activeInstances.moveToNext()) {
 			try {
 				if (activeInstances.getUnsignedLong("ACTIVE_LIVE")
@@ -402,6 +404,8 @@ public class CalendarProvider {
 						SQLtable table =
 							new SQLtable(activeInstances, "ACTIVEINSTANCES",
 										 where, args, null);
+                        new MyLog(context,
+                            "moveToNext() called from CalendarProvider line 408");
 						if (table.moveToNext()) {
 							try {
 								try {
@@ -430,11 +434,14 @@ public class CalendarProvider {
 					}
 					else
 					{
+						String name = c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+						if (name.isEmpty()) {
+							name = context.getString(R.string.anonymous);
+						}
 						if (end < nextAlarm.time) {
-							nextAlarm.reason = " for end of ";
+							nextAlarm.reason = context.getString(R.string.forend);
 							nextAlarm.time = end;
-							nextAlarm.eventName =
-								c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+							nextAlarm.eventName = context.getString(R.string.event) + name;
 							nextAlarm.className = className;
 						}
 						long start = c1.getLong(INSTANCE_PROJECTION_BEGIN_INDEX) - before;
@@ -445,6 +452,8 @@ public class CalendarProvider {
 							SQLtable table =
 								new SQLtable(activeInstances, "ACTIVEINSTANCES",
 									where, args, null);
+                            new MyLog(context,
+                                "moveToNext() called from CalendarProvider line 456");
 							if (table.moveToNext()) {
 								// undelete still active instance
 								table.update(
@@ -456,14 +465,14 @@ public class CalendarProvider {
 								ContentValues cv = new ContentValues();
 								cv.put("ACTIVE_CLASS_NAME", className);
 								cv.put("ACTIVE_INSTANCE_ID", instanceId);
-								cv.put("ACTIVE_EVENT_NAME",
-									c1.getString(INSTANCE_PROJECTION_TITLE_INDEX));
+								cv.put("ACTIVE_EVENT_NAME", name);
 								cv.put("ACTIVE_LOCATION",
 									c1.getString(INSTANCE_PROJECTION_LOCATION_INDEX));
 								cv.put("ACTIVE_DESCRIPTION",
 									c1.getString(INSTANCE_PROJECTION_DESCRIPTION_INDEX));
 								cv.put("ACTIVE_STATE", SQLtable.ACTIVE_START_WAITING);
 								cv.put("ACTIVE_LIVE", SQLtable.ACTIVE_LIVE_NORMAL);
+								cv.put("ACTIVE_END_TIME", end);
 								cv.put("ACTIVE_NEXT_ALARM", end);
 								cv.put("ACTIVE_STEPS_TARGET", 0);
 								table.insert(cv);
@@ -471,10 +480,9 @@ public class CalendarProvider {
 							table.close();
 						}
 						else if (start < nextAlarm.time) {
-							nextAlarm.reason = " for start of ";
+							nextAlarm.reason = context.getString(R.string.forstart);
 							nextAlarm.time = start;
-							nextAlarm.eventName =
-								c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+							nextAlarm.eventName = name;
 							nextAlarm.className = className;
 						}
 						else
@@ -603,6 +611,7 @@ public class CalendarProvider {
 			context.getString(R.string.minutes) + ".";
 		new MyLog(context, small, big);
 		SQLtable floatingEvents = new SQLtable(table, "FLOATINGEVENTS");
+        new MyLog(context, "moveToNext() called from CalendarProvider line 614");
 		while (floatingEvents.moveToNext()) {
 			long eventId;
 			try {
