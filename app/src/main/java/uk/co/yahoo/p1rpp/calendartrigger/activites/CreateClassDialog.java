@@ -68,10 +68,12 @@ public class CreateClassDialog extends DialogFragment {
 
             public void afterTextChanged(Editable e) {
                 String s = e.toString();
-                if (    s.isEmpty()
-                    || (PrefsManager.getClassNum(getActivity(), s) >= 0))
+                if (   s.isEmpty()
+                    || (PrefsManager.getClassNum(getActivity(), s) >= 0)
+                    || (s.equals("last_we_set"))
+                    || (s.equals("last_user_set")))
                 {
-                    // no text or class already exists
+                    // no text or class already exists or reserved word
                     create_button.setEnabled(false);
                 }
                 else

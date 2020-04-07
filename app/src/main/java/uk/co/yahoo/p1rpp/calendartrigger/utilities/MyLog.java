@@ -6,18 +6,24 @@
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.Console;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
+import android.util.Log;
 
+import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
 public class MyLog extends Object {
 
 	private void logIt(Context context, String big, boolean noprefix) {
+		if (BuildConfig.DEBUG) {
+			Log.e("LOG", big);
+		}
 		String type = context.getResources().getString(R.string.typelog);
 		if (   (PrefsManager.getLoggingMode(context))
 			&& DataStore.ensureDataDirectory(context, type))

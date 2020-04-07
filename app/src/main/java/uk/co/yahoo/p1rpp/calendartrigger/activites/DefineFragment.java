@@ -19,7 +19,7 @@ import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
 import static android.view.MotionEvent.ACTION_DOWN;
 
-// Common code for DefineStartFragment and DefineSTopFragment
+// Common code for DefineStartFragment and DefineStopFragment
 public class DefineFragment extends Fragment
     implements View.OnTouchListener {
 

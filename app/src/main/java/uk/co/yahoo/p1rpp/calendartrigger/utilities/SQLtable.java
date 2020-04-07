@@ -12,7 +12,11 @@
  * in the table itself and the cursor.
  * We assume that table names and column names don't contain any nonalphanumeric
  * characters apart from _ and are chosen so that they can't be confused with
- * reserved words. No assumption is made about WHERE arguments.
+ * reserved words. No assumption is made about WHERE arguments or keyValues.
+ */
+
+/* We make extensive use of lazy evaluation. Tables are not created until used,
+ * and queries are not actually run until the result is accessed.
  */
 
 /* It is permissible to open the database more than once and typically if both
@@ -20,6 +24,25 @@
  * However to save time and memory I allow an SQLtable to be created from
  * another one using the same open database. It isn't obligatory to do this
  * but I expect to do so within a single class instance. or static method.
+ */
+
+/* CalendarTrigger keeps its database is public storage. This is a deliberate choice:
+ * I don't approve of applications that store information on the user's device
+ * but don't allow the user to read it: this allows major scope for mischief,
+ * and there are certainly applications out there which do things which users
+ * would not like if they knew about it.
+ * However because Android doesn't understand the difference between read permission
+ * and write permission, the user or a rogue application can corrupt CalendarTrigger's
+ * database. So CalendarTrigger is very paranoid about the data in its database and
+ * tries quite hard to recover from database corruption without crashing. it will
+ * replace with defaults any data that gets corrupted or recreate any table that gets
+ * corrupted or even recreate the entire database if it can't find it. It will display
+ * a notification and log a message (if logging is enabled) if it does any of
+ * these things. Of course this can result in some loss of data: you mess with
+ * CalendarTrigger's database (or install an application which does so) at your own risk!
+ * Some data is still kept in the Preferences, but almost all of this can be read
+ * using the CalendarTrigger UI: this is legacy and the intention is to move
+ * everything into the visible database is some future version.
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.utilities;
@@ -31,42 +54,53 @@ import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 
 public class SQLtable {
-    private Context m_context;
-    private String m_tableName;
-    private String m_query;
-    private String[] m_args;
     private SQLiteDatabase m_database;
-    private SQLtable m_parent;
-    private ArrayList<SQLtable> m_children;
+    private int m_position;
 
     // m_cursor uses lazy evaluation: we don't actually do the query to create it
     // until some method is called which needs it. This is done so that we can
     // keep cursors up to date with any changes that we make to the table.
     private Cursor m_cursor;
-    private int m_position;
+    private String m_query;
+    private String[] m_args;
+    private String m_tableName;
+    private Context m_context;
+    private SQLtable m_parent;
+    private ArrayList<SQLtable> m_children;
+
+    private String quote(String s) {
+        return "'" + s.replace("'", "''") + "'";
+    }
 
     // Here we describe all the tables in our database
-
-    // All table names are concatenated words so that they shouldn't be reserved words
-    // All column names contain "_" so that they shouldn't be reserved words
-    private String getCreator(String s) {
-        switch (s) {
+    // All table names are concatenated words so that they shouldn't be reserved words.
+    // All column names contain "_" so that they shouldn't be reserved words.
+    // Call this to create (or recreate) table "name" if "makeTable" is true
+    // and then, for those tables which use it, create a default row or a row with
+    // key keyValue.
+    private void create(String name, boolean makeTable, String keyValue) {
+        switch (name) {
             case "VACUUMDATA":
-                return "CREATE TABLE VACUUMDATA (" +
-                    // This counts the number of writes to the database.
-                    // When it reaches 1000, we try a VACUUM.
-                    // If it succeeds, we reset the count to 1.
-                    "VACUUM_COUNT INTEGER)";
+                // This table keeps track of the number of writes to the database.
+                // When it reaches 1000, we try a VACUUM.
+                // If it succeeds, we reset the count to 1.
+                if (makeTable) {
+                    m_database.execSQL("DROP TABLE IF EXISTS " + name);
+                    m_database.execSQL("CREATE TABLE VACUUMDATA (" +
+                        "VACUUM_COUNT INTEGER)");
+                }
+                // If creating this table, we always need to create its default row.
+                m_database.execSQL("INSERT INTO VACUUMDATA VALUES (0)");
+                break;
             case "FLOATINGEVENTS":
                 // This table keeps track of floating time events.
                 // It is used to adjust the UTC times when the time zone changes.
-                return "CREATE TABLE FLOATINGEVENTS ("
+                m_database.execSQL("CREATE TABLE FLOATINGEVENTS ("
                     // This is the _ID of a floating time event.
                     // Event_id's are unique, so we don't need the calendar id.
                     + " EVENT_ID INTEGER,"
@@ -77,10 +111,11 @@ public class SQLtable {
                     // This is the end time of the event in wall clock time.,
                     // It is used to recalculate DTEND for non-recurring events.
                     // For recurring events Android uses DURATION instead.
-                    + " END_WALLTIME_MILLIS INTEGER )";
+                    + " END_WALLTIME_MILLIS INTEGER )");
+                break;
             case "ACTIVEINSTANCES":
                 // This table keeps track of active event instances.
-                return "CREATE TABLE ACTIVEINSTANCES ("
+                m_database.execSQL("CREATE TABLE ACTIVEINSTANCES ("
                     // This is the class name of the event.
                     // An instance has a separate entry in this table
                     // for each class in which it is active.
@@ -96,19 +131,19 @@ public class SQLtable {
                     // or "deleted event" for a deleted instance
                     // We need it here because we can't search the instance table for an
                     // instance ID.
-                    + " ACTIVE_EVENT_NAME STRING,"
+                    + " ACTIVE_EVENT_NAME TEXT,"
                     // This is the event location. It is "" for an immediate event.
                     // We need it here because we can't search the instance table for an
                     // instance ID.
-                    + " ACTIVE_LOCATION STRING,"
+                    + " ACTIVE_LOCATION TEXT,"
                     // This is the event description. It is "" for an immediate event.
                     // We need it here because we can't search the instance table for an
                     // instance ID.
-                    + " ACTIVE_DESCRIPTION STRING,"
+                    + " ACTIVE_DESCRIPTION TEXT,"
                     // This is the state of an active instance:
                     // the states are defined below.
                     + " ACTIVE_STATE INTEGER,"
-                    // This is another state variable which records immeditae or deleted
+                    // This is another state variable which records immediate or deleted
                     // events: possible values are defined below.
                     + " ACTIVE_LIVE INTEGER,"
                     // This is the end time of this instance.
@@ -117,14 +152,58 @@ public class SQLtable {
                     + " ACTIVE_NEXT_ALARM INTEGER,"
                     // This is the target step count for this event,
                     // or zero if it has no step count wait active.
-                    + " ACTIVE_STEPS_TARGET"
-                    + " )";
-
+                    + " ACTIVE_STEPS_TARGET INTEGER"
+                    + " )");
+                break;
+            case "RINGERDNDMODES":
+                // This table keeps track of ringer and other muting and
+                // do-not-disturb modes on versions of Android which support them.
+                // There is a row of muting and d-n-d modes for each class and
+                // also a row for what the user last set (we only use quieter modes
+                // than that) and another row for what we last set so that we can tell
+                // when the user changed anything.
+                // We may not need all of these in the real version
+                // but they are here for testing the behaviour
+                if (makeTable) {
+                    m_database.execSQL("CREATE TABLE RINGERDNDMODES ("
+                        // Class Name or last_we_set or last_user_set
+                        + " RINGER_CLASS_NAME TEXT,"
+                        // Classic ringer mode
+                        + " RINGER_MODE TEXT DEFAULT '-',"
+                        // Vibrate on incoming call (ON or OFF)
+                        // (regardless of RINGER_VOLUME)
+                        + " RINGER_VIBRATE TEXT DEFAULT '-',"
+                        + " NOTIFY_VIBRATE TEXT DEFAULT '-',"
+                        // Post API 23 version
+                        + " RINGER_VOLUME INTEGER DEFAULT 1000,"
+                        + " NOTIFY_VOLUME INTEGER DEFAULT 1000,"
+                        + " SYSTEM_VOLUME INTEGER DEFAULT 1000,"
+                        + " ALARM_VOLUME INTEGER DEFAULT 1000,"
+                        + " RINGER_MUTE TEXT DEFAULT '-',"
+                        + " NOTIFY_MUTE TEXT DEFAULT '-',"
+                        + " SYSTEM_MUTE TEXT DEFAULT '-',"
+                        + " ALARM_MUTE TEXT DEFAULT '-',"
+                        + " VIBRATE_ALSO TEXT DEFAULT '-',"
+                        // Interruption filter (ALL, PRIORITY, ALARMS, NONE)
+                        + " DO_NOT_DISTURB_MODE TEXT DEFAULT '-')");
+                }
+                if (keyValue != null) {
+                    // If we tried to access a row which doesn't exist, we make one
+                    // with the requested key and default values.
+                    // The value 1000 is never set since we always use 0 or a saved user
+                    // volume: it just needs to be larger than any valid value.
+                    m_database.execSQL("INSERT INTO RINGERDNDMODES"
+                        + " ( RINGER_CLASS_NAME ) VALUES (" + quote(keyValue) + ")");
+                }
+                break;
+            default:
+                // If this occurs. it's a programming error
+                String big = "create(" + name + m_context.getString(R.string.unknowntable);
+                new MyLog(m_context, true,
+                    m_context.getString(R.string.badtable), big);
+                // unreachable
         }
-        // If this occurs. it's a programming error
-        String big = "getCreator(" + s + m_context.getString(R.string.unknowntable);
-        new MyLog(m_context, true, m_context.getString(R.string.badtable), big);
-        return null; // unreachable
+        invalidate(this, name);
     }
 
     // Some of these aren't used (yet) but defined for completeness
@@ -204,15 +283,6 @@ public class SQLtable {
     // Immediate event: this has no instance ID or name or location or description.
     public static final int ACTIVE_IMMEDIATE = 2;
 
-    private String getActiveLiveName(int n) {
-        switch (n) {
-            case ACTIVE_LIVE_NORMAL: return "ACTIVE_LIVE_NORMAL";
-            case ACTIVE_DELETED: return "ACTIVE_DELETED";
-            case ACTIVE_IMMEDIATE: return "ACTIVE_IMMEDIATE";
-            default: return "Unknown live value " + n;
-        }
-    }
-
     private Cursor cursor() {
         if (m_cursor == null) {
             for (int i = 10; ; --i) {
@@ -228,158 +298,80 @@ public class SQLtable {
         return m_cursor;
     }
 
-    private String rowVacToString() {
-        return "(" + cursor().getString(0) + ")";
-    }
-
-    private String rowFloatToString() {
-        try {
-            StringBuilder builder =
-                new StringBuilder("(event ID " + getString("EVENT_ID"));
-            builder.append(", ");
-            DateFormat df = DateFormat.getDateTimeInstance();
-            try {
-                builder.append(df.format(
-                    getUnsignedLong("START_WALLTIME_MILLIS")));
-            } catch (NumberFormatException ignore) {
-                builder.append("?);");
-                builder.append(getString("START_WALLTIME_MILLIS"));
-                builder.append("?);");
-            }
-            builder.append(" to ");
-            try {
-                builder.append(df.format(getUnsignedLong(
-                    "END_WALLTIME_MILLIS")));
-            } catch (NumberFormatException ignore) {
-                builder.append("?);");
-                builder.append(getString("END_WALLTIME_MILLIS"));
-                builder.append("?);");
-            }
-            builder.append(")");
-            return builder.toString();
-        } catch (NoColumnException ignore) {
-            // This should never happen.
-            return "";
-        }
-    }
-
-    private String rowActiveToString() {
-        try {
-            StringBuilder builder =
-                new StringBuilder("(");
-            builder.append(getString("ACTIVE_CLASS_NAME"));
-            builder.append(", ID ");
-            builder.append(getString("ACTIVE_INSTANCE_ID"));
-            builder.append(", ");
-            builder.append(getString("ACTIVE_EVENT_NAME"));
-            builder.append(", ");
-            builder.append(getString("ACTIVE_LOCATION"));
-            builder.append(", ");
-            builder.append(getString("ACTIVE_DESCRIPTION"));
-            try {
-                int n = (int)getUnsignedLong("ACTIVE_STATE");
-                builder.append(m_context.getString(R.string.state));
-                builder.append(getActiveStateName(n));
-            } catch (NumberFormatException ignore) {
-                builder.append(m_context.getString(R.string.badstate));
-                builder.append(getString("ACTIVE_STATE"));
-            }
-            builder.append(", ");
-            try {
-                int n = (int)getUnsignedLong("ACTIVE_LIVE");
-                builder.append(getActiveLiveName(n));
-            } catch (NumberFormatException ignore) {
-                builder.append(m_context.getString(R.string.badlive));
-                builder.append(getString("ACTIVE_LIVE"));
-            }
-            builder.append(m_context.getString(R.string.alarm));
-            try {
-                DateFormat df = DateFormat.getDateTimeInstance();
-                builder.append(df.format(getUnsignedLong("ACTIVE_NEXT_ALARM")));
-            } catch (NumberFormatException ignore) {
-                builder.append("?");
-                builder.append(getString("ACTIVE_NEXT_ALARM"));
-                builder.append("?");
-            }
-            builder.append(m_context.getString(R.string.targetsteps));
-            builder.append(getString("ACTIVE_STEPS_TARGET"));
-            builder.append(")");
-            return builder.toString();
-        } catch (NoColumnException ignore) {
-            // This should never happen.
-            return "";
-        }
-    }
-
     // Return a string describing the row pointed to by our Cursor.
     // Note that this is used for error messages, so it has to work
-    // if the row contains bad data. However it doesn't have to work if the
-    // table does not contain the right columns, since we deal with that
-    // elsewhere.
-    // The versions above can be used if we know which table it is from.
+    // if the row contains bad data.
     public String rowToString() {
-        switch (m_tableName) {
-            case "VACUUMDATA":
-                return rowVacToString();
-            case "FLOATINGEVENTS":
-                return rowFloatToString();
-            case "ACTIVEINSTANCES":
-                return rowActiveToString();
-            default:
-                // If this occurs. it's a programming error
-                String small = m_context.getString(R.string.badcursor);
-                String big = m_context.getString(R.string.badrowtocolumn);
-                new MyLog(m_context, true, small, big);
-                return null; // unreachable
-        }
+        StringBuilder builder =
+            new StringBuilder("(");
+        boolean first = true;
+        String[] names = cursor().getColumnNames();
+        try {
+            for (String name : names) {
+                if (first) {
+                    first = false;
+                } else {
+                    builder.append(",");
+                }
+                builder.append(name);
+                builder.append(" ");
+                builder.append(getString(name));
+            }
+        // This should never happen because we got the column names from the cursor.
+        } catch (NoColumnException ignore) { }
+        return builder.toString();
     }
 
     // This normally returns, having patched up the database if necessary
     // so that the caller can try again if it wants to.
     // Unrecoverable problems result in a fatal error.
-    // We assume here that our column names don't contain spaces
+    // We assume here that our column names are valid identifiers.
     private void handleException (int i, SQLiteException e, String tableName) {
-        String s = e.getMessage();
-        if (s.startsWith("no such table:")) {
-            new MyLog(m_context,
-                m_context.getString(R.string.table) + tableName +
-                    m_context.getString(R.string.creating));
+        if (e == null) { // table should have a row, but doesn't
             try {
-                m_database.execSQL(getCreator(tableName));
+                new MyLog(m_context,
+                    m_context.getString(R.string.norows, tableName));
+                create(tableName, false, null);
                 return;
             } catch (SQLiteException ee) {
                 e = ee;
             }
         }
-        else if (s.startsWith("no such column:")) {
-            String columnName = s.split(" ")[3];
-            new MyLog(m_context,
-                m_context.getString(R.string.creatingnew) + tableName,
-                m_context.getString(R.string.bigcreatingnew,
-                    columnName, tableName));
-            try {
-                m_database.execSQL("DROP TABLE " + tableName);
-                m_database.execSQL(getCreator(tableName));
-                m_cursor = null;
-                m_position = -1;
+        else {
+            String s = e.getMessage();
+            if (s.startsWith("no such table:")) {
+                new MyLog(m_context,
+                    m_context.getString(R.string.creatingnew) + tableName,
+                    m_context.getString(R.string.table) + tableName +
+                        m_context.getString(R.string.creating));
+                try {
+                    create(tableName, true, null);
+                } catch (SQLiteException ignore) { }
                 return;
-            } catch (SQLiteException ee) {
-                e = ee;
-            }
-        }
-        else
-        {
-            String t = e.getClass().getName();
-            if (   (t.equals("SQLiteTableLockedException"))
-                || (t.equals("SQLiteDatabaseLockedException")))
-            {
-                new MyLog(m_context, t);
-                // Try waiting 0.1 second for the other transaction to complete
-                if (i > 0) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ignore) { return; }
+            } else if (s.startsWith("no such column:")) {
+                String columnName = s.split(" ")[3];
+                new MyLog(m_context,
+                    m_context.getString(R.string.creatingnew) + tableName,
+                    m_context.getString(R.string.bigcreatingnew,
+                        columnName, tableName));
+                try {
+                    create(tableName, true, null);
                     return;
+                } catch (SQLiteException ignore) { }
+            } else {
+                String t = e.getClass().getName();
+                if ((t.equals("SQLiteTableLockedException"))
+                    || (t.equals("SQLiteDatabaseLockedException"))) {
+                    new MyLog(m_context, t);
+                    // Try waiting 0.1 second for the other transaction to complete
+                    if (i > 0) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ignore) {
+                            return;
+                        }
+                        return;
+                    }
                 }
             }
         }
@@ -394,6 +386,8 @@ public class SQLtable {
     // Open the (fixed) database
     private void open() {
         String fileName = DataStore.getDatabaseFile(m_context);
+        m_parent = null;
+        m_children = new ArrayList<>();
         if (fileName != null) {
             for (int i = 10; ; --i) {
                 try {
@@ -401,9 +395,8 @@ public class SQLtable {
                         fileName, null, null);
                     // Useful for debugging
                     m_database.disableWriteAheadLogging();
-
-                    m_parent = null;
-                    m_children = new ArrayList<>();
+                    m_position = -1;
+                    m_cursor = null;
                     return;
                 } catch (SQLiteException e) {
                     handleException(i, e, m_tableName);
@@ -447,17 +440,11 @@ public class SQLtable {
 
     // Constructor, open the database and query the whole table
     public SQLtable(Context context, String tableName) {
-        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
-            .append(tableName);
-        new MyLog(context, sb.toString());
-        m_context = context;
         m_tableName = tableName;
         m_query = "SELECT * FROM " + m_tableName;
         m_args = new String[]{};
+        m_context = context;
         open();
-        m_cursor = null;
-        m_position = -1;
-        m_parent = null;
     }
 
     // Constructor, open the database and query the whole table with an
@@ -468,17 +455,28 @@ public class SQLtable {
     @SuppressWarnings("unused")
     public SQLtable(Context context, String tableName,
                     String where, String[] args, String order) {
-        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
-            .append(tableName);
-        new MyLog(context, sb.toString());
-        m_context = context;
         m_tableName = tableName;
         makeQuery(where, order);
         m_args = args != null ? args : new String[]{};
+        m_context = context;
         open();
+    }
+
+    // Constructor, open the database and query the row with key keyValue,
+    // creating it if it does not exist
+    public SQLtable(Context context, String tableName,
+                    String columnName, String keyValue) {
         m_cursor = null;
-        m_position = -1;
-        m_parent = null;
+        m_tableName = tableName;
+        makeQuery(columnName + " IS " + quote(keyValue), null);
+        m_args = new String[]{};
+        m_context = context;
+        open();
+        if (cursor().getCount() == 0) {
+            create(tableName, false, keyValue);
+            invalidate(tableName);
+        }
+        m_position = 0; // we want to be on the row we found
     }
 
     // Constructor, open the database and query the whole table with an
@@ -489,37 +487,47 @@ public class SQLtable {
     @SuppressWarnings("unused")
     public SQLtable(Context context, String tableName,
                     String where, ArrayList<String> args, String order) {
-        StringBuilder sb = new StringBuilder("SQLtable, no parent, tableName = ")
-            .append(tableName);
-        new MyLog(context, sb.toString());
-        m_context = context;
         m_tableName = tableName;
         makeQuery(where, order);
         m_args = new String[]{};
         if (args != null) { m_args = args.toArray(m_args); }
+        m_context = context;
         open();
-        m_cursor = null;
-        m_position = -1;
-        m_parent = null;
     }
 
     // Constructor, query another table in the same database
     public SQLtable(SQLtable parent, String tableName) {
-        StringBuilder sb = new StringBuilder("SQLtable, parent = ")
-            .append(parent.m_tableName)
-            .append(", tableName = ")
-            .append(tableName);
-        new MyLog(parent.m_context, sb.toString());
-        m_context = parent.m_context;
+        m_database = parent.m_database;
+        m_position = -1;
+        m_cursor = null;
         m_tableName = tableName;
         m_query = "SELECT * FROM " + m_tableName;
         m_args = new String[]{};
-        m_database = m_parent.m_database;
+        m_context = parent.m_context;
         m_parent = parent;
         m_parent.m_children.add(this);
         m_children = new ArrayList<>();
+    }
+
+    // Constructor, query the row with key keyValue in another table in the same database
+    public SQLtable(SQLtable parent, String tableName,
+                    String columnName, String keyValue)
+    {
+        m_database = parent.m_database;
         m_cursor = null;
-        m_position = -1;
+        m_tableName = tableName;
+        m_query = "SELECT * FROM " + m_tableName +
+                  " WHERE " + columnName + " IS " + quote(keyValue);
+        m_args = new String[]{};
+        m_context = parent.m_context;
+        m_parent = parent;
+        m_parent.m_children.add(this);
+        m_children = new ArrayList<>();
+        if (cursor().getCount() == 0) {
+            create(tableName, false, keyValue);
+            invalidate(tableName);
+        }
+        m_position = 0; // we want to be on the row we found
     }
 
     // Constructor, query another table in the same database with an
@@ -528,18 +536,16 @@ public class SQLtable {
     // Unused optional items are nulls.
     public SQLtable(SQLtable parent, String tableName,
                     String where, String[] args, String order) {
-        new MyLog(parent.m_context,
-            "SQLtable, parent = " + parent.m_tableName + ", tableName = " + tableName);
-        m_context = parent.m_context;
+        m_database = parent.m_database;
+        m_position = -1;
+        m_cursor = null;
         m_tableName = tableName;
         makeQuery(where, order);
         m_args = args != null ? args : new String[]{};
-        m_database = parent.m_database;
+        m_context = parent.m_context;
         m_parent = parent;
         m_parent.m_children.add(this);
         m_children = new ArrayList<>();
-        m_cursor = null;
-        m_position = -1;
     }
 
     // Constructor, query another table in the same database with an
@@ -550,22 +556,17 @@ public class SQLtable {
     @SuppressWarnings("unused")
     public SQLtable(SQLtable parent, String tableName,
                     String where, ArrayList<String> args, String order) {
-        StringBuilder sb = new StringBuilder("SQLtable, parent = ")
-            .append(parent.m_tableName)
-            .append(", tableName = ")
-            .append(tableName);
-        new MyLog(parent.m_context, sb.toString());
-        m_context = parent.m_context;
+        m_database = parent.m_database;
+        m_position = -1;
+        m_cursor = null;
         m_tableName = tableName;
         makeQuery(where, order);
         m_args = new String[]{};
         if (args != null) { m_args = args.toArray(m_args); }
-        m_database = parent.m_database;
+        m_context = parent.m_context;
         m_parent = parent;
         m_parent.m_children.add(this);
         m_children = new ArrayList<>();
-        m_cursor = null;
-        m_position = -1;
     }
 
     public boolean isEmpty() {
@@ -579,10 +580,16 @@ public class SQLtable {
     public boolean moveToNext() {
         boolean result = cursor().moveToNext();
         m_position = m_cursor.getPosition();
-        new MyLog(m_context,
-            " moveToNext() set m_position on table "
-            + m_tableName + " to " + m_position);
         return result;
+    }
+
+    @SuppressWarnings({"UnusedReturnValue", "Unused"})
+    public boolean moveToFirst() {
+        if (!cursor().moveToFirst()) {
+            handleException(0, null, m_tableName);
+            return cursor().moveToFirst();
+        }
+        return true;
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -590,9 +597,6 @@ public class SQLtable {
         boolean result = cursor().moveToPosition(position);
         if (result) {
             m_position = position;
-            new MyLog(m_context,
-                " moveToPosition() set m_position on table "
-                    + m_tableName + " to " + m_position);
         }
         return result;
     }
@@ -609,12 +613,11 @@ public class SQLtable {
                         columnName, m_tableName));
                 try {
                     m_database.execSQL("DROP TABLE " + m_tableName);
-                    m_database.execSQL(getCreator(m_tableName));
+                    create(m_tableName, true, null);
                 } catch (SQLiteException e) {
                     handleException(i, e, m_tableName);
                 }
                 m_cursor = null;
-                m_position = -1;
                 // Force our caller to break out of its loop.
                 throw (new NoColumnException());
             } else {
@@ -648,6 +651,19 @@ public class SQLtable {
         return getString(columnName, "getString");
     }
 
+    public String getStringOK(String columnName) {
+        try {
+            return getString(columnName, "getStringOK");
+        } catch (NoColumnException ignore) {
+            // We should have recreated the table, so try again
+            try {
+                return getString(columnName, "getStringOK");
+            } catch (NoColumnException ignored) {
+                return null;
+            }
+        }
+    }
+
     public long getUnsignedLong(String columnName)
         throws NumberFormatException, NoColumnException
     {
@@ -658,6 +674,14 @@ public class SQLtable {
         else
         {
             throw(new NumberFormatException("Bad number " + s));
+        }
+    }
+
+    public int getIntegerOK(String columnName) {
+        try {
+            return Integer.parseInt(getStringOK(columnName));
+        } catch (NumberFormatException ignore) {
+            return -1;
         }
     }
 
@@ -703,9 +727,7 @@ public class SQLtable {
             }
             else
             {
-                whereClause.append("'");
-                whereClause.append(s.replace("'", "''"));
-                whereClause.append("'");
+                whereClause.append(quote(s));
             }
         }
         for (i = 10; ; --i) {
@@ -716,7 +738,7 @@ public class SQLtable {
                 return result;
             } catch (SQLiteException e) {
                 // Nonexistent table or column is almost certainly a programming error:
-                // we should only ever delete records that we have just found.
+                // we should only ever delete update records that we have just found.
                 // However it's possible that some other process deleted the
                 // table while we were looking at it, and maybe created it
                 // with different columns, so we handle these in the normal way.
@@ -725,7 +747,7 @@ public class SQLtable {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"UnusedReturnValue", "Unused"})
     public int update(String columnName, String value) {
         ContentValues cv = new ContentValues();
         cv.put(columnName, value);
@@ -737,6 +759,42 @@ public class SQLtable {
         ContentValues cv = new ContentValues();
         cv.put(columnName, value);
         return update(cv);
+    }
+
+    // Update the row whose first column contains key:
+    // If there is no such row, we create it and then update it.
+    // This is only used on tables where the first column contains a unique key.
+    @SuppressWarnings("UnusedReturnValue")
+    public int update(String keyValue, ContentValues cv) {
+        String where = cursor().getColumnName(0) + " IS " + quote(keyValue);
+        for (int i = 10; ; --i) {
+            try {
+                int result = m_database.update(m_tableName, cv, where, null);
+                if (result == 0) {
+                    // no row to update, so make one
+                    create(m_tableName, false, keyValue);
+                    continue;
+                }
+                invalidate(m_tableName);
+                return result;
+            } catch (SQLiteException e) {
+                handleException(i, e, m_tableName);
+            }
+        }
+    }
+
+    @SuppressWarnings({"UnusedReturnValue", "unused"})
+    public int update(String key, String columnName, String value) {
+        ContentValues cv = new ContentValues();
+        cv.put(columnName, value);
+        return update(key, cv);
+    }
+
+    @SuppressWarnings({"UnusedReturnValue", "unused"})
+    public int update(String key, String columnName, long value) {
+        ContentValues cv = new ContentValues();
+        cv.put(columnName, value);
+        return update(key, cv);
     }
 
     // This deletes the row that our cursor is looking at.
@@ -755,13 +813,10 @@ public class SQLtable {
         if ((position == -1) || (position >= m_cursor.getCount())) {
             // This is definitely a programming error: we tried to delete
             // when the cursor is not pointing at a record.
-            String big = new StringBuilder("Called delete() when cursor at position ")
-                .append(position).append(" where there is no record").toString();
+            String big = "Called delete() when cursor at position "
+                + position + " where there is no record";
             new MyLog(m_context, true, "delete() on no record", big);
         }
-        // Move back to before deleted record so that moveToNext() will
-        // get to the record after it.
-        m_position = position - 1;
         // We should use bind arguments here, but it doesn't seem to work....
         boolean first = true;
         int i;
@@ -783,9 +838,7 @@ public class SQLtable {
             }
             else
             {
-                whereClause.append("'");
-                whereClause.append(s.replace("'", "''"));
-                whereClause.append("'");
+                whereClause.append(quote(s));
             }
         }
         for (i = 10; ; --i) {
@@ -795,7 +848,7 @@ public class SQLtable {
                 invalidate(m_tableName);
                 // Move back to before deleted record so that moveToNext() will
                 // get to the record after it.
-                m_position = position - 1;
+                m_position = position - result;
                 return result;
             } catch (SQLiteException e) {
                 // Nonexistent table or column is almost certainly a programming error:
@@ -820,10 +873,10 @@ public class SQLtable {
     // Vacuuming needs to be done from time to time, but it isn't urgent.
     private static final int WRITECOUNT = 1000;
     private void tryVacuum()  {
-        new MyLog(m_context, "tryVacuum()");
+        Cursor cr = null;
         long count = 0;
         try {
-            Cursor cr = m_database.rawQuery(
+            cr = m_database.rawQuery(
                 "SELECT VACUUM_COUNT FROM VACUUMDATA", null);
             if (cr.moveToFirst()) {
                 String s = cr.getString(0);
@@ -846,20 +899,12 @@ public class SQLtable {
             else
             {
                 // No row in VACUUMDATA yet, make one
-                new MyLog(m_context,
-                    m_context.getString(R.string.norows));
-                m_database.execSQL("INSERT INTO VACUUMDATA ( VACUUM_COUNT ) VALUES ( "
-                    + (count + 1) + " )");
                 cr.close();
-                return;
+                handleException(1, null, "VACUUMDATA");
             }
-        } catch (SQLiteException e) {
-            handleException(1, e, "VACUUMDATA");
-            invalidate("VACUUMDATA");
-        }
-        try {
             m_database.execSQL("UPDATE VACUUMDATA SET VACUUM_COUNT = " + (count + 1));
         } catch (SQLiteException e) {
+            if (cr != null) { cr.close(); }
             handleException(1, e, "VACUUMDATA");
             invalidate("VACUUMDATA");
         }
@@ -881,7 +926,6 @@ public class SQLtable {
     }
 
     public void close() {
-        new MyLog(m_context, "close(), m_tableName = " + m_tableName);
         if (m_cursor != null) {
             m_cursor.close();
             m_cursor = null;
@@ -902,7 +946,6 @@ public class SQLtable {
         {
             // oops, closing a parent before its child(ren)
             // Relink so as to maintain the references of the database.
-            new MyLog(m_context, "closing parent before child");
             SQLtable firstChild = m_children.get(0);
             firstChild.m_parent = m_parent;
             m_children.remove(0);

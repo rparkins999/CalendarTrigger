@@ -24,7 +24,7 @@
     <string name="databaseerror">"Faute base de données"</string>
     <string name="unrecoverable">" faute irrécupérable "</string>
     <string name="notablename">"Pas de nom de table dans requête "</string>
-    <string name="norows">"Table VACUUMDATA n'a pas de rangées, créant nouvelle rangée valide."
+    <string name="norows">"Table %s n'a pas de rangées, créant nouvelle rangée valide."
     </string>
     <string name="value">"Valeur \""</string>
     <string name="countnoninteger">%s en VACUUMDATA.COUNT n\'est pas un entier,
@@ -285,12 +285,14 @@
         conditions ci-dessous.t</string>
     <string name="before">avant</string>
     <string name="after">après</string>
-    <string name="startnotuntillabel">mais pas jusqu\'à ce que:-</string>
-    <string name="startnotuntilhelp">Retarder les actions du commencement de l\'événement
+    <string name="notuntillabel">mais pas jusqu\'à ce que:-</string>
+    <string name="startnotuntilhelp">Retarder les actions du début de l\'événement
         jusqu\'à ce que l\'appareil se trouve dans un certain état.</string>
     <string name="devicepositionlabel">L\'écran est:-</string>
     <string name="devicepositionhelp">Ici vous pouvez retarder les actions
-        jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>
+        % jusqu\'a ce que l\'appareil soit orienté comme spécifié.</string>
+    <string name="atstart">au début</string>
+    <string name="atend">à la fin</string>
     <string name="devicefaceuplabel">vers le haut</string>
     <string name="devicefaceuphelp">L\'appareil se trouve sur une surface
         horizontale avec l\'écran en haut.</string>
@@ -400,7 +402,6 @@
         commencera de considérer déclenchant les actions de la fin de
         l\'événement. Il est possible d\'avoir un delai au conséquent des autres
         conditions ci-dessous.</string>
-    <string name="stopnotuntillabel">mais pas jusqu\'à ce que:-</string>
     <string name="stopnotuntilhelp">Définir conditions requises après la fin
         de l\'événement.</string>
     <string name="stepcounteryes">Retarder les actions de la fin de

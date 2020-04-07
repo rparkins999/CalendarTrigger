@@ -7,12 +7,14 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -203,11 +205,35 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.M)
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int i = item.getItemId();
 		if (i == -4)
 		{
+			// debugging hack
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+			{
+				if (!Settings.System.canWrite(this))
+				{
+					Toast.makeText(this, "Press Back button when done",
+						Toast.LENGTH_LONG).show();
+					startActivity(new Intent(
+						android.provider.Settings
+							.ACTION_MANAGE_WRITE_SETTINGS));
+				}
+				NotificationManager nm = (NotificationManager)
+					getSystemService(Context.NOTIFICATION_SERVICE);
+				if (   (nm != null)
+					&& !nm.isNotificationPolicyAccessGranted())
+				{
+					Toast.makeText(this, "Press Back button when done",
+						Toast.LENGTH_LONG).show();
+					startActivity(new Intent(
+						android.provider.Settings
+							.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+				}
+			}
 			MuteService.startIfNecessary(this, "MainActivity");
 		}
 		else if (i == -3)

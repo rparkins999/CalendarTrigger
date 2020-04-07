@@ -62,7 +62,7 @@
     <string name="forpart">" for part number "</string>
     <string name="msgforevent">" of message for event "</string>
     <string name="notablename">"No table name in query "</string>
-    <string name="norows">"Table VACUUMDATA has no rows, creating new valid row."</string>
+    <string name="norows">"Table %s has no rows, creating new valid row."</string>
     <string name="value">"Value \""</string>
     <string name="countnoninteger">%s in VACUUMDATA.COUNT is non-integer,
         replacing with new valid row.</string>
@@ -407,15 +407,17 @@
     or after the start of the event</string>
     <string name="beforeafterendhelp">Choose whether the minutes count is before
     or after the end of the event</string>
-    <string name="startnotuntillabel">but not until:-</string>
+    <string name="notuntillabel">but not until:-</string>
     <string name="startnotuntilhelp">Here you can delay the start action(s)
         until the device is in some particular state.</string>
     <string name="devicepositionlabel">the device is any of:-</string>
-    <string name="devicepositionhelp">Here you can delay the action(s) until the
+    <string name="devicepositionhelp">Here you can delay the %s action(s) until the
         device is in some particular orientation. If no box is checked, no
         orientation check is performed. The orientation check is performed every
         five minutes until it is satisfied. This can drain the battery if it has
         to wait for a long time.</string>
+    <string name="atstart">start</string>
+    <string name="atend">end</string>
     <string name="devicefaceuplabel">facing up</string>
     <string name="devicefaceuphelp">Device is lying on a horizontal surface
         with the display facing upwards.</string>
@@ -591,10 +593,11 @@
         action(s) are performed for the start of an event in class %s. A long
         press on any of the controls below will bring up some help
         information about it.</string>
-    <string name="requestdisturb">Request permission to set Do not disturb</string>
+    <string name="donotdisturb">Do-not-disturb</string>
     <string name="requestdisturbhelp">Click this button to go to the notification
         policy controller which will allow you to give CalendarTrigger permission
-        to set or clear Do not disturn mode</string>
+        to set or clear Do not disturb mode. Then press the back button to return
+        to this screen.</string>
     <string name="actionstartlist">At start of an event in class %s:-</string>
     <string name="setRinger">Set audio to at most</string>
     <string name="setRingerHelp">This sets the state of the audio during the
@@ -615,7 +618,7 @@
         configured from the device\'s settings page</string>
     <string name="priorityforbidden">This option is disabled because
 		CalendarTrigger does not have permission ACCESS_NOTIFICATION_POLICY to
-        set do not disturb mode. You can request this permission ny clicking the
+        set do not disturb mode. You can request this permission by clicking the
         button above.</string>
     <string name="unsupported">The device\'s operating system does not
         support this option.</string>
@@ -673,7 +676,6 @@
         may be zero) before or after the end time of the event at which
         CalendarTrigger will begin to consider triggering the event\'s end
         action. It may however be delayed by other conditions below.</string>
-    <string name="stopnotuntillabel">but not until:-</string>
     <string name="stopnotuntilhelp">Here you can delay the end action until
         something else has happened or the device is in some particular state.
     </string>

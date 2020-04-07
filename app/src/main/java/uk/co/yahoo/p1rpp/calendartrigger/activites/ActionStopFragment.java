@@ -82,21 +82,24 @@ public class ActionStopFragment extends ActionFragment {
         LinearLayout ll =
             (LinearLayout)ac.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
+        View.OnLongClickListener longClickListener =
+            new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac,
+                        fromHtml(getString(R.string.actionstoppopup,
+                            className)),
+                        Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            };
         TextView tv = new TextView(ac);
         tv.setText(R.string.longpresslabel);
-        tv.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac,
-                               fromHtml(getString(R.string.actionstoppopup,
-                                                  className)),
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         tv = new TextView(ac);
         tv.setText(fromHtml(getString(R.string.actionstoplist, className)));
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.VERTICAL);

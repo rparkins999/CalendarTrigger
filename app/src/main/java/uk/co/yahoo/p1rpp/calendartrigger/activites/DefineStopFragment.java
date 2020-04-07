@@ -61,19 +61,22 @@ public class DefineStopFragment extends DefineFragment {
         ll.removeAllViews();
         TextView tv = new TextView(owner);
         tv.setText(R.string.longpresslabel);
-        tv.setOnLongClickListener(new View.OnLongClickListener() {
+        View.OnLongClickListener longClickListener =
+            new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(owner,
                                fromHtml(getString(R.string.definestoppopup,
-                                                  className)),
+                                   italicClassName)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }
-        });
+        };
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         tv = new TextView(owner);
-        tv.setText(fromHtml(getString(R.string.definestoplist, className)));
+        tv.setText(fromHtml(getString(R.string.definestoplist, italicClassName)));
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(owner);
         lll.setOrientation(LinearLayout.HORIZONTAL);
@@ -126,7 +129,7 @@ public class DefineStopFragment extends DefineFragment {
         lll.addView(tv, ww);
         ll.addView(lll, ww);
         tv = new TextView(owner);
-        tv.setText(R.string.stopnotuntillabel);
+        tv.setText(R.string.notuntillabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {

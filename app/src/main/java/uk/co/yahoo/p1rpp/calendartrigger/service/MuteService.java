@@ -6,20 +6,18 @@
 package uk.co.yahoo.p1rpp.calendartrigger.service;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -39,7 +37,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.CalendarContract;
+import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.v4.content.PermissionChecker;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.SmsManager;
@@ -59,6 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarProvider;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
@@ -76,6 +76,22 @@ public class MuteService extends IntentService
     // They are class variables only to avoid a lot of argument passing.
     private long m_timeNow;
     private CalendarProvider.NextAlarm m_nextAlarm;
+	private AudioManager m_audio;
+	private SQLtable m_lastModes;
+	private int m_ringerMode;
+	private int m_ringerVibrate;
+	private int m_notifyVibrate;
+	private int m_ringerVolume;
+	private int m_notifyVolume;
+	private int m_systemVolume;
+	private int m_alarmVolume;
+	private int m_ringerMute;
+	private int m_notifyMute;
+	private int m_systemMute;
+	private int m_alarmMute;
+	private NotificationManager m_notifManager;
+	private int m_notifyFilter;
+	private int m_alsoVibrate;
 
     public static final String MUTESERVICE_RESET =
 		"CalendarTrigger.MuteService.Reset";
@@ -228,14 +244,6 @@ public class MuteService extends IntentService
 		}
 	}
 
-	private void PermissionFail(int mode)
-	{
-		new MyLog(this, getString(R.string.permissionfail),
-			getString(R.string.setmodefail)
-			+ PrefsManager.getRingerStateName(this, mode)
-			+ getString(R.string.permissionfailbig));
-	}
-
 	// Check if there is a current call (not a ringing call).
 	// If so we don't want to mute even if an event starts.
 	int UpdatePhoneState(Intent intent) {
@@ -382,7 +390,1168 @@ public class MuteService extends IntentService
 		}
 	}
 
-    // FIXME can we use a similar power saving trick as accelerometer?
+	private int getRingerMode(SQLtable table) {
+		switch (table.getStringOK("RINGER_MODE"))
+		{
+			case "SILENT": return AudioManager.RINGER_MODE_SILENT;
+			case "VIBRATE": return AudioManager.RINGER_MODE_VIBRATE;
+			case "NORMAL": return AudioManager.RINGER_MODE_NORMAL;
+			default: return -1;
+		}
+	}
+
+	private int getVibrate(SQLtable table, String type) {
+		switch (table.getStringOK(type))
+		{
+			case "OFF":
+				//noinspection deprecation
+				return AudioManager.VIBRATE_SETTING_OFF;
+			case "ON":
+				//noinspection deprecation
+				return AudioManager.VIBRATE_SETTING_ON;
+			case "SILENT":
+				//noinspection deprecation
+				return AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			default: return -1;
+		}
+	}
+
+	private int getAlsoVibrate(SQLtable table) {
+		switch (table.getStringOK("VIBRATE_ALSO"))
+		{
+			case "OFF": return 0;
+			case "ON": return 1;
+			default: return -1;
+		}
+	}
+
+    @TargetApi(Build.VERSION_CODES.M)
+	private int getFilterValue(SQLtable table) {
+	    switch (table.getStringOK("DO_NOT_DISTURB_MODE"))
+        {
+            case "ALL": return NotificationManager.INTERRUPTION_FILTER_ALL;
+            case "PRIORITY": return NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+            case "ALARMS": return NotificationManager.INTERRUPTION_FILTER_ALARMS;
+            case "NONE": return NotificationManager.INTERRUPTION_FILTER_NONE;
+			default: return -1;
+        }
+    }
+
+	@TargetApi(Build.VERSION_CODES.M)
+	private String getFilterName(int value) {
+		switch (value)
+		{
+			default:
+			case NotificationManager.INTERRUPTION_FILTER_ALL:
+				return "ALL";
+			case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+				return "PRIORITY";
+			case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+				return "ALARMS";
+			case NotificationManager.INTERRUPTION_FILTER_NONE:
+				return "NONE";
+		}
+	}
+
+	// Build 21:
+	// Vibrate setting defaults to ONLY_SILENT
+	// Ringer Mode defaults to NORMAL
+	// 		gets set to VIBRATE if volume set to zero in settings
+	// Changing "Also vibrate for calls" in Settings
+	// doesn't change Ringer Mode or Vibrate setting.
+	// Ringer volume changes are correctly reported.
+	// DND modes are supported, can be set from the settings screen and
+	// show icons on the status bar, but cannot be queried or modified from a program.
+
+    // Set our initial guess at the modes we want to what the user last set.
+	// However if the user has changed any mode since we last set it,
+	// we update our record of what the user wants, and pretend that we set it
+	// so that we don't update again.
+	// The first time this is called after installation or upgrade,
+	// the error recovery logic in SQLtable will create
+	// the RINGERDNDMODES table
+	// and the special rows last_we_set and last_user_set.
+	@TargetApi(Build.VERSION_CODES.M)
+	private void getUserRinger() {
+		int buildVersion = android.os.Build.VERSION.SDK_INT;
+        SQLtable userModes = new SQLtable(m_lastModes, "RINGERDNDMODES",
+            "RINGER_CLASS_NAME", "last_user_set");
+		ContentValues cv = new ContentValues();
+		if (BuildConfig.RINGERMODETEST) {
+			new MyLog(this, "API version is " + buildVersion);
+			// debug hack - I just want to see if I need permission to do this
+			// <uses-permission android:name="android.permission.VIBRATE"/>
+			if (((Vibrator)getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator())
+			{
+				new MyLog(this, "Device has a vibrator");
+			}
+			else
+			{
+				new MyLog(this, "Device does not have a vibrator");
+			}
+		}
+		int last = getRingerMode(m_lastModes);
+		switch (m_audio.getRingerMode()) {
+			case AudioManager.RINGER_MODE_NORMAL:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Mode is RINGER_MODE_NORMAL");
+				}
+				if (last != AudioManager.RINGER_MODE_NORMAL)
+				{
+					// ringer mode wasn't normal, but user set normal
+					cv.put("RINGER_MODE", "NORMAL");
+					m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				}
+				else
+				{
+					m_ringerMode = getRingerMode(userModes);
+				}
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Mode is RINGER_MODE_VIBRATE");
+				}
+				if (last != AudioManager.RINGER_MODE_VIBRATE)
+				{
+					// ringer mode wasn't vibrate, but user set vibrate
+					cv.put("RINGER_MODE", "VIBRATE");
+					m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				}
+				else
+				{
+					m_ringerMode = getRingerMode(userModes);
+				}
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Mode is RINGER_MODE_SILENT");
+				}
+				if (last != AudioManager.RINGER_MODE_SILENT)
+				{
+					// ringer mode wasn't vibrate, but user set vibrate
+					cv.put("RINGER_MODE", "VIBRATE");
+					m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				}
+				else
+				{
+					m_ringerMode = getRingerMode(userModes);
+				}
+				break;
+		}
+		last = getVibrate(m_lastModes,"RINGER_VIBRATE");
+		//noinspection deprecation
+		switch (m_audio.getVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER)) {
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_OFF:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Ringer vibrate setting is OFF");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_OFF)
+				{
+					// vibrate wasn't off, but user turned it off
+					cv.put("RINGER_VIBRATE", "OFF");
+					//noinspection deprecation
+					m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				}
+				else
+				{
+					m_ringerVibrate = getVibrate(userModes,"RINGER_VIBRATE");
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ON:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Ringer vibrate setting is ON");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_ON)
+				{
+					// vibrate wasn't on, but user turned it on
+					cv.put("RINGER_VIBRATE", "ON");
+					//noinspection deprecation
+					m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				}
+				else
+				{
+					m_ringerVibrate = getVibrate(userModes,"RINGER_VIBRATE");
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Ringer vibrate setting is SILENT");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_ONLY_SILENT)
+				{
+					// vibrate wasn't only silent, but user set it
+					cv.put("RINGER_VIBRATE", "SILENT");
+					//noinspection deprecation
+					m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+				}
+				else
+				{
+					m_ringerVibrate = getVibrate(userModes,"RINGER_VIBRATE");
+				}
+				break;
+		}
+		last = getVibrate(m_lastModes,"NOTIFY_VIBRATE");
+		m_notifyVibrate = -1;
+		//noinspection deprecation
+		switch (m_audio.getVibrateSetting(AudioManager.VIBRATE_TYPE_NOTIFICATION)) {
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_OFF:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Notification vibrate setting is OFF");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_OFF)
+				{
+					// vibrate wasn't off, but user turned it off
+					cv.put("NOTIFY_VIBRATE", "OFF");
+					//noinspection deprecation
+					m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				}
+				else
+				{
+					m_notifyVibrate = getVibrate(userModes,"NOTIFY_VIBRATE");
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ON:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Notification vibrate setting is ON");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_ON)
+				{
+					// vibrate wasn't on, but user turned it on
+					cv.put("NOTIFY_VIBRATE", "ON");
+					//noinspection deprecation
+					m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				}
+				else
+				{
+					m_notifyVibrate = getVibrate(userModes,"NOTIFY_VIBRATE");
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Notification vibrate setting is SILENT");
+				}
+				//noinspection deprecation
+				if (last != AudioManager.VIBRATE_SETTING_ONLY_SILENT)
+				{
+					// vibrate wasn't only silent, but user set it
+					cv.put("NOTIFY_VIBRATE", "SILENT");
+					//noinspection deprecation
+					m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+				}
+				else
+				{
+					m_notifyVibrate = getVibrate(userModes,"NOTIFY_VIBRATE");
+				}
+				break;
+		}
+		if (BuildConfig.RINGERMODETEST) {
+			//noinspection deprecation
+			new MyLog(this, "shouldVibrate(ringer) is "
+				+ (m_audio.shouldVibrate(AudioManager.VIBRATE_TYPE_RINGER)));
+			//noinspection deprecation
+			new MyLog(this, "shouldVibrate(notifications) is "
+				+ (m_audio.shouldVibrate(AudioManager.VIBRATE_TYPE_NOTIFICATION)));
+		}
+		int ringvol = m_audio.getStreamVolume(AudioManager.STREAM_RING);
+		int notifvol = m_audio.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+		int systemvol = m_audio.getStreamVolume(AudioManager.STREAM_SYSTEM);
+		int alarmvol = m_audio.getStreamVolume(AudioManager.STREAM_ALARM);
+		if (BuildConfig.RINGERMODETEST) {
+			new MyLog(this, "Ringer volume is " + ringvol);
+			new MyLog(this, "Notification volume is " + notifvol);
+			new MyLog(this, "System volume is " + systemvol);
+			new MyLog(this, "Alarm volume is " + alarmvol);
+		}
+
+		last  = m_lastModes.getIntegerOK("RINGER_VOLUME");
+		if (ringvol != last) {
+			cv.put("RINGER_VOLUME", ringvol);
+            m_ringerVolume = ringvol;
+		}
+		else
+        {
+            m_ringerVolume = userModes.getIntegerOK("RINGER_VOLUME");
+        }
+		// On standard devices, the notification and system sound volumes are set
+		// by setting the ringer volume, but we handle the case where they aren't.
+		int notifAffected = 1 << AudioManager.STREAM_NOTIFICATION;
+		int systemAffected = 1 << AudioManager.STREAM_SYSTEM;
+		int affected = Settings.System.getInt(getContentResolver(),
+			Settings.System.MODE_RINGER_STREAMS_AFFECTED,
+			notifAffected | systemAffected);
+		if ((affected & notifAffected) == 0)
+		{
+			last = m_lastModes.getIntegerOK("NOTIFY_VOLUME");
+			if (notifvol != last) {
+				cv.put("NOTIFY_VOLUME", notifvol);
+				m_notifyVolume = notifvol;
+			}
+			else
+			{
+				m_notifyVolume = userModes.getIntegerOK("NOTIFY_VOLUME");
+			}
+		}
+		if ((affected & systemAffected) == 0)
+		{
+			last = m_lastModes.getIntegerOK("SYSTEM_VOLUME");
+			if (systemvol != last) {
+				cv.put("SYSTEM_VOLUME", systemvol);
+				m_systemVolume = systemvol;
+			}
+			else
+			{
+				m_systemVolume = userModes.getIntegerOK("SYSTEM_VOLUME");
+			}
+		}
+		last = m_lastModes.getIntegerOK("ALARM_VOLUME");
+		if (alarmvol != last) {
+			cv.put("ALARM_VOLUME", alarmvol);
+			m_alarmVolume = alarmvol;
+		}
+		else
+		{
+			m_alarmVolume = userModes.getIntegerOK("ALARM_VOLUME");
+		}
+		boolean ringmuted = m_audio.isStreamMute (AudioManager.STREAM_RING);
+		boolean notifmuted = m_audio.isStreamMute (AudioManager.STREAM_NOTIFICATION);
+		boolean systemmuted = m_audio.isStreamMute (AudioManager.STREAM_SYSTEM);
+		boolean alarmmuted = m_audio.isStreamMute (AudioManager.STREAM_ALARM);
+		if (BuildConfig.RINGERMODETEST) {
+			new MyLog(this,
+				"Ringer is " + (ringmuted ? "muted" : "not muted"));
+			new MyLog(this,
+				"Notification sounds are " + (notifmuted ? "muted" : "not muted"));
+			new MyLog(this,
+				"System sounds are " + (systemmuted ? "muted" : "not muted"));
+			new MyLog(this,
+				"Alarms are " + (alarmmuted ? "muted" : "not muted"));
+		}
+		last = m_lastModes.getIntegerOK("RINGER_MUTE");
+		if (ringmuted) {
+			if (last != 1) {
+				cv.put("RINGER_MUTE", 1);
+				m_ringerMute = 1;
+			}
+		}
+		else if (last != 0)
+		{
+			cv.put("RINGER_MUTE", 0);
+			m_ringerMute = 0;
+		}
+		last = m_lastModes.getIntegerOK("NOTIFY_MUTE");
+		if (notifmuted) {
+			if (last != 1) {
+				cv.put("NOTIFY_MUTE", 1);
+				m_notifyMute = 1;
+			}
+		}
+		else if (last != 0)
+		{
+			cv.put("NOTIFY_MUTE", 0);
+			m_notifyMute = 0;
+		}
+		last = m_lastModes.getIntegerOK("SYSTEM_MUTE");
+		if (systemmuted) {
+			if (last != 1) {
+				cv.put("SYSTEM_MUTE", 1);
+				m_systemMute = 1;
+			}
+		}
+		else if (last != 0)
+		{
+			cv.put("SYSTEM_MUTE", 0);
+			m_systemMute = 0;
+		}
+		last = m_lastModes.getIntegerOK("ALARM_MUTE");
+		if (alarmmuted) {
+			if (last != 1) {
+				cv.put("ALARM_MUTE", 1);
+				m_alarmMute = 1;
+			}
+		}
+		else if (last != 0)
+		{
+			cv.put("ALARM_MUTE", 0);
+			m_alarmMute = 0;
+		}
+		m_notifyFilter = -1;
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+			int value = Settings.System.getInt(
+				getContentResolver(), Settings.System.VIBRATE_WHEN_RINGING, 0);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this, "ALSO_VIBRATE is "
+					+ ((value == 0) ? "off" : "on"));
+			}
+			last = getAlsoVibrate(m_lastModes);
+			if (last != value)
+			{
+				cv.put("VIBRATE_ALSO", (last == 0) ? "OFF" : "ON");
+				m_alsoVibrate = value;
+			}
+			else
+			{
+				m_alsoVibrate = getAlsoVibrate(userModes);
+			}
+			if ((m_notifManager != null)
+				&& m_notifManager.isNotificationPolicyAccessGranted()) {
+				value = m_notifManager.getCurrentInterruptionFilter();
+				String got = m_lastModes.getStringOK("DO_NOT_DISTURB_MODE");
+				m_notifyFilter = getFilterValue(userModes);
+				switch (value) {
+					default:
+					case NotificationManager.INTERRUPTION_FILTER_ALL:
+						if (BuildConfig.RINGERMODETEST) {
+							new MyLog(this, "Do Not Disturb mode is ALL");
+						}
+						if (got.compareTo("ALL") != 0) {
+							cv.put("DO_NOT_DISTURB_MODE", "ALL");
+							m_notifyFilter = value;
+						}
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+						if (BuildConfig.RINGERMODETEST) {
+							new MyLog(this, "Do Not Disturb mode is PRIORITY");
+						}
+						if (got.compareTo("PRIORITY") != 0) {
+							cv.put("DO_NOT_DISTURB_MODE", "PRIORITY");
+						}
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+						if (BuildConfig.RINGERMODETEST) {
+							new MyLog(this, "Do Not Disturb mode is ALARMS");
+						}
+						if (got.compareTo("ALARMS") != 0) {
+							cv.put("DO_NOT_DISTURB_MODE", "ALARMS");
+						}
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_NONE:
+						if (BuildConfig.RINGERMODETEST) {
+							new MyLog(this, "Do Not Disturb mode is NONE");
+						}
+						if (got.compareTo("NONE") != 0) {
+							cv.put("DO_NOT_DISTURB_MODE", "NONE");
+						}
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_UNKNOWN:
+						if (BuildConfig.RINGERMODETEST) {
+							new MyLog(this, "Do Not Disturb mode is UNKNOWN");
+						}
+				}
+			}
+		}
+		if (cv.size() > 0) {
+			m_lastModes.update("last_we_set", cv);
+			m_lastModes.update("last_user_set", cv);
+			if (BuildConfig.DEBUG) {
+				userModes.close();
+				userModes = new SQLtable(m_lastModes, "RINGERDNDMODES",
+					"RINGER_CLASS_NAME", "last_user_set");
+				new MyLog(this, "Updating last_user_set to " +
+					userModes.rowToString());
+			}
+		}
+        userModes.close();
+	}
+
+	// Updates for an active class, returns true if changed anything
+	@TargetApi(Build.VERSION_CODES.M)
+	private boolean ringerForClass(int classNum, String className, boolean first) {
+		boolean result = false;
+		ContentValues cv = new ContentValues();
+		SQLtable classModes = new SQLtable(m_lastModes, "RINGERDNDMODES",
+				"RINGER_CLASS_NAME", className);
+		SQLtable userModes = new SQLtable(m_lastModes, "RINGERDNDMODES",
+			"RINGER_CLASS_NAME", "last_user_set");
+		String vib = classModes.getStringOK("RINGER_VIBRATE");
+		if (vib.equals("OFF")) {
+			//noinspection deprecation
+			if (m_ringerVibrate != AudioManager.VIBRATE_SETTING_OFF) {
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				cv.put("RINGER_VIBRATE", "OFF");
+				result = true;
+			}
+		}
+		else if (vib.equals("ON")) {
+			if (m_ringerVibrate == -1) {
+				// ON is stronger than unchanged because we explicitly asked for it
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				cv.put("RINGER_VIBRATE", "OFF");
+				result = true;
+			}
+		}
+		int vol = classModes.getIntegerOK("RINGER_VOLUME");
+		if (vol < m_ringerVolume) {
+			m_ringerVolume = vol;
+			result = true;
+		}
+		if (vol < userModes.getIntegerOK("RINGER_VOLUME")) {
+			cv.put("RINGER_VOLUME", m_ringerVolume);
+		}
+		vol = classModes.getIntegerOK("ALARM_VOLUME");
+		if (vol < m_alarmVolume) {
+			m_alarmVolume = vol;
+			result = true;
+		}
+		if (vol < userModes.getIntegerOK("ALARM_VOLUME")) {
+			cv.put("ALARM_VOLUME", m_alarmVolume);
+		}
+		if (   (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+			&& (m_notifManager != null)
+			&& m_notifManager.isNotificationPolicyAccessGranted())
+		{
+			String s = classModes.getStringOK("DO_NOT_DISTURB_MODE");
+			String userDND = userModes.getStringOK("DO_NOT_DISTURB_MODE");
+			switch (s)
+			{
+				case "ALL": break;
+				case "PRIORITY":
+					if (m_notifyFilter == NotificationManager.INTERRUPTION_FILTER_ALL)
+					{
+						m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+						result = true;
+					}
+					if (userDND.equals("ALL"))
+					{
+						cv.put("DO_NOT_DISTURB_MODE", "ALL");
+					}
+					break;
+				case "ALARMS":
+					if (   (m_notifyFilter == NotificationManager.
+								INTERRUPTION_FILTER_ALL)
+						|| (m_notifyFilter == NotificationManager.
+								INTERRUPTION_FILTER_PRIORITY))
+					{
+						m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+						result = true;
+					}
+					if (userDND.equals("ALL") || userDND.equals("PRIORITY"))
+					{
+						cv.put("DO_NOT_DISTURB_MODE", "ALARMS");
+					}
+					break;
+				case "NONE":
+					if (m_notifyFilter != NotificationManager.INTERRUPTION_FILTER_NONE)
+					{
+						m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+						result = true;
+					}
+					if (!userDND.equals("NONE"))
+					{
+						cv.put("DO_NOT_DISTURB_MODE", "NONE");
+					}
+					break;
+				default:
+					new MyLog(this,
+						"Unknown do-not-disturb mode " + s +
+							", replacing it with ALL");
+					classModes.update(
+						"DO_NOT_DISTURB_MODE", "ALL");
+			}
+		}
+		classModes.close();
+		userModes.close();
+		/* This is a fudge to make not restoring the ringer at
+		 * the end of the event work. We quieten the user ringer
+		 * mode to the mode that this class wants.
+		 */
+		if (   first
+			&& (cv.size() > 0)
+			&& !PrefsManager.getRestoreRinger(this, classNum)) {
+			m_lastModes.update("last_user_set", cv);
+		}
+		return result;
+	}
+
+	// Setting VIBRATE_TYPE_RINGER doesn't work in API 24
+	// Setting VIBRATE_TYPE_NOTIFICATION doesn't work in API 24
+	// Setting Ringer volume to 0 sets DND in API 24
+	// Setting ringer volume to a nonzero value clears in API 24
+	// Setting alarm volume to any value works in API 24
+
+	// Set the ringer modes. Returns true if anything changed.
+	@TargetApi(android.os.Build.VERSION_CODES.N)
+	boolean setCurrentRinger() {
+		ContentValues cv = new ContentValues();
+		int current = m_audio.getRingerMode();
+		if (BuildConfig.RINGERMODETEST) {
+			switch (current) {
+				case AudioManager.RINGER_MODE_NORMAL:
+					new MyLog(this,
+						"Current ringer mode is RINGER_MODE_NORMAL");
+					break;
+				case AudioManager.RINGER_MODE_VIBRATE:
+					new MyLog(this
+						, "Current ringer mode is RINGER_MODE_VIBRATE");
+					break;
+				case AudioManager.RINGER_MODE_SILENT:
+					new MyLog(this,
+						"Current ringer mode is RINGER_MODE_SILENT");
+					break;
+			}
+		}
+		switch (m_ringerMode) {
+			case AudioManager.RINGER_MODE_NORMAL:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested ringer mode is RINGER_MODE_NORMAL");
+				}
+				if (current != AudioManager.RINGER_MODE_NORMAL)
+				{
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer mode to RINGER_MODE_NORMAL");
+					}
+					cv.put("RINGER_MODE", "NORMAL");
+					m_audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+				}
+				break;
+			case AudioManager.RINGER_MODE_VIBRATE:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested ringer mode is RINGER_MODE_VIBRATE");
+				}
+				if (current != AudioManager.RINGER_MODE_VIBRATE)
+				{
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer mode to RINGER_MODE_VIBRATE");
+					}
+					cv.put("RINGER_MODE", "VIBRATE");
+					m_audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+				}
+				break;
+			case AudioManager.RINGER_MODE_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested ringer mode is RINGER_MODE_SILENT");
+				}
+				if (current != AudioManager.RINGER_MODE_SILENT)
+				{
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer mode to RINGER_MODE_SILENT");
+					}
+					cv.put("RINGER_MODE", "SILENT");
+					m_audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+				}
+				break;
+			default:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested ringer mode is unchanged");
+				}
+				break;
+		}
+		//noinspection deprecation
+		current = m_audio.getVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER);
+		if (BuildConfig.RINGERMODETEST) {
+			switch (current) {
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_OFF:
+					new MyLog(this, "Current ringer vibrate setting is OFF");
+					break;
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_ON:
+					new MyLog(this, "Current ringer vibrate setting is ON");
+					break;
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+					new MyLog(this,
+						"Current ringer vibrate setting is SILENT");
+					break;
+			}
+		}
+		switch (m_ringerVibrate) {
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_OFF:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Requested ringer vibrate setting is OFF");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_OFF)
+				{
+					cv.put("RINGER_VIBRATE", "OFF");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER,
+						AudioManager.VIBRATE_SETTING_OFF);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer vibrate setting to OFF");
+					}
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ON:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Requested ringer vibrate setting is ON");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_ON)
+				{
+					cv.put("RINGER_VIBRATE", "ON");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER,
+						AudioManager.VIBRATE_SETTING_ON);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer vibrate setting to ON");
+					}
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested ringer vibrate setting is SILENT");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_ONLY_SILENT)
+				{
+					cv.put("RINGER_VIBRATE", "SILENT");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER,
+						AudioManager.VIBRATE_SETTING_ONLY_SILENT);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting ringer vibrate setting to SILENT");
+					}
+				}
+				break;
+			default:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"No ringer vibrate setting is requested");
+				}
+				break;
+		}
+		//noinspection deprecation
+		current = m_audio.getVibrateSetting(AudioManager.VIBRATE_TYPE_NOTIFICATION);
+		if (BuildConfig.RINGERMODETEST) {
+			switch (current) {
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_OFF:
+					new MyLog(this, "Current notify vibrate setting is OFF");
+					break;
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_ON:
+					new MyLog(this, "Current notify vibrate setting is ON");
+					break;
+				//noinspection deprecation
+				case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+					new MyLog(this,
+						"Current notify vibrate setting is SILENT");
+					break;
+			}
+		}
+		switch (m_notifyVibrate) {
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_OFF:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Requested notify vibrate setting is OFF");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_OFF)
+				{
+					cv.put("NOTIFY_VIBRATE", "OFF");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_NOTIFICATION,
+						AudioManager.VIBRATE_SETTING_OFF);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting notify vibrate setting to OFF");
+					}
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ON:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this, "Requested notify vibrate setting is ON");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_ON)
+				{
+					cv.put("NOTIFY_VIBRATE", "ON");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_NOTIFICATION,
+						AudioManager.VIBRATE_SETTING_ON);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting notify vibrate setting to ON");
+					}
+				}
+				break;
+			//noinspection deprecation
+			case AudioManager.VIBRATE_SETTING_ONLY_SILENT:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"Requested notify vibrate setting is SILENT");
+				}
+				//noinspection deprecation
+				if (current != AudioManager.VIBRATE_SETTING_ONLY_SILENT)
+				{
+					cv.put("NOTIFY_VIBRATE", "SILENT");
+					//noinspection deprecation
+					m_audio.setVibrateSetting(AudioManager.VIBRATE_TYPE_NOTIFICATION,
+						AudioManager.VIBRATE_SETTING_ONLY_SILENT);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting notify vibrate setting to SILENT");
+					}
+				}
+				break;
+			default:
+				if (BuildConfig.RINGERMODETEST) {
+					new MyLog(this,
+						"No notify vibrate setting is requested");
+				}
+				break;
+		}
+		int ringvol = m_audio.getStreamVolume(AudioManager.STREAM_RING);
+		int notifvol = m_audio.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+		int systemvol = m_audio.getStreamVolume(AudioManager.STREAM_SYSTEM);
+		int alarmvol = m_audio.getStreamVolume(AudioManager.STREAM_ALARM);
+		if (BuildConfig.RINGERMODETEST) {
+			new MyLog(this, "Current ring volume is " + ringvol);
+			new MyLog(this, "Requested ring volume is " + m_ringerVolume);
+			new MyLog(this, "Current notify volume is " + notifvol);
+			new MyLog(this, "Requested notify volume is " + m_notifyVolume);
+			new MyLog(this, "Current system volume is " + systemvol);
+			new MyLog(this, "Requested system volume is " + m_systemVolume);
+			new MyLog(this, "Current alarm volume is " + alarmvol);
+			new MyLog(this, "Requested alarm volume is " + m_alarmVolume);
+		}
+		if ((m_ringerVolume != ringvol) && (m_ringerVolume != 1000)){
+			cv.put("RINGER_VOLUME", m_ringerVolume);
+			m_audio.setStreamVolume(AudioManager.STREAM_RING, m_ringerVolume, 0);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this, "Setting ring volume to " + m_ringerVolume);
+			}
+		}
+		int notifAffected = 1 << AudioManager.STREAM_NOTIFICATION;
+		int systemAffected = 1 << AudioManager.STREAM_SYSTEM;
+		int affected = Settings.System.getInt(getContentResolver(),
+			Settings.System.MODE_RINGER_STREAMS_AFFECTED,
+			notifAffected | systemAffected);
+		if (   ((affected & notifAffected) == 0)
+			&& (m_notifyVolume != notifvol)
+			&& (m_notifyVolume != 1000))
+		{
+			cv.put("NOTIFY_VOLUME", m_notifyVolume);
+			m_audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION,
+				m_notifyVolume, 0);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this,
+					"Setting notify volume to " + m_notifyVolume);
+			}
+		}
+		if (   ((affected & systemAffected) == 0)
+			&& (m_systemVolume != systemvol)
+			&& (m_systemVolume != 1000))
+		{
+			cv.put("SYSTEM_VOLUME", m_systemVolume);
+			m_audio.setStreamVolume(AudioManager.STREAM_SYSTEM,
+				m_systemVolume, 0);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this,
+					"Setting system volume to " + m_systemVolume);
+			}
+		}
+		if ((m_alarmVolume != alarmvol)  && (m_alarmVolume != 1000)){
+			cv.put("ALARM_VOLUME", m_alarmVolume);
+			m_audio.setStreamVolume(AudioManager.STREAM_ALARM, m_alarmVolume, 0);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this, "Setting alarm volume to " + m_alarmVolume);
+			}
+		}
+		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+		{
+			boolean ringmute = m_audio.isStreamMute(AudioManager.STREAM_RING);
+			boolean notifmute = m_audio.isStreamMute(AudioManager.STREAM_NOTIFICATION);
+			boolean systemmute = m_audio.isStreamMute(AudioManager.STREAM_SYSTEM);
+			boolean alarmmute = m_audio.isStreamMute(AudioManager.STREAM_ALARM);
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this, "Ringer is currently "
+					+ (ringmute ? "muted" : "not muted"));
+				new MyLog(this, "Notification sounds are currently "
+					+ (notifmute ? "muted" : "not muted"));
+				new MyLog(this, "System sounds are currently "
+					+ (systemmute ? "muted" : "not muted"));
+				new MyLog(this, "Alarms are currently "
+					+ (alarmmute ? "muted" : "not muted"));
+			}
+			if (   (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+				|| (   (m_notifManager != null)
+					&& m_notifManager.isNotificationPolicyAccessGranted())) {
+				switch (m_ringerMute) {
+					case 0:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Ringer Muting Requested setting is OFF");
+						}
+						if (ringmute) {
+							cv.put("RINGER_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_RING,
+								AudioManager.ADJUST_UNMUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Ringer Muting to OFF");
+							}
+						}
+					case 1:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Ringer Muting Requested setting is ON");
+						}
+						if (!ringmute) {
+							cv.put("RINGER_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_RING,
+								AudioManager.ADJUST_MUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Ringer muting to ON");
+							}
+						}
+					default:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"No change to Ringer Muting requested");
+						}
+				}
+				switch (m_notifyMute) {
+					case 0:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Notification Sounds Muting Requested setting is OFF");
+						}
+						if (notifmute) {
+							cv.put("NOTIFY_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_NOTIFICATION,
+								AudioManager.ADJUST_UNMUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Notification Sounds Muting to OFF");
+							}
+						}
+					case 1:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Notification Sounds Muting Requested setting is ON");
+						}
+						if (!notifmute) {
+							cv.put("NOTIFY_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_NOTIFICATION,
+								AudioManager.ADJUST_MUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Notification Sounds muting to ON");
+							}
+						}
+					default:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"No change to Notification Sounds Muting requested");
+						}
+				}
+				switch (m_systemMute) {
+					case 0:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"System Sounds Muting Requested setting is OFF");
+						}
+						if (systemmute) {
+							cv.put("RINGER_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
+								AudioManager.ADJUST_UNMUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting System Sounds Muting to OFF");
+							}
+						}
+					case 1:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"System Sounds Muting Requested setting is ON");
+						}
+						if (!systemmute) {
+							cv.put("RINGER_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_SYSTEM,
+								AudioManager.ADJUST_MUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting System Sounds muting to ON");
+							}
+						}
+					default:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"No change to System Sounds Muting requested");
+						}
+				}
+				switch (m_alarmMute) {
+					case 0:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Alarm Muting Requested setting is OFF");
+						}
+						if (alarmmute) {
+							cv.put("ALARM_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_ALARM,
+								AudioManager.ADJUST_UNMUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Alarm Muting to OFF");
+							}
+						}
+					case 1:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Alarm Muting Requested setting is ON");
+						}
+						if (!alarmmute) {
+							cv.put("RINGER_MUTE", "OFF");
+							m_audio.adjustStreamVolume(AudioManager.STREAM_ALARM,
+								AudioManager.ADJUST_MUTE, 0);
+							if (BuildConfig.RINGERMODETEST)
+							{
+								new MyLog(this,
+									"Setting Alarm muting to ON");
+							}
+						}
+					default:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"No change to Alarm Muting requested");
+						}
+				}
+			}
+			if (Settings.System.canWrite(this)) {
+				current = Settings.System.getInt(
+					getContentResolver(), Settings.System.VIBRATE_WHEN_RINGING, 0);
+				if (BuildConfig.RINGERMODETEST)
+				{
+					new MyLog(this,
+						"Current ALSO_VIBRATE is "
+							+ ((current == 0) ? "off" : "on"));
+				}
+				switch (m_alsoVibrate) {
+					case 0:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Requested ALSO_VIBRATE setting is off");
+						}
+						if (current != 0) {
+							cv.put("VIBRATE_ALSO", "OFF");
+							Settings.System.putInt(getContentResolver(),
+								Settings.System.VIBRATE_WHEN_RINGING, 0);
+							if (BuildConfig.RINGERMODETEST) {
+								new MyLog(this,
+									"Setting ALSO_VIBRATE to off");
+							}
+						}
+						break;
+					case 1:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"Requested ALSO_VIBRATE setting is on");
+						}
+						if (current != 1) {
+							cv.put("VIBRATE_ALSO", "ON");
+							Settings.System.putInt(getContentResolver(),
+								Settings.System.VIBRATE_WHEN_RINGING, 1);
+							if (BuildConfig.RINGERMODETEST) {
+								new MyLog(this,
+									"Setting ALSO_VIBRATE to on");
+							}
+						}
+						break;
+					default:
+						if (BuildConfig.RINGERMODETEST)
+						{
+							new MyLog(this,
+								"No change to ALSO_VIBRATE requested");
+						}
+				}
+				new MyLog(this,
+					"Cannot write to Settings.System");
+			}
+			if (   (m_notifManager != null)
+				&& m_notifManager.isNotificationPolicyAccessGranted())
+			{
+				current = m_notifManager.getCurrentInterruptionFilter();
+				String notifyName = getFilterName(m_notifyFilter);
+				if (BuildConfig.RINGERMODETEST)
+				{
+					new MyLog(this,
+						"Current DND mode is " + getFilterName(current));
+					if (m_notifyFilter >= 0) {
+						new MyLog(this,
+							"Requested DND mode is " + notifyName);
+					}
+					else
+					{
+						new MyLog(this,
+							"No DND mode requested");
+					}
+				}
+				if (current != m_notifyFilter)
+				{
+					cv.put("DO_NOT_DISTURB_MODE", notifyName);
+					m_notifManager.setInterruptionFilter(m_notifyFilter);
+					if (BuildConfig.RINGERMODETEST) {
+						new MyLog(this,
+							"Setting DND mode to " + notifyName);
+					}
+				}
+			}
+		}
+		if (cv.size() > 0) {
+			m_lastModes.update("last_we_set", cv);
+			return true;
+		}
+		else
+		{
+			if (BuildConfig.RINGERMODETEST) {
+				new MyLog(this, "setCurrentRinger didn't change anything");
+			}
+			return false;
+		}
+	}
+
+	// FIXME can we use a similar power saving trick as accelerometer?
 	// return true if step counter is now running
 	private boolean StartStepCounter(int classNum) {
 		if (PrefsManager.getStepCount(this) == PrefsManager.STEP_COUNTER_IDLE)
@@ -710,109 +1879,6 @@ public class MuteService extends IntentService
 		} catch (NullPointerException ignored) {
 			return false;
 		}
-	}
-
-	@TargetApi(android.os.Build.VERSION_CODES.M)
-	// Set the ringer mode. Returns true if mode changed.
-	void setCurrentRinger(AudioManager audio,
-		int apiVersion, int mode, int current) {
-		if (   (current == mode)
-			|| (   (mode == PrefsManager.RINGER_MODE_NONE)
-			    && (current == PrefsManager.RINGER_MODE_NORMAL))
-			|| (   (mode == PrefsManager.RINGER_MODE_MUTED)
-				   && (current == PrefsManager.getMuteResult(this))))
-		{
-			return;
-		}
-		PrefsManager.setLastRinger(this, mode);
-		NotificationManager nm = null;
-		if (apiVersion >= android.os.Build.VERSION_CODES.M)
-		{
-			nm = (NotificationManager)
-				getSystemService(Context.NOTIFICATION_SERVICE);
-			if (nm != null ) {
-				switch (mode) {
-					case PrefsManager.RINGER_MODE_SILENT:
-						audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-						if (nm.isNotificationPolicyAccessGranted()) {
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_NONE);
-						} else {
-							PermissionFail(mode);
-						}
-						break;
-					case PrefsManager.RINGER_MODE_ALARMS:
-						if (nm.isNotificationPolicyAccessGranted()) {
-							audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_ALARMS);
-							break;
-						}
-						/*FALLTHRU if no permission, treat as muted */
-					case PrefsManager.RINGER_MODE_DO_NOT_DISTURB:
-						if (nm.isNotificationPolicyAccessGranted()) {
-							audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_PRIORITY);
-							break;
-						}
-						PermissionFail(mode);
-						/*FALLTHRU if no permission, treat as muted */
-					case PrefsManager.RINGER_MODE_MUTED:
-						if (nm.isNotificationPolicyAccessGranted()) {
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_ALL);
-						}
-						audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-						break;
-					case PrefsManager.RINGER_MODE_VIBRATE:
-						if (nm.isNotificationPolicyAccessGranted()) {
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_ALL);
-						}
-						audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-						break;
-					case PrefsManager.RINGER_MODE_NORMAL:
-					case PrefsManager.RINGER_MODE_NONE:
-						if (nm.isNotificationPolicyAccessGranted()) {
-							nm.setInterruptionFilter(
-								NotificationManager.INTERRUPTION_FILTER_ALL);
-						}
-						audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-						break;
-					default: // unknown
-						return;
-				}
-			}
-		}
-		if (nm == null)
-		{
-			switch (mode) {
-				case PrefsManager.RINGER_MODE_MUTED:
-					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-					break;
-				case PrefsManager.RINGER_MODE_VIBRATE:
-					audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-					break;
-				case PrefsManager.RINGER_MODE_NONE:
-				case PrefsManager.RINGER_MODE_NORMAL:
-					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-					break;
-				default: // unknown
-					return;
-			}
-		}
-		int gotmode = PrefsManager.getCurrentMode(this);
-		new MyLog(this, getString(R.string.trysetmode)
-				  + PrefsManager.getEnglishStateName(mode)
-				  + getString(R.string.actuallygot)
-				  + PrefsManager.getEnglishStateName(gotmode));
-		// Some versions of Android give us a mode different from the one that
-		// we asked for, and some versions of Android take a while to do it.
-		// We use a Handler to delay getting the mode actually set.
-		mHandler.sendMessageDelayed(
-			mHandler.obtainMessage(what, MODE_WAIT, 0, this), 1000);
-		lock();
 	}
 
 	private void moveToState (
@@ -1179,67 +2245,1211 @@ public class MuteService extends IntentService
 			LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 		}
 		doLogCycling();
-		int currentApiVersion = android.os.Build.VERSION.SDK_INT;
-		AudioManager audio
-			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		m_audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		m_notifManager =
+			(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+		m_lastModes = new SQLtable(this, "RINGERDNDMODES",
+			"RINGER_CLASS_NAME", "last_we_set");
+		getUserRinger();
 
-		// This is the last ringer mode we saw set by the user,
-		// defaulting to RINGER_MODE_NONE if we've never seen the user set it.
-		int userMode = PrefsManager.getUserRinger(this);
-
-		// This is the last ringer mode that we set, used to catch the user changing it.
-		int lastMode =  PrefsManager.getLastRinger(this);
-
-		// This is the ringer mode now (on entry to updateState())
-		int currentMode = PrefsManager.getCurrentMode(this);
-
-		new MyLog(this,
-			getString(R.string.lastis)
-				+ PrefsManager.getEnglishStateName(lastMode)
-				+ getString(R.string.currentis)
-				+ PrefsManager.getEnglishStateName(currentMode));
-		/* This will do the wrong thing if the user changes the mode during the
-		 * one second that we are waiting for Android to set the new mode, but
-		 * there seems to be no workaround because Android is a bit
-		 * unpredictable in this area. Since Android can delay setting the
-		 * mode that we asked for, or even set a different mode, but doesn't
-		 * always do so, we can't tell if a change was done by Android or by the
-		 * user.
-		 */
-		if (   (userMode == PrefsManager.RINGER_MODE_NONE)
-			|| ((lastMode != currentMode) && !mHandler.hasMessages(what)))
-		{
-			// New installation of CalendarTrigger
-			// or user changed ringer mode since we last set it
-			userMode = currentMode;
-			PrefsManager.setUserRinger(this, userMode);
-			new MyLog(this,
-				getString(R.string.setuser)
-					+ PrefsManager.getEnglishStateName(userMode));
+		if (BuildConfig.RINGERMODETEST) {
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+			}
+			else {
+				m_notifyFilter = -1;
+			}
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			m_ringerVibrate = -1;
+			m_notifyVibrate = -1;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = 0;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			m_ringerVibrate = -1;
+			m_notifyVibrate = -1;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 1000;
+			m_alarmVolume = 1000;
+			m_ringerMute = -1;
+			m_notifyMute = -1;
+			m_systemMute = -1;
+			m_alarmMute = -1;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_notifyVibrate = -1;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			m_notifyVibrate = -1;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_notifyVibrate = -1;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			m_ringerVibrate = -1;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			m_ringerVibrate = -1;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			m_ringerVibrate = -1;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 0;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 0;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 0;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 0;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 1;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 1;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 1000;
+			m_notifyVolume = 1000;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 1;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 1000;
+			m_systemVolume = 6;
+			m_alarmVolume = 1000;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 1;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 7;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 1;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+			//noinspection deprecation
+			m_ringerVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			//noinspection deprecation
+			m_notifyVibrate = AudioManager.VIBRATE_SETTING_ONLY_SILENT;
+			m_ringerVolume = 4;
+			m_notifyVolume = 5;
+			m_systemVolume = 6;
+			m_alarmVolume = 1000;
+			m_ringerMute = 0;
+			m_notifyMute = 0;
+			m_systemMute = 0;
+			m_alarmMute = 0;
+			m_alsoVibrate = -1;
+			m_notifyFilter = -1;
+			setCurrentRinger();
+			getUserRinger();
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALL;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_NONE;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 0;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_NORMAL;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_VIBRATE;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_ON;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_ON;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+				m_ringerMode = AudioManager.RINGER_MODE_SILENT;
+				//noinspection deprecation
+				m_ringerVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				//noinspection deprecation
+				m_notifyVibrate = AudioManager.VIBRATE_SETTING_OFF;
+				m_ringerVolume = 4;
+				m_notifyVolume = 5;
+				m_systemVolume = 6;
+				m_ringerMute = 0;
+				m_notifyMute = 0;
+				m_systemMute = 0;
+				m_alarmMute = 0;
+				m_alsoVibrate = 1;
+				m_notifyFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
+				setCurrentRinger();
+				getUserRinger();
+			}
 		}
-		new MyLog(this, "userMode is "
-				+ PrefsManager.getEnglishStateName(userMode));
-
-		// This is the ringer mode we will set before exiting,
-		// if no events are active we will normally restore the user's mode.
-		int wantedMode = userMode;
 
 		m_nextAccelTime = Long.MAX_VALUE;
 		String notifyType = null;
 		String notifyEvent = "";
 		String notifyClassName = null;
 		String notifySoundFile = "";
-		new MyLog(this, "About to call UpdatePhoneState()");
 		int phoneState = UpdatePhoneState(intent);
-		new MyLog(this, "Returned from UpdatePhoneState()");
 		boolean anyStepCountActive = false;
 		boolean anyLocationActive = false;
-		new MyLog(this, "About to call getPackageManager()");
 		PackageManager packageManager = getPackageManager();
-		new MyLog(this, "Returned from getPackageManager()");
-		final boolean haveStepCounter =
-			currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
-				&& packageManager.hasSystemFeature(
+		final boolean haveStepCounter =packageManager.hasSystemFeature(
 				PackageManager.FEATURE_SENSOR_STEP_COUNTER);
 		new MyLog(this, "haveStepCounter = "
 			+ (haveStepCounter ? "true" : "false"));
@@ -1259,13 +3469,10 @@ public class MuteService extends IntentService
 		}
 		CalendarProvider provider = new CalendarProvider();
 		SQLtable activeInstances =
-			new SQLtable(this, "ACTIVEINSTANCES");
-		new MyLog(this, "About to call CheckTimeZone()");
+			new SQLtable(m_lastModes, "ACTIVEINSTANCES");
 		CheckTimeZone(provider, activeInstances);
-		new MyLog(this, "About to call provider.fillActive()");
 		m_nextAlarm = provider.fillActive(activeInstances, this, m_timeNow);
 		activeInstances.moveToPosition(-1);
-		new MyLog(this, "moveToNext() called from MuteService line 1755");
 		while (activeInstances.moveToNext()) {
 			try {
 				String className =
@@ -1301,15 +3508,19 @@ public class MuteService extends IntentService
 					&& (   eventName.equals("deleted event")
                         || (activeInstances.getUnsignedLong("ACTIVE_LIVE")
                             == SQLtable.ACTIVE_DELETED))) {
-					new MyLog(this,
-						"Forcing ACTIVE_END_WAITING for deleted event of class "
-						+ className);
+					if (BuildConfig.DEBUG) {
+						new MyLog(this,
+							"Forcing ACTIVE_END_WAITING for deleted event of class "
+								+ className);
+					}
 					// Force deleted event to end
 					state = SQLtable.ACTIVE_END_WAITING;
 				}
-				new MyLog(this, "Switching on state "
-					+ activeInstances.getActiveStateName(state)
-					+ " for event " + eventName + " of class " + className);
+				if (BuildConfig.DEBUG) {
+					new MyLog(this, "Switching on state "
+						+ activeInstances.getActiveStateName(state)
+						+ " for event " + eventName + " of class " + className);
+				}
 				switch (state) {
 					case SQLtable.NOT_ACTIVE:
 						activeInstances.delete();
@@ -1335,9 +3546,11 @@ public class MuteService extends IntentService
 							continue;
 						}
 						// We can advance to STARTING now
-						new MyLog(this,
-							"Advancing to state ACTIVE_STARTING for event "
-								+ eventName + " of class " + className);
+						if (BuildConfig.DEBUG) {
+							new MyLog(this,
+								"Advancing to state ACTIVE_STARTING for event "
+									+ eventName + " of class " + className);
+						}
 					case SQLtable.ACTIVE_STARTING:
 						PrefsManager.setTargetSteps(this, classNum, 0);
 						PrefsManager.setLatitude(this, classNum, 360.0);
@@ -1352,28 +3565,8 @@ public class MuteService extends IntentService
                             sound = PrefsManager.getPlaysoundStart(
 							this, classNum);
                         }
-						int ringerAction = PrefsManager.getRingerAction(
-							this, classNum);
-						new MyLog(this, "wantedMode is "
-							+ PrefsManager.getEnglishStateName(wantedMode)
-							+ ", ringerAction is "
-							+ PrefsManager.getEnglishStateName(ringerAction)
-							+ " starting event " + eventName + " of class " + className);
-						if (!PrefsManager.getRestoreRinger(this, classNum))
-						{
-							/* This is a fudge to make not restoring the ringer at
-							 * the end of the event work. We raise the user ringer
-							 * mode to the mode that this class wants.
-							 */
-							if (userMode < ringerAction) {
-								userMode = ringerAction;
-							}
-						}
-						boolean ringChange = ringerAction > wantedMode;
-						if (ringerAction > wantedMode) {
-							// Set quieter mode wanted by this class
-							wantedMode = ringerAction;
-						}
+						boolean ringChange =
+							ringerForClass(classNum, className, true);
 						/* We can only do one notification at a time .
 						 * If a class sets a quieter ringer mode we show its
 						 * notification: otherwise we show the first notification
@@ -1389,30 +3582,24 @@ public class MuteService extends IntentService
 							}
 						}
 						// We can advance to START_SENDING or STARTED now
-						new MyLog(this,
-							"Advancing to state ACTIVE_START_SENDING for event "
-								+ eventName + " of class " + className);
+						if (BuildConfig.DEBUG) {
+							new MyLog(this,
+								"Advancing to state ACTIVE_START_SENDING for event "
+									+ eventName + " of class " + className);
+						}
 					case SQLtable.ACTIVE_START_SENDING:
 						if (state == SQLtable.ACTIVE_START_SENDING)
 						{
 							// We got here from switch, not from advancing.
-							ringerAction = PrefsManager.getRingerAction(
-								this, classNum);
-							new MyLog(this, "wantedMode is "
-								+ PrefsManager.getEnglishStateName(wantedMode)
-								+ ", ringerAction is "
-								+ PrefsManager.getEnglishStateName(ringerAction)
-								+ " during event " + eventName
-								+ " of class " + className);
-							if (ringerAction > wantedMode) {
-								// Set quieter mode wanted by this class
-								wantedMode = ringerAction;
-								if (notifySoundFile.isEmpty()) {
-									// Suppress any silent notification
-									// for an event which has ended
-									notifyType = null;
-								}
-							}
+                            if (   ringerForClass(classNum, className, false)
+                                && (notifyType != null)
+                                && notifyType.equals("end of ")
+                                && notifySoundFile.isEmpty())
+                            {
+                                // Suppress any silent notification
+                                // for an event which has ended
+                                notifyType = null;
+                            }
 						}
 						long endTime = tryMessage(classNum,
 							PrefsManager.SEND_MESSAGE_AT_START, activeInstances);
@@ -1421,30 +3608,24 @@ public class MuteService extends IntentService
 								m_timeNow + CalendarProvider.ONE_HOUR,
 								activeInstances);
 						} else {
-							new MyLog(this,
-								"Advancing to state ACTIVE_STARTED for event "
-									+ eventName + " of class " + className);
+							if (BuildConfig.DEBUG) {
+								new MyLog(this,
+									"Advancing to state ACTIVE_STARTED for event "
+										+ eventName + " of class " + className);
+							}
 							moveToStarted("for end of ", endTime, activeInstances);
 						}
 						continue;
 					case SQLtable.ACTIVE_STARTED:
-						ringerAction = PrefsManager.getRingerAction(
-							this, classNum);
-						new MyLog(this, "wantedMode is "
-							+ PrefsManager.getEnglishStateName(wantedMode)
-							+ ", ringerAction is "
-							+ PrefsManager.getEnglishStateName(ringerAction)
-							+ " during event " + eventName
-							+ " of class " + className);
-						if (ringerAction > wantedMode) {
-							// Set quieter mode wanted by this class
-							wantedMode = ringerAction;
-							if (notifySoundFile.isEmpty()) {
-								// Suppress any silent notification
-								// for an event which has ended
-								notifyType = null;
-							}
-						}
+                        if (   ringerForClass(classNum, className, false)
+                            && (notifyType != null)
+                            && notifyType.equals("end of ")
+                            && notifySoundFile.isEmpty())
+                        {
+                            // Suppress any silent notification
+                            // for an event which has ended
+                            notifyType = null;
+                        }
 						try {
 							long time =
 								activeInstances.getUnsignedLong(
@@ -1520,29 +3701,23 @@ public class MuteService extends IntentService
 							cont = true;
 						}
 						if (cont) {
-							ringerAction = PrefsManager.getRingerAction(
-								this, classNum);
-							new MyLog(this, "wantedMode is "
-								+ PrefsManager.getEnglishStateName(wantedMode)
-								+ ", ringerAction is "
-								+ PrefsManager.getEnglishStateName(ringerAction)
-								+ " waiting for end of event " + eventName
-								+ " of class " + className);
-							if (ringerAction > wantedMode) {
-								// Set quieter mode wanted by this class
-								wantedMode = ringerAction;
-								if (notifySoundFile.isEmpty()) {
-									// Suppress any silent notification
-									// for an event which has ended
-									notifyType = null;
-								}
-							}
+							if (   ringerForClass(classNum, className, false)
+                                && (notifyType != null)
+                                && notifyType.equals("end of ")
+                                && notifySoundFile.isEmpty())
+                            {
+                                // Suppress any silent notification
+                                // for an event which has ended
+                                notifyType = null;
+                            }
 							continue;
 						}
 						// We can advance to ENDING now
-						new MyLog(this,
-							"Advancing to state ACTIVE_ENDING for event "
-								+ eventName + " of class " + className);
+						if (BuildConfig.DEBUG) {
+							new MyLog(this,
+								"Advancing to state ACTIVE_ENDING for event "
+									+ eventName + " of class " + className);
+						}
 					case SQLtable.ACTIVE_ENDING:
 						PrefsManager.setTargetSteps(this, classNum, 0);
 						soundFile = PrefsManager.getSoundFileEnd(
@@ -1554,14 +3729,8 @@ public class MuteService extends IntentService
                         {
                             sound = PrefsManager.getPlaysoundEnd(this, classNum);
                         }
-						new MyLog(this, "wantedMode is "
-							+ PrefsManager.getEnglishStateName(wantedMode)
-							+ ", currentMode is "
-							+ PrefsManager.getEnglishStateName(currentMode)
-							+ " ending event " + eventName + " of class " + className);
 						ringChange =
-							PrefsManager.getRestoreRinger(this, classNum)
-							&& (wantedMode < currentMode);
+							PrefsManager.getRestoreRinger(this, classNum);
 						if (   (ringChange || (sound && notifySoundFile.isEmpty()))
 							&& PrefsManager.getNotifyEnd(this, classNum)) {
 							if (eventName.equals("deleted event")) {
@@ -1576,9 +3745,11 @@ public class MuteService extends IntentService
 							}
 						}
 						// We can advance to END_SENDING or NOT_ACTIVE now
-						new MyLog(this,
-							"Advancing to state ACTIVE_END_SENDING for event "
-								+ eventName + " of class " + className);
+						if (BuildConfig.DEBUG) {
+							new MyLog(this,
+								"Advancing to state ACTIVE_END_SENDING for event "
+									+ eventName + " of class " + className);
+						}
 					case SQLtable.ACTIVE_END_SENDING:
 						endTime = tryMessage(classNum,
 							PrefsManager.SEND_MESSAGE_AT_END, activeInstances);
@@ -1587,10 +3758,12 @@ public class MuteService extends IntentService
 								m_timeNow +
 								CalendarProvider.ONE_HOUR, activeInstances);
 						} else {
-							new MyLog(this,
-								"Finished with event "
-								+ eventName + " of class " + className
-								+ ", deleting it");
+							if (BuildConfig.DEBUG) {
+								new MyLog(this,
+									"Finished with event "
+										+ eventName + " of class " + className
+										+ ", deleting it");
+							}
 							// Finished with this instance
 							activeInstances.delete();
 						}
@@ -1632,19 +3805,16 @@ public class MuteService extends IntentService
 			}
 		}
 		String small;
-		if (wantedMode == PrefsManager.RINGER_MODE_NONE)
-		{
-			wantedMode = PrefsManager.RINGER_MODE_NORMAL;
-		}
-		setCurrentRinger(audio, currentApiVersion,  wantedMode, currentMode);
+// hack for testing
+//		boolean ringerChange = setCurrentRinger();
+		boolean ringerChange = false;
 		if (notifyType != null)
 		{
-			if (wantedMode != currentMode) {
-				small = getString(R.string.modeset) +
-					PrefsManager.getRingerStateName(this, wantedMode);
+			if (ringerChange) {
+				small = "Ringer modes updated";
 			}
 			else {
-				small = getString(R.string.modeunchanged);
+				small = "Ringer modes unchanged";
 			}
 			StringBuilder big = new StringBuilder(small);
 			big.append(getString(R.string.bforb));
@@ -1663,14 +3833,8 @@ public class MuteService extends IntentService
 				new MyLog(this, big.toString());
 			}
 		}
-		else if (resetting)
-		{
-			new MyLog(this,
-				getString(R.string.settingaudio)
-					+ PrefsManager.getEnglishStateName(wantedMode)
-					+ getString(R.string.afterreset));
-		}
 		resetting = false;
+		m_lastModes.close();
 		PendingIntent pIntent = PendingIntent.getBroadcast(
 			this, 0 /*requestCode*/,
 			new Intent("CalendarTrigger.Alarm", Uri.EMPTY,
@@ -1686,6 +3850,7 @@ public class MuteService extends IntentService
 			m_nextAlarm.eventName = "";
 			m_nextAlarm.className = "";
 		}
+		boolean needlock = false;
 		if (m_nextAlarm.time == Long.MAX_VALUE)
 		{
 			alarmManager.cancel(pIntent);
@@ -1711,7 +3876,7 @@ public class MuteService extends IntentService
 				mHandler.sendMessageDelayed(
 					mHandler.obtainMessage(
 						what, DELAY_WAIT, 0, this), delay);
-				lock();
+				needlock = true;
 				String s = getString(R.string.delayedmessage)
 					.concat(df.format(m_nextAlarm.time))
 					.concat(m_nextAlarm.reason).concat(m_nextAlarm.eventName);
@@ -1723,7 +3888,7 @@ public class MuteService extends IntentService
 			}
 			else
 			{
-				if (currentApiVersion >= android.os.Build.VERSION_CODES.M)
+				if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
 				{
 					alarmManager.setExactAndAllowWhileIdle(
 						AlarmManager.RTC_WAKEUP, m_nextAlarm.time, pIntent);
@@ -1764,220 +3929,34 @@ public class MuteService extends IntentService
 				LocationUpdates(0, PrefsManager.LATITUDE_IDLE);
 			}
 		}
-		unlock("updateState");
+		if (needlock) { lock(); } else { unlock("updateState"); }
 	}
-
-// Commented out as we don't want this debugging code in the real app
-// It runs a test to see which combinations of interruption filter and ringer
-// mode are actually valid on Marshmallow and later versions
-/*
-	@TargetApi(android.os.Build.VERSION_CODES.M)
-	// debugging code
-	private void currentRingerMode() {
-		String s = "Current state is ";
-		int filter =
-			((NotificationManager)
-				getSystemService(Context.NOTIFICATION_SERVICE))
-				.getCurrentInterruptionFilter();
-		switch (filter) {
-			case  NotificationManager.INTERRUPTION_FILTER_NONE:
-				s += "INTERRUPTION_FILTER_NONE";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_ALARMS:
-				s += "INTERRUPTION_FILTER_ALARMS";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_PRIORITY:
-				s += "INTERRUPTION_FILTER_PRIORITY";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_ALL:
-				s += "INTERRUPTION_FILTER_ALL";
-				break;
-			default:
-				s += "Unknown interruption filter " + String.valueOf(filter);
-				break;
-		}
-		AudioManager audio
-			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		int mode = audio.getRingerMode();
-		switch (mode) {
-			case AudioManager.RINGER_MODE_NORMAL:
-				s += ", RINGER_MODE_NORMAL";
-				break;
-			case AudioManager.RINGER_MODE_VIBRATE:
-				s += ", RINGER_MODE_VIBRATE";
-				break;
-			case AudioManager.RINGER_MODE_SILENT:
-				s += ", RINGER_MODE_SILENT";
-				break;
-			default:
-				s += ", Unknown ringer mode " + String.valueOf(mode);
-				break;
-		}
-		new MyLog(this, s);
-	}
-
-	@TargetApi(android.os.Build.VERSION_CODES.M)
-	// debugging code
-	private void testRingerMode1(int filter, int mode) {
-		String s = "Setting state to ";
-		switch (filter)
-		{
-			case NotificationManager.INTERRUPTION_FILTER_NONE:
-				s += "INTERRUPTION_FILTER_NONE";
-				break;
-			case NotificationManager.INTERRUPTION_FILTER_ALARMS:
-				s += "INTERRUPTION_FILTER_ALARMS";
-				break;
-			case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
-				s += "INTERRUPTION_FILTER_PRIORITY";
-				break;
-			case NotificationManager.INTERRUPTION_FILTER_ALL:
-				s += "INTERRUPTION_FILTER_ALL";
-				break;
-			default:
-				s += "Unknown interruption filter " + String.valueOf(filter);
-				break;
-		}
-		((NotificationManager)
-			getSystemService(Context.NOTIFICATION_SERVICE))
-			.setInterruptionFilter(filter);
-		switch (mode)
-		{
-			case AudioManager.RINGER_MODE_NORMAL:
-				s += ", RINGER_MODE_NORMAL";
-				break;
-			case AudioManager.RINGER_MODE_VIBRATE:
-				s += ", RINGER_MODE_VIBRATE";
-				break;
-			case AudioManager.RINGER_MODE_SILENT:
-				s += ", RINGER_MODE_SILENT";
-				break;
-			default:
-				s += ", Unknown ringer mode " + String.valueOf(mode);
-				break;
-		}
-		AudioManager audio
-			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		audio.setRingerMode(mode);
-		new MyLog(this, s);
-		currentRingerMode();
-	}
-
-	@TargetApi(android.os.Build.VERSION_CODES.M)
-	// debugging code
-	private void testRingerMode2(int filter, int mode) {
-		String s = "Setting state to ";
-		switch (mode) {
-			case AudioManager.RINGER_MODE_NORMAL:
-				s += "RINGER_MODE_NORMAL";
-				break;
-			case AudioManager.RINGER_MODE_VIBRATE:
-				s += "RINGER_MODE_VIBRATE";
-				break;
-			case AudioManager.RINGER_MODE_SILENT:
-				s += "RINGER_MODE_SILENT";
-				break;
-			default:
-				s += "Unknown ringer mode " + String.valueOf(mode);
-				break;
-		}
-		AudioManager audio
-			= (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		audio.setRingerMode(mode);
-		switch (filter) {
-			case  NotificationManager.INTERRUPTION_FILTER_NONE:
-				s += ", INTERRUPTION_FILTER_NONE";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_ALARMS:
-				s += ", INTERRUPTION_FILTER_ALARMS";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_PRIORITY:
-				s += ", INTERRUPTION_FILTER_PRIORITY";
-				break;
-			case  NotificationManager.INTERRUPTION_FILTER_ALL:
-				s += ", INTERRUPTION_FILTER_ALL";
-				break;
-			default:
-				s += ", Unknown interruption filter " + String.valueOf(filter);
-				break;
-		}
-		((NotificationManager)
-			getSystemService(Context.NOTIFICATION_SERVICE))
-			.setInterruptionFilter(filter);
-		new MyLog(this, s);
-		currentRingerMode();
-	}
-
-	@TargetApi(android.os.Build.VERSION_CODES.M)
-	// debugging code
-	private void exerciseModes() {
-		currentRingerMode();
-		int filter = NotificationManager.INTERRUPTION_FILTER_NONE;
-		int mode =  AudioManager.RINGER_MODE_SILENT;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_VIBRATE;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_NORMAL;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		filter = NotificationManager.INTERRUPTION_FILTER_ALARMS;
-		mode =  AudioManager.RINGER_MODE_SILENT;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_VIBRATE;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_NORMAL;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		filter = NotificationManager.INTERRUPTION_FILTER_PRIORITY;
-		mode =  AudioManager.RINGER_MODE_SILENT;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_VIBRATE;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_NORMAL;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		filter = NotificationManager.INTERRUPTION_FILTER_ALL;
-		mode =  AudioManager.RINGER_MODE_SILENT;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_VIBRATE;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-		mode =  AudioManager.RINGER_MODE_NORMAL;
-		testRingerMode1(filter, mode);
-		testRingerMode2(filter, mode);
-	}
-*/
 
 	@Override
 	public void onHandleIntent(Intent intent) {
 		new MyLog(this, "onHandleIntent("
 				  .concat(intent.toString())
 				  .concat(")"));
-		if (intent.getAction().equals(MUTESERVICE_RESET)) {
-			resetting = true;
-		}
-		else if (intent.getAction().equals(MUTESERVICE_SMS_RESULT)) {
-			int result = intent.getIntExtra("ResultCode", Activity.RESULT_OK);
-			if (result != Activity.RESULT_OK) {
-				StringBuilder sb = new StringBuilder(getString(R.string.smsfailed));
-				sb.append(result).append(")");
-				String small = sb.toString();
-				sb.append(getString(R.string.forpart))
-				  .append(intent.getIntExtra("PartNumber", 0))
-				  .append(getString(R.string.msgforevent))
-				  .append(intent.getStringExtra("EventName"));
-				new MyLog(this,
-					small, sb.toString(), null);
+		String action = intent.getAction();
+		if (action != null) {
+			if (action.equals(MUTESERVICE_RESET)) {
+				resetting = true;
+			} else if (intent.getAction().equals(MUTESERVICE_SMS_RESULT)) {
+				int result = intent.getIntExtra("ResultCode", Activity.RESULT_OK);
+				if (result != Activity.RESULT_OK) {
+					StringBuilder sb = new StringBuilder(getString(R.string.smsfailed));
+					sb.append(result).append(")");
+					String small = sb.toString();
+					sb.append(getString(R.string.forpart))
+						.append(intent.getIntExtra("PartNumber", 0))
+						.append(getString(R.string.msgforevent))
+						.append(intent.getStringExtra("EventName"));
+					new MyLog(this,
+						small, sb.toString(), null);
+				}
+				WakefulBroadcastReceiver.completeWakefulIntent(intent);
+				return;
 			}
-			WakefulBroadcastReceiver.completeWakefulIntent(intent);
-			return;
 		}
 		updateState(intent);
 		WakefulBroadcastReceiver.completeWakefulIntent(intent);

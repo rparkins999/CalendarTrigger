@@ -19,6 +19,7 @@ import android.widget.RadioButton;
 public class DisabledRadioButton extends RadioButton {
 
     private boolean m_enabled = false;
+    private boolean m_unclickable = true;
     private View.OnClickListener m_listener;
 
     public DisabledRadioButton(Context context) {
@@ -53,6 +54,10 @@ public class DisabledRadioButton extends RadioButton {
         }
     }
 
+    public void setUnclickable(boolean allowed) {
+        m_unclickable = allowed;
+    }
+
     @Override
     public boolean isEnabled() {
         return m_enabled;
@@ -64,8 +69,10 @@ public class DisabledRadioButton extends RadioButton {
     // Normally you can't un-click a RadioButton; this hack does it.
     public boolean performClick() {
         if (m_enabled) {
-            setChecked(!isChecked());
-            m_listener.onClick(this);
+            setChecked(!(isChecked() && m_unclickable));
+            if (m_listener != null) {
+                m_listener.onClick(this);
+            }
             return true;
         }
         else

@@ -395,10 +395,13 @@ public class CalendarProvider {
 					Instances.BEGIN);
 				if (c1 == null) { continue; }
 				while (c1.moveToNext()) {
+					long instanceId = c1.getLong(INSTANCE_PROJECTION_ID_INDEX);
+					String name = c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
+					new MyLog(context, "Event " + name + " of class "
+						+ className + ", instanceId = " + instanceId);
 					long end = c1.getLong(INSTANCE_PROJECTION_END_INDEX) + after;
 					if (end <= currentTime) {
 						// Instance has reached end time
-						long instanceId = c1.getLong(INSTANCE_PROJECTION_ID_INDEX);
 						String[] args = new String []
 							{ className, String.valueOf(instanceId) };
 						SQLtable table =
@@ -434,7 +437,6 @@ public class CalendarProvider {
 					}
 					else
 					{
-						String name = c1.getString(INSTANCE_PROJECTION_TITLE_INDEX);
 						if (name.isEmpty()) {
 							name = context.getString(R.string.anonymous);
 						}
@@ -446,14 +448,11 @@ public class CalendarProvider {
 						}
 						long start = c1.getLong(INSTANCE_PROJECTION_BEGIN_INDEX) - before;
 						if (start <= currentTime) {
-							long instanceId = c1.getLong(INSTANCE_PROJECTION_ID_INDEX);
 							String[] args = new String []
 								{ className, String.valueOf(instanceId) };
 							SQLtable table =
 								new SQLtable(activeInstances, "ACTIVEINSTANCES",
 									where, args, null);
-                            new MyLog(context,
-                                "moveToNext() called from CalendarProvider line 456");
 							if (table.moveToNext()) {
 								// undelete still active instance
 								table.update(

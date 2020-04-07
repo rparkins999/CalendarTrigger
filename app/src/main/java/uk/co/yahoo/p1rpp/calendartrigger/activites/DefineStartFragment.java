@@ -52,9 +52,8 @@ public class DefineStartFragment extends DefineFragment {
         LinearLayout ll =
             (LinearLayout)owner.findViewById(R.id.dynamicscrollview);
         ll.removeAllViews();
-        TextView tv = new TextView(owner);
-        tv.setText(R.string.longpresslabel);
-        tv.setOnLongClickListener(new View.OnLongClickListener() {
+        View.OnLongClickListener longClickListener =
+            new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(owner,
@@ -63,20 +62,14 @@ public class DefineStartFragment extends DefineFragment {
                                Toast.LENGTH_LONG).show();
                 return true;
             }
-        });
+        };
+        TextView tv = new TextView(owner);
+        tv.setText(R.string.longpresslabel);
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         tv = new TextView(owner);
-        tv.setText(fromHtml(getString(R.string.definestartlist, className)));
-        tv.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(owner,
-                    fromHtml(getString(R.string.definestartpopup,
-                        italicClassName)),
-                    Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        tv.setText(fromHtml(getString(R.string.definestartlist, italicClassName)));
+        tv.setOnLongClickListener(longClickListener);
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(owner);
         lll.setOrientation(LinearLayout.HORIZONTAL);
@@ -124,7 +117,7 @@ public class DefineStartFragment extends DefineFragment {
         lll.addView(tv);
         ll.addView(lll, ww);
         tv = new TextView(owner);
-        tv.setText(R.string.startnotuntillabel);
+        tv.setText(R.string.notuntillabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -141,7 +134,8 @@ public class DefineStartFragment extends DefineFragment {
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(owner, R.string.devicepositionhelp,
+                Toast.makeText(owner,
+                    getString(R.string.devicepositionhelp, getString(R.string.atstart)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }

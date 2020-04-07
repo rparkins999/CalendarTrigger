@@ -13,24 +13,35 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion 23
+    // This is the version it is compiled with.
+    // APIs up to this version can be used, APIs above it can't.
+    compileSdkVersion 24
     project.archivesBaseName = "CalendarTrigger";
     defaultConfig {
         applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
+        // APIs above this version can only be used conditional on version code.
+        // if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) // 23
         minSdkVersion 21
-        targetSdkVersion 22
+        // This is the version that we expect to run on.
+        // Behaviour changes past this version will (mostly) not be applied.
+        targetSdkVersion 21
         versionCode 8
         versionName "3.3"
     }
     buildTypes {
         release {
             minifyEnabled true
+            // These flags if true enables some chunks of code which are used to test
+            // how some poorly documented APIs behave in different Android versions.
+            // Once I've run the tests I don't want he code even in debug versions
+            buildConfigField("boolean", "RINGERMODETEST", "false")
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-rules.pro'
             signingConfig signingConfigs.config
             resValue("string", 'build_time', "${(new Date()).toString()}")
         }
         debug {
+            buildConfigField("boolean", "RINGERMODETEST", "true")
             signingConfig signingConfigs.config
             resValue("string", 'build_time', "${(new Date()).toString()}")
         }
@@ -48,6 +59,6 @@ android {
 
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'com.android.support:support-v4:23.2.1'
+    api 'com.android.support:support-v4:24.2.1'
     implementation 'org.jetbrains:annotations:13.0'
 }

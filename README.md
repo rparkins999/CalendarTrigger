@@ -1,7 +1,5 @@
 ﻿# CalendarTrigger
 
-There is a bug in the handling of floating time events. If the time zone changes so that the current offset from GMT is zero (e. g. Europe/London during the winter), floating time events are not updated. A patch is available in branch floatingbugfix. The will be permanently fixed in the next release.
-
 Trigger actions on your Android device based on calendar events
 
 This program is a generalisation of RemiNV/CalendarMute.
@@ -121,7 +119,7 @@ Some more complicated behaviours are described in this README file.
 If your device moves to a different time zone, the absolute time of events
 in its calendar remains the same but the displayed local time (also known as
 wall clock time) changes. Some Android devices allow you to specify that the
-local time remains the same instead (usually called floating time) for all events, but this is not usually what you want.   CalendarTrigger allows you specify floating time for individual events. This can be useful if for example you want your phone not to ring at night while you are asleep: normally you will sleep during the same period of local time regardless of which time zone you are currently in. The floating time feature can be accessed from the main menu. It asks you to select a date and displays all the events on that day. Each one has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time as it had when you checked the box. If you uncheck the box it will keep the same absolute time as it had when you unchecked the box.
+local time remains the same instead (usually called floating time) for all events, but this is not usually what you want. CalendarTrigger allows you specify floating time for individual events. This can be useful if for example you want your phone not to ring at night while you are asleep: normally you will sleep during the same period of local time regardless of which time zone you are currently in. The floating time feature can be accessed from the main menu. It asks you to select a date and displays all the events on that day. Each one has a checkbox and if you check the box it becomes a floating time event: if the time zone changes, CalendarTrigger will set it back to the same local time as it had when you checked the box. If you uncheck the box it will keep the same absolute time as it had when you unchecked the box.
 
 Setting or clearing the floating time property for a recurrent event sets or
 clears it for all occurrences. Recurrent events are displayed in red to remind
@@ -222,6 +220,9 @@ Normally Android grants or denies both of these permissions together. They are n
 
 READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE
 Normally Android grants or denies both of these permissions together. They are needed to enable CalendarTrigger to access a log file or a settings file or its database of floating time events. If you never enable logging or save settings, and do not use floating time events, they are not needed; if WRITE_EXTERNAL_STORAGE permission is denied, logging cannot be enabled, the log cannot be cycled, settings cannot be saved, and floating time events cannot be created. If READ_EXTERNAL_STORAGE permission is denied, the log cannot be shown, the log cannot be cycled, settings cannot be restored, and any previously created floating time events are ineffective. If you enable logging, you need to clear the log file from time to time, otherwise it will fill up memory. If log cycling is enabled, CalendarTrigger will periodically delete log entries more than 24 hours old.
+
+WRITE_SETTINGS
+This is a "dangerous" permission and has to be requested at run-time on versions of Android API 23 (Marshmallow) or later. It is needed on versions of Android API 16 (Jelly_bean) or later to implement the options to force or suppress vibrate on incoming calls. If is not (yet) granted, these options cannot be requested and will be dispalyed in yellow, but CalendarTrigger will otherwise work normally.
 
 ACCESS_FINE_LOCATION
 This is needed to enable CalendarTrigger to detect when the device has moved by a sufficient distance after the end of an event: if this permission is denied, the option is disabled, but CalendarTrigger will otherwise work normally.
