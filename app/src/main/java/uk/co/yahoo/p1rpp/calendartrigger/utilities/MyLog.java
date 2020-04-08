@@ -78,6 +78,6 @@ public class MyLog extends Object {
 				 @SuppressWarnings("unused") boolean fatal, String small, String big) {
 		new Notifier(context, small, big);
 		logIt(context, big, false);
-		throw(new Error());
+		throw(new Error(big));
 	}
 }

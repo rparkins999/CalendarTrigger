@@ -659,6 +659,11 @@ public class SQLtable {
             try {
                 return getString(columnName, "getStringOK");
             } catch (NoColumnException ignored) {
+                String small = "Repeated NoColumnException";
+                String big = small + " at column " + columnName
+                    + " in table " +  m_tableName
+                    + ". This is probably an Android bug. ";
+                new MyLog(m_context, true, small, big);
                 return null;
             }
         }
