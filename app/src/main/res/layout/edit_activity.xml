@@ -8,6 +8,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,71 +31,65 @@
             android:layout_height="1dp"
             android:alpha="0"
             android:focusable="true"
-            android:autoSizeTextType="uniform"
             android:text="" />
 
         <TextView
             android:id="@+id/backgroundtext"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text=""
-            android:autoSizeTextType="uniform"/>
+            android:text=""/>
 
         <Button
             android:id="@+id/deleteclassbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:autoSizeTextType="uniform"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/defineclassbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/definestartbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/actionstartbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/definestopbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/actionstopbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
 
         <Button
             android:id="@+id/eventnowbutton"
             android:layout_width="match_parent"
-            android:autoSizeTextType="uniform"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="" />
     </LinearLayout>
+
+</ScrollView>
+
 </FrameLayout>
