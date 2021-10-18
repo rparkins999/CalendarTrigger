@@ -170,7 +170,7 @@
         </string>
     <string name="deleteButtonLabel">Détruire classe %s (impossible d\'annuler)
     </string>
-    <string name="deleteButtonHelp">Ce bouton détruit la classe at annule tous
+    <string name="deleteButtonHelp">Ce bouton détruit la classe %s at annule tous
         les actions prévues pour cette classe. Destruction d\'une classe ne peut
         pas être annulée. Les évènements eux-mêmes ne sont pas touchés.
     </string>
