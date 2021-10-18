@@ -1,6 +1,6 @@
 ﻿# CalendarTrigger
 
-There is a bug in the handling of floating time events. If the time zone changes so that the current offset from GMT is zero (e. g. Europe/London during the winter), floating time events are not updated. A patch is available in branch floatingbugfix. The will be permanently fixed in the next release.
+There is a bug in the handling of floating time events. If the time zone changes so that the current offset from GMT is zero (e. g. Europe/London during the winter), floating time events are not updated. A patch is available in branch floatingbugfix. The bug will be permanently fixed in the next release.
 
 Trigger actions on your Android device based on calendar events
 
@@ -56,7 +56,7 @@ The items with dark triangles are drop-down selectors: touching one gives you a 
      alt="DefineClassDropdownScreen"
      height=600em>
 
-Now you can select the event name, location, or description in which to search. The other dropdown box selects match or non-match. The field to the right is a text input for the match string: an empty string means no test. As soon as you type something into the match string field, it add an OR condition and an AND condition, so that the screen looks like this:
+Now you can select the event name, location, or description in which to search. The other dropdown box selects match or non-match. The field to the right is a text input for the match string: an empty string means no test. As soon as you type something into the match string field, it adds an OR condition and an AND condition, so that the screen looks like this:
 
 <img src="./assets/DefineClassConditionScreen.png"
      alt="DefineClassConditionScreen"
@@ -184,7 +184,7 @@ where _label_ is empty or _HOME_ or _WORK_ or _OTHER_ or a string matching the _
 
 ## Signing and saving settings
 
-Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file downloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
+Newer versions of Android do not allow you to install unsigned applications. The `.apk` file in the git release is signed (with my signing key) as is the `.apk` file downloadable from [fdroid](https://f-droid.org) (with their signing key). Naturally neither I nor fdroid are willing to publish our signing keys, so if you build your own version you will need to to sign it with your own signing key. The `app/build.gradle` file expects a `keystore.properties` file in the subdirectory Keys of the parent directory of the project root directory, which you will need to fill with the details of your own signing key. You can find how to create it [here](https://developer.android.com/studio/publish/app-signing.html).
 
 Having multiple signing keys causes problems if you have previously installed one version and want to install a newer version of the same application signed with a different key: Android does not allow this, and you have to uninstall the old application before installing the new one This deletes the application's data, which means for CalendarTrigger that you lose all its settings including all of your class definitions.
 
