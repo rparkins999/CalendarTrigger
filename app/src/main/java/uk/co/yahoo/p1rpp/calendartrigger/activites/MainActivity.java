@@ -170,6 +170,7 @@ public class MainActivity extends Activity {
 					return true;
 				}
 			});
+			v = findViewById(R.id.actionstoplayout);
 			((ViewGroup)v).addView(b);
 		}
 	}

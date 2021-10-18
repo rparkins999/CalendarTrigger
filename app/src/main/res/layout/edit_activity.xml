@@ -3,7 +3,7 @@
    Copyright (c) 2016. Richard P. Parkins, M. A.
    Released under GPL V3 or later
   -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
              android:id="@+id/edit_activity_container"
              android:layout_width="match_parent"
@@ -14,16 +14,16 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="left|top">
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|top">
 
         <!-- This is an invisible view to request the focus when an EditText gets deleted
              in order to stop Android highlighting something else.
              It would be nicer to go back into touch mode,
              but Android does not provide a way of doing that. -->
         <TextView
-            android:layout_width="1dp"
-            android:layout_height="1dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:text=""
             android:alpha="0"
             android:focusable="true"
@@ -85,4 +85,4 @@
             android:text=""
             android:id="@+id/eventnowbutton"/>
     </LinearLayout>
-</FrameLayout>
+</ScrollView>

@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-   Copyright (c) 2016. Richard P. Parkins, M. A.
-   Released under GPL V3 or later
-  -->
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.DefineClassActivity"
+    tools:ignore="MergeRootFrame" >
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <!-- This is an invisible view to request the focus when an EditText gets deleted

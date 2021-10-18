@@ -4,12 +4,11 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
-import uk.co.yahoo.p1rpp.calendartrigger.activites.DefineClassFragment;
+import uk.co.yahoo.p1rpp.calendartrigger.activites.DefineClassActivity;
 
 public class AndList extends LinearLayout {
 
-    DefineClassFragment m_owner;
+    DefineClassActivity m_owner;
     Context m_context;
     int m_classNum;
 
@@ -18,7 +17,7 @@ public class AndList extends LinearLayout {
         m_context = context;
     }
 
-    public void setup(DefineClassFragment owner, int classNum, boolean first) {
+    public void setup(DefineClassActivity owner, int classNum, boolean first) {
         m_owner = owner;
         m_classNum = classNum;
         removeAllViews();

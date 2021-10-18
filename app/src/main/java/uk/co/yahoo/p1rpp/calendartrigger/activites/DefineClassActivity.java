@@ -1,33 +1,30 @@
 /*
- * Copyright (c) 2016. Richard P. Parkins, M. A.
+ * Copyright (c) 2021. Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
-import android.app.Fragment;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import uk.co.yahoo.p1rpp.calendartrigger.Layouts.AndList;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
@@ -36,14 +33,10 @@ import uk.co.yahoo.p1rpp.calendartrigger.R;
 import static android.text.Html.fromHtml;
 import static android.text.TextUtils.htmlEncode;
 
-/**
- * Created by rparkins on 01/07/16.
- */
-public class DefineClassFragment extends Fragment
+public class DefineClassActivity extends Activity
     implements AdapterView.OnItemSelectedListener {
-    private static final String ARG_CLASS_NAME = "class name";
-    private float scale;
-    private AndList comparisons;
+
+    private String className;
 
     // Projection for calendar queries
     public static final String[] CALENDAR_PROJECTION = new String[] {
@@ -52,49 +45,40 @@ public class DefineClassFragment extends Fragment
     };
     public static final int CALENDAR_PROJECTION_ID_INDEX = 0;
     public static final int CALENDAR_PROJECTION_DISPLAY_NAME_INDEX = 1;
-
-    private class calendarCheck extends CheckBox {
+    private static class calendarCheck extends CheckBox {
         public long id;
         calendarCheck(Context context, long calId) {
             super(context);
             id = calId;
         }
     }
-    private ArrayList<calendarCheck> calChecks;
+    private ArrayList<DefineClassActivity.calendarCheck> calChecks;
     private TextView invisible;
     private RadioGroup busyState;
     private RadioGroup recurrentState;
     private RadioGroup organiserState;
     private RadioGroup publicState;
     private RadioGroup attendeeState;
-
-    public DefineClassFragment() {
-    }
-
-    public static DefineClassFragment newInstance(String className ) {
-        DefineClassFragment fragment = new DefineClassFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_CLASS_NAME, className);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private AndList comparisons;
 
     public void onItemSelected(AdapterView<?> parent, View view,
-            int pos, long id) {
+                               int pos, long id) {
         String item = parent.getItemAtPosition(pos).toString();
-        Toast.makeText(getActivity(), item, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, item, Toast.LENGTH_LONG).show();
     }
-
     public void onNothingSelected (AdapterView<?> parent) {}
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-        Bundle savedInstanceState) {
-        View rootView =
-            inflater.inflate(
-                R.layout.fragment_define_class, container, false);
-        scale = getResources().getDisplayMetrics().density;
-        return rootView;
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_define_class);
+    }
+
+    public void makeComparisons(
+        DefineClassActivity ac, int classNum, boolean first)
+    {
+        comparisons = new AndList(ac);
+        comparisons.setup(this, classNum, first);
     }
 
     // This prevents a button from getting focussed
@@ -102,27 +86,35 @@ public class DefineClassFragment extends Fragment
         invisible.requestFocus();
     }
 
-    public LinearLayout makeComparisons(EditActivity ac, int classNum, boolean first) {
-        comparisons = new AndList(ac);
-        comparisons.setup(this, classNum, first);
-        return comparisons;
-    }
-
+    /**
+     * Called after {@link #onRestoreInstanceState}, {@link #onRestart}, or
+     * {@link #onPause}, for your activity to start interacting with the user.
+     * This is a good place to begin animations, open exclusive-access devices
+     * (such as the camera), etc.
+     *
+     * <p>Keep in mind that onResume is not the best indicator that your activity
+     * is visible to the user; a system window such as the keyguard may be in
+     * front.  Use {@link #onWindowFocusChanged} to know for certain that your
+     * activity is visible to the user (for example, to resume a game).
+     *
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @see #onRestoreInstanceState
+     * @see #onRestart
+     * @see #onPostResume
+     * @see #onPause
+     */
     @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
-        final EditActivity ac = (EditActivity)getActivity();
-        ac.setButtonVisibility(View.INVISIBLE);
+        final DefineClassActivity ac = this;
+        Intent i = getIntent();
+        className = i.getStringExtra("classname");
         Configuration config = getResources().getConfiguration();
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
-        final String className =
-            "<i>" + htmlEncode(getArguments().getString(ARG_CLASS_NAME)) +
-            "</i>";
-        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
+        final String italicName = "<i>" + htmlEncode(className) + "</i>";
+        float scale = getResources().getDisplayMetrics().density;
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
@@ -139,15 +131,16 @@ public class DefineClassFragment extends Fragment
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
-	                fromHtml(getString(R.string.defineclasspopup, className)),
+                    fromHtml(getString(R.string.defineclasspopup, italicName)),
                     Toast.LENGTH_LONG).show();
                 return true;
             }
         });
         ll.addView(tv, ww);
         tv = new TextView(ac);
-        tv.setText(fromHtml(getString(R.string.defineclasslist, className)));
+        tv.setText(fromHtml(getString(R.string.defineclasslist, italicName)));
         ll.addView(tv, ww);
+        int classNum = PrefsManager.getClassNum(this, className);
         ArrayList<Long> checkedCalendarIds
             = PrefsManager.getCalendars(ac, classNum);
         ContentResolver cr = ac.getContentResolver();
@@ -169,22 +162,25 @@ public class DefineClassFragment extends Fragment
             });
             ll.addView(tv, ww);
             first = false;
-            LinearLayout lll = new LinearLayout(ac);
+            LinearLayout lll = new LinearLayout(this);
             lll.setOrientation(LinearLayout.VERTICAL);
             lll.setPadding((int)(scale * 50.0), 0, 0, 0);
             while (cur.moveToNext()) {
                 long calId = cur.getLong(CALENDAR_PROJECTION_ID_INDEX);
                 String calName
                     = cur.getString(CALENDAR_PROJECTION_DISPLAY_NAME_INDEX);
-                calendarCheck cc = new calendarCheck(ac, calId);
+                DefineClassActivity.calendarCheck cc =
+                    new DefineClassActivity.calendarCheck(this, calId);
                 cc.setText(calName);
                 cc.setChecked(checkedCalendarIds.contains(calId));
                 lll.addView(cc, ww);
                 calChecks.add(cc);
             }
             ll.addView(lll, ww);
+            cur.close();
         }
-        ll.addView(makeComparisons(ac, classNum, first));
+        makeComparisons(this, classNum, first);
+        ll.addView(comparisons);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         tv = new TextView(ac);
@@ -317,7 +313,7 @@ public class DefineClassFragment extends Fragment
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
                     fromHtml(getString(R.string.privatehelp, className)),
-                               Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG).show();
                 return true;
             }
         });
@@ -393,55 +389,87 @@ public class DefineClassFragment extends Fragment
         ll.addView(lll, ww);
     }
 
+    /**
+     * Called as part of the activity lifecycle when an activity is going into
+     * the background, but has not (yet) been killed.  The counterpart to
+     * {@link #onResume}.
+     *
+     * <p>When activity B is launched in front of activity A, this callback will
+     * be invoked on A.  B will not be created until A's onPause returns,
+     * so be sure to not do anything lengthy here.
+     *
+     * <p>This callback is mostly used for saving any persistent state the
+     * activity is editing, to present a "edit in place" model to the user and
+     * making sure nothing is lost if there are not enough resources to start
+     * the new activity without first killing this one.  This is also a good
+     * place to do things like stop animations and other things that consume a
+     * noticeable amount of CPU in order to make the switch to the next activity
+     * as fast as possible, or to close resources that are exclusive access
+     * such as the camera.
+     *
+     * <p>In situations where the system needs more memory it may kill paused
+     * processes to reclaim resources.  Because of this, you should be sure
+     * that all of your state is saved by the time you return from
+     * this function.  In general {@link #onSaveInstanceState} is used to save
+     * per-instance state in the activity and this method is used to store
+     * global persistent data (in content providers, files, etc.)
+     *
+     * <p>After receiving this call you will usually receive a following call
+     * to {@link #onStop} (after the next activity has been resumed and
+     * displayed), however in some cases there will be a direct call back to
+     * {@link #onResume} without going through the stopped state.
+     *
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @see #onResume
+     * @see #onSaveInstanceState
+     * @see #onStop
+     */
     @Override
-    public void onPause() {
+    protected void onPause() {
         super.onPause();
-        final EditActivity ac = (EditActivity)getActivity();
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
+        int classNum = PrefsManager.getClassNum(this, className);
         ArrayList<Long> checkedCalendarIds
             = new ArrayList<>(calChecks.size());
-        Iterator<calendarCheck> it = calChecks.iterator();
-        while (it.hasNext()) {
-            calendarCheck ctv = it.next();
+        for (calendarCheck ctv : calChecks) {
             if (ctv.isChecked()) {
                 checkedCalendarIds.add(ctv.id);
             }
         }
-        PrefsManager.putCalendars(ac, classNum, checkedCalendarIds);
+        PrefsManager.putCalendars(this, classNum, checkedCalendarIds);
         comparisons.updatePreferences(classNum);
         int id = busyState.getCheckedRadioButtonId();
         int index;
         for (index = 0; index <= PrefsManager.BUSY_AND_NOT; ++index) {
             if (busyState.getChildAt(index).getId() == id) {
-                PrefsManager.setWhetherBusy(ac, classNum, index);
+                PrefsManager.setWhetherBusy(this, classNum, index);
             }
         }
         id = recurrentState.getCheckedRadioButtonId();
         for (index = 0; index <= PrefsManager.RECURRENT_AND_NOT; ++index) {
             if (recurrentState.getChildAt(index).getId() == id) {
-                PrefsManager.setWhetherRecurrent(ac, classNum, index);
+                PrefsManager.setWhetherRecurrent(this, classNum, index);
             }
         }
         id = organiserState.getCheckedRadioButtonId();
         for (index = 0; index <= PrefsManager.ORGANISER_AND_NOT; ++index) {
             if (organiserState.getChildAt(index).getId() == id) {
-                PrefsManager.setWhetherOrganiser(ac, classNum, index);
+                PrefsManager.setWhetherOrganiser(this, classNum, index);
             }
         }
         id = publicState.getCheckedRadioButtonId();
         for (index = 0; index <= PrefsManager.PUBLIC_AND_PRIVATE; ++index) {
             if (publicState.getChildAt(index).getId() == id) {
-                PrefsManager.setWhetherPublic(ac, classNum, index);
+                PrefsManager.setWhetherPublic(this, classNum, index);
             }
         }
         id = attendeeState.getCheckedRadioButtonId();
         for (index = 0; index <= PrefsManager.ATTENDEES_AND_NOT; ++index) {
             if (attendeeState.getChildAt(index).getId() == id) {
-                PrefsManager.setWhetherAttendees(ac, classNum, index);
+                PrefsManager.setWhetherAttendees(this, classNum, index);
             }
         }
-
-        ac.setButtonVisibility(View.VISIBLE);
     }
 }

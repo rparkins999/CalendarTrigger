@@ -63,6 +63,7 @@
         </receiver>
 
         <activity android:name=".activites.EditActivity" />
+        <activity android:name=".activites.DefineClassActivity" />
         <activity android:name=".activites.SettingsActivity" />
         <activity android:name=".activites.FakeContact" />
     </application>

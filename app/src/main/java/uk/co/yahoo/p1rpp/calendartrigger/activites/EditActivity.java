@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import uk.co.yahoo.p1rpp.calendartrigger.activites.DefineClassActivity;
 import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
@@ -69,6 +70,7 @@ public class EditActivity extends Activity {
     protected void onResume() {
         final EditActivity ac = this;
         super.onResume();
+        findViewById(R.id.editinvisible).requestFocus();
         Intent i = getIntent();
         className = i.getStringExtra("classname");
         final String italicName = "<i>" + htmlEncode(className) + "</i>";
@@ -106,12 +108,9 @@ public class EditActivity extends Activity {
             R.string.defineButtonLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentTransaction ft =
-                    getFragmentManager().beginTransaction();
-                Fragment f = DefineClassFragment.newInstance(className);
-                ft.replace(R.id.edit_activity_container, f, "dcf")
-                  .addToBackStack(null)
-                  .commit();
+                Intent it = new Intent(ac, DefineClassActivity.class);
+                it.putExtra("classname", className);
+                startActivity(it);
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
