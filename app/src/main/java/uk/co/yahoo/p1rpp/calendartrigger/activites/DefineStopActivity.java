@@ -1,17 +1,20 @@
 /*
- * Copyright (c) 2016. Richard P. Parkins, M. A.
+ * Copyright (c) 2021. Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.Manifest;
-import android.app.Fragment;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.PermissionChecker;
 import android.text.InputFilter;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -29,18 +32,13 @@ import static android.text.TextUtils.htmlEncode;
 /**
  * Created by rparkins on 05/07/16.
  */
-public class DefineStopFragment extends Fragment {
-    private static final String ARG_CLASS_NAME = "class name";
-    private float scale;
+public class DefineStopActivity extends Activity {
+    private String className;
     private boolean haveStepCounter;
     private boolean havelocation;
     private EditText minutesEditor;
-    private TextView firstStepsLabel;
     private EditText stepCountEditor;
-    private TextView lastStepsLabel;
-    private TextView firstMetresLabel;
     private EditText metresEditor;
-    private TextView lastMetresLabel;
     private CheckBox faceUp;
     private CheckBox faceDown;
     private CheckBox anyPosition;
@@ -49,76 +47,103 @@ public class DefineStopFragment extends Fragment {
     private CheckBox slowchcarger;
     private CheckBox peripheral;
     private CheckBox nothing;
-    private boolean noRecursion;
 
-    public DefineStopFragment() {
-    }
-
-    public static DefineStopFragment newInstance(String className ) {
-        DefineStopFragment fragment = new DefineStopFragment();
-        Bundle args = new Bundle();
-        fragment.noRecursion = false;
-        args.putString(ARG_CLASS_NAME, className);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    /**
+     * Called when the activity is starting.  This is where most initialization
+     * should go: calling {@link #setContentView(int)} to inflate the
+     * activity's UI, using {@link #findViewById} to programmatically interact
+     * with widgets in the UI, calling
+     * {@link #managedQuery(Uri, String[], String, String[], String)} to retrieve
+     * cursors for data being displayed, etc.
+     *
+     * <p>You can call {@link #finish} from within this function, in
+     * which case onDestroy() will be immediately called without any of the rest
+     * of the activity lifecycle ({@link #onStart}, {@link #onResume},
+     * {@link #onPause}, etc) executing.
+     *
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     * @see #onStart
+     * @see #onSaveInstanceState
+     * @see #onRestoreInstanceState
+     * @see #onPostCreate
+     */
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-        Bundle savedInstanceState) {
-        View rootView =
-            inflater.inflate(R.layout.fragment_define_stop, container, false);
-        scale = getResources().getDisplayMetrics().density;
-        return rootView;
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_define_stop);
     }
 
+    /**
+     * Called after {@link #onRestoreInstanceState}, {@link #onRestart}, or
+     * {@link #onPause}, for your activity to start interacting with the user.
+     * This is a good place to begin animations, open exclusive-access devices
+     * (such as the camera), etc.
+     *
+     * <p>Keep in mind that onResume is not the best indicator that your activity
+     * is visible to the user; a system window such as the keyguard may be in
+     * front.  Use {@link #onWindowFocusChanged} to know for certain that your
+     * activity is visible to the user (for example, to resume a game).
+     *
+     * <p><em>Derived classes must call through to the super class's
+     * implementation of this method.  If they do not, an exception will be
+     * thrown.</em></p>
+     *
+     * @see #onRestoreInstanceState
+     * @see #onRestart
+     * @see #onPostResume
+     * @see #onPause
+     */
+    @SuppressLint("SetTextI18n")
     @Override
     public void onResume() {
         super.onResume();
-        final EditActivity ac = (EditActivity)getActivity();
-        ac.setButtonVisibility(View.INVISIBLE);
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
-        final String className =
-            "<i>" + htmlEncode(getArguments().getString(ARG_CLASS_NAME)) +
-            "</i>";
+        final DefineStopActivity ac = this;
+        Intent it = getIntent();
+        className = it.getStringExtra("classname");
+        int classNum = PrefsManager.getClassNum(this, className);
+        final String italicName = "<i>" + htmlEncode(className) + "</i>";
+        float scale = getResources().getDisplayMetrics().density;
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        InputFilter lf[] = {
+        InputFilter[] lf = {
             new InputFilter.LengthFilter(6)
         };
-        LinearLayout ll =
-            (LinearLayout)ac.findViewById(R.id.definestoplayout);
+        LinearLayout ll = (LinearLayout)findViewById(R.id.definestoplayout);
         ll.removeAllViews();
-        TextView tv = new TextView(ac);
+        TextView tv = new TextView(this);
         tv.setText(R.string.longpresslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(ac,
                                fromHtml(getString(R.string.definestoppopup,
-                                                  className)),
+                                   italicName)),
                                Toast.LENGTH_LONG).show();
                 return true;
             }
         });
         ll.addView(tv, ww);
-        tv = new TextView(ac);
-        tv.setText(fromHtml(getString(R.string.definestoplist, className)));
+        tv = new TextView(this);
+        tv.setText(fromHtml(getString(R.string.definestoplist, italicName)));
         ll.addView(tv, ww);
         LinearLayout lll = new LinearLayout(ac);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
-        minutesEditor = new EditText(ac);
+        minutesEditor = new EditText(this);
         minutesEditor.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
         minutesEditor.setFilters(lf);
-        Integer i =
-            new Integer(PrefsManager.getAfterMinutes(ac, classNum));
-        minutesEditor.setText(i.toString(), TextView.BufferType.EDITABLE);
+        int i = PrefsManager.getAfterMinutes(this, classNum);
+        minutesEditor.setText(Integer.toString(i), TextView.BufferType.EDITABLE);
         lll.addView(minutesEditor);
-        tv = new TextView(ac);
+        tv = new TextView(this);
         tv.setText(R.string.stopminuteslabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -130,7 +155,7 @@ public class DefineStopFragment extends Fragment {
         });
         lll.addView(tv, ww);
         ll.addView(lll, ww);
-        tv = new TextView(ac);
+        tv = new TextView(this);
         tv.setText(R.string.stopnotuntillabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -143,13 +168,13 @@ public class DefineStopFragment extends Fragment {
         ll.addView(tv, ww);
         int currentApiVersion = android.os.Build.VERSION.SDK_INT;
         // Check that the device supports the step counter sensor
-        PackageManager packageManager = ac.getPackageManager();
+        PackageManager packageManager = getPackageManager();
         haveStepCounter =
             currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
             && packageManager.hasSystemFeature(
                    PackageManager.FEATURE_SENSOR_STEP_COUNTER);
         int colour =  haveStepCounter ? 0xFF000000 : 0x80000000;
-        lll = new LinearLayout(ac);
+        lll = new LinearLayout(this);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         lll.setOnLongClickListener(new View.OnLongClickListener() {
@@ -163,18 +188,18 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        firstStepsLabel = new TextView(ac);
+        TextView firstStepsLabel = new TextView(this);
         firstStepsLabel.setText(R.string.firststepslabel);
         firstStepsLabel.setTextColor(colour);
-        stepCountEditor = new EditText(ac);
+        stepCountEditor = new EditText(this);
         stepCountEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
         stepCountEditor.setFilters(lf);
-        i = haveStepCounter ? PrefsManager.getAfterSteps(ac, classNum) : 0;
+        i = haveStepCounter ? PrefsManager.getAfterSteps(this, classNum) : 0;
         stepCountEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         stepCountEditor.setEnabled(true);
         stepCountEditor.setTextColor(colour);
-        lastStepsLabel = new TextView(ac);
+        TextView lastStepsLabel = new TextView(this);
         lastStepsLabel.setText(R.string.laststepslabel);
         lastStepsLabel.setTextColor(colour);
         lll.addView(firstStepsLabel, ww);
@@ -185,7 +210,7 @@ public class DefineStopFragment extends Fragment {
                        PermissionChecker.checkSelfPermission(
                 ac, Manifest.permission.ACCESS_FINE_LOCATION);
         colour =  havelocation ? 0xFF000000 : 0x80000000;
-        lll = new LinearLayout(ac);
+        lll = new LinearLayout(this);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
         lll.setOnLongClickListener(new View.OnLongClickListener() {
@@ -199,25 +224,25 @@ public class DefineStopFragment extends Fragment {
                 return true;
             }
         });
-        firstMetresLabel = new TextView(ac);
+        TextView firstMetresLabel = new TextView(this);
         firstMetresLabel.setText(R.string.firstlocationlabel);
         firstMetresLabel.setTextColor(colour);
-        metresEditor = new EditText(ac);
+        metresEditor = new EditText(this);
         metresEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
         metresEditor.setFilters(lf);
-        i = havelocation ? PrefsManager.getAfterMetres(ac, classNum) : 0;
+        i = havelocation ? PrefsManager.getAfterMetres(this, classNum) : 0;
         metresEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
         metresEditor.setEnabled(havelocation);
         metresEditor.setTextColor(colour);
-        lastMetresLabel = new TextView(ac);
+        TextView lastMetresLabel = new TextView(this);
         lastMetresLabel.setText(R.string.lastlocationlabel);
         lastMetresLabel.setTextColor(colour);
         lll.addView(firstMetresLabel, ww);
         lll.addView(metresEditor);
         lll.addView(lastMetresLabel, ww);
         ll.addView(lll, ww);
-        tv = new TextView(ac);
+        tv = new TextView(this);
         tv.setPadding((int)(scale * 25.0), 0, 0, 0);
         tv.setText(R.string.devicepositionlabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -230,7 +255,7 @@ public class DefineStopFragment extends Fragment {
         });
         ll.addView(tv, ww);
         int orientations = PrefsManager.getAfterOrientation(ac, classNum);
-        lll = new LinearLayout(ac);
+        lll = new LinearLayout(this);
         lll.setOrientation(LinearLayout.VERTICAL);
         lll.setPadding((int)(scale * 50.0), 0, 0, 0);
         faceUp = new CheckBox(ac);
@@ -245,7 +270,7 @@ public class DefineStopFragment extends Fragment {
         });
         faceUp.setChecked((orientations & PrefsManager.BEFORE_FACE_UP) != 0);
         lll.addView(faceUp, ww);
-        faceDown = new CheckBox(ac);
+        faceDown = new CheckBox(this);
         faceDown.setText(R.string.devicefacedownlabel);
         faceDown.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -258,7 +283,7 @@ public class DefineStopFragment extends Fragment {
         faceDown.setChecked(
             (orientations & PrefsManager.BEFORE_FACE_DOWN) !=0);
         lll.addView(faceDown, ww);
-        anyPosition = new CheckBox(ac);
+        anyPosition = new CheckBox(this);
         anyPosition.setText(R.string.deviceanypositionlabel);
         anyPosition.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -272,7 +297,7 @@ public class DefineStopFragment extends Fragment {
             (orientations & PrefsManager.BEFORE_OTHER_POSITION) !=0);
         lll.addView(anyPosition, ww);
         ll.addView(lll, ww);
-        tv = new TextView(ac);
+        tv = new TextView(this);
         tv.setPadding((int)(scale * 25.0), 0, 0, 0);
         tv.setText(R.string.deviceUSBlabel);
         tv.setOnLongClickListener(new View.OnLongClickListener() {
@@ -285,10 +310,10 @@ public class DefineStopFragment extends Fragment {
         });
         ll.addView(tv, ww);
         int connections = PrefsManager.getAfterConnection(ac, classNum);
-        lll = new LinearLayout(ac);
+        lll = new LinearLayout(this);
         lll.setOrientation(LinearLayout.VERTICAL);
         lll.setPadding((int)(scale * 50.0), 0, 0, 0);
-        wirelessCharger = new CheckBox(ac);
+        wirelessCharger = new CheckBox(this);
         wirelessCharger.setText(R.string.wirelesschargerlabel);
 
         wirelessCharger.setOnLongClickListener(new View.OnLongClickListener() {
@@ -302,7 +327,7 @@ public class DefineStopFragment extends Fragment {
         wirelessCharger.setChecked(
             (connections & PrefsManager.BEFORE_WIRELESS_CHARGER) != 0);
         lll.addView(wirelessCharger, ww);
-        fastCharger = new CheckBox(ac);
+        fastCharger = new CheckBox(this);
         fastCharger.setText(R.string.fastchargerlabel);
 
         fastCharger.setOnLongClickListener(new View.OnLongClickListener() {
@@ -316,7 +341,7 @@ public class DefineStopFragment extends Fragment {
         fastCharger.setChecked(
             (connections & PrefsManager.BEFORE_FAST_CHARGER) != 0);
         lll.addView(fastCharger, ww);
-        slowchcarger = new CheckBox(ac);
+        slowchcarger = new CheckBox(this);
         slowchcarger.setText(R.string.plainchargerlabel);
 
         slowchcarger.setOnLongClickListener(new View.OnLongClickListener() {
@@ -330,8 +355,7 @@ public class DefineStopFragment extends Fragment {
         slowchcarger.setChecked(
             (connections & PrefsManager.BEFORE_PLAIN_CHARGER) != 0);
         lll.addView(slowchcarger, ww);
-        peripheral = new CheckBox(ac);
-        peripheral = new CheckBox(ac);
+        peripheral = new CheckBox(this);
         peripheral.setText(R.string.usbotglabel);
 
         peripheral.setOnLongClickListener(new View.OnLongClickListener() {
@@ -345,8 +369,7 @@ public class DefineStopFragment extends Fragment {
         peripheral.setChecked(
             (connections & PrefsManager.BEFORE_PERIPHERAL) != 0);
         lll.addView(peripheral, ww);
-        nothing = new CheckBox(ac);
-        nothing = new CheckBox(ac);
+        nothing = new CheckBox(this);
         nothing.setText(R.string.usbnothinglabel);
 
         nothing.setOnLongClickListener(new View.OnLongClickListener() {
@@ -366,18 +389,16 @@ public class DefineStopFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        final EditActivity ac = (EditActivity)getActivity();
-        int classNum = PrefsManager.getClassNum(
-            ac, getArguments().getString(ARG_CLASS_NAME));
-        String s = new String(minutesEditor.getText().toString());
+        int classNum = PrefsManager.getClassNum(this, className);
+        String s = minutesEditor.getText().toString();
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterMinutes(ac, classNum, new Integer(s));
-        s = new String(stepCountEditor.getText().toString());
+        PrefsManager.setAfterMinutes(this, classNum, Integer.parseInt(s));
+        s = stepCountEditor.getText().toString();
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterSteps(ac, classNum, new Integer(s));
-        s = new String(metresEditor.getText().toString());
+        PrefsManager.setAfterSteps(this, classNum, Integer.parseInt(s));
+        s = metresEditor.getText().toString();
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterMetres(ac, classNum, new Integer(s));
+        PrefsManager.setAfterMetres(this, classNum, Integer.parseInt(s));
         int orientations = 0;
         if (faceUp.isChecked())
         {
@@ -391,7 +412,7 @@ public class DefineStopFragment extends Fragment {
         {
             orientations |= PrefsManager.BEFORE_OTHER_POSITION;
         }
-        PrefsManager.setAfterOrientation(ac, classNum, orientations);
+        PrefsManager.setAfterOrientation(this, classNum, orientations);
         int connections = 0;
         if (wirelessCharger.isChecked())
         {
@@ -413,7 +434,6 @@ public class DefineStopFragment extends Fragment {
         {
             connections |= PrefsManager.BEFORE_UNCONNECTED;
         }
-        PrefsManager.setAfterConnection(ac, classNum, connections);
-        ac.setButtonVisibility(View.VISIBLE);
+        PrefsManager.setAfterConnection(this, classNum, connections);
     }
 }

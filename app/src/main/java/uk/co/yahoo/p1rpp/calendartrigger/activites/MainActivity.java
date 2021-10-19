@@ -145,7 +145,7 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		invalidateOptionsMenu();
-		View v = getLayoutInflater().inflate(R.layout.fragment_action_stop, null);
+		View v = getLayoutInflater().inflate(R.layout.activity_action_stop, null);
 		setContentView(v);
 		int classNum = PrefsManager.getLastImmediate(mThis);
 		if (classNum >= 0) {

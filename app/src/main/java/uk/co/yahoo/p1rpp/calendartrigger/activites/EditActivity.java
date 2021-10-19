@@ -15,8 +15,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import uk.co.yahoo.p1rpp.calendartrigger.activites.DefineClassActivity;
-import uk.co.yahoo.p1rpp.calendartrigger.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.PrefsManager;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
@@ -32,38 +30,6 @@ public class EditActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edit_activity);
-    }
-
-    public void setButtonVisibility(int visibility) {
-        boolean visible = visibility == View.VISIBLE;
-        TextView tv = (TextView)findViewById (R.id.backgroundtext);
-        tv.setEnabled(visible);
-        tv.setVisibility(visibility);
-        Button b = (Button)findViewById(R.id.deleteclassbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.defineclassbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.definestartbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.actionstartbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.definestopbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.actionstopbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        b = (Button)findViewById(R.id.eventnowbutton);
-        b.setEnabled(visible);
-        b.setVisibility(visibility);
-        if (visible)
-        {
-            findViewById(R.id.editinvisible).requestFocus();
-        }
     }
 
     @Override
@@ -127,12 +93,9 @@ public class EditActivity extends Activity {
             R.string.defineStartLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentTransaction ft =
-                    getFragmentManager().beginTransaction();
-                Fragment f = DefineStartFragment.newInstance(className);
-                ft.replace(R.id.edit_activity_container, f, "dtf")
-                  .addToBackStack(null)
-                  .commit();
+                Intent it = new Intent(ac, DefineStartActivity.class);
+                it.putExtra("classname", className);
+                startActivity(it);
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
@@ -149,12 +112,9 @@ public class EditActivity extends Activity {
             R.string.actionStartLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentTransaction ft =
-                    getFragmentManager().beginTransaction();
-                Fragment f = ActionStartFragment.newInstance(className);
-                ft.replace(R.id.edit_activity_container, f, "atf")
-                  .addToBackStack(null)
-                  .commit();
+                Intent it = new Intent(ac, ActionStartActivity.class);
+                it.putExtra("classname", className);
+                startActivity(it);
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
@@ -171,12 +131,9 @@ public class EditActivity extends Activity {
             R.string.defineStopLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentTransaction ft =
-                    getFragmentManager().beginTransaction();
-                Fragment f = DefineStopFragment.newInstance(className);
-                ft.replace(R.id.edit_activity_container, f, "dpf")
-                  .addToBackStack(null)
-                  .commit();
+                Intent it = new Intent(ac, DefineStopActivity.class);
+                it.putExtra("classname", className);
+                startActivity(it);
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
@@ -193,12 +150,9 @@ public class EditActivity extends Activity {
             R.string.actionStopLabel, italicName)));
         b.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentTransaction ft =
-                    getFragmentManager().beginTransaction();
-                Fragment f = ActionStopFragment.newInstance(className);
-                ft.replace(R.id.edit_activity_container, f, "apf")
-                  .addToBackStack(null)
-                  .commit();
+                Intent it = new Intent(ac, ActionStopActivity.class);
+                it.putExtra("classname", className);
+                startActivity(it);
             }
         });
         b.setOnLongClickListener(new View.OnLongClickListener() {
@@ -230,6 +184,5 @@ public class EditActivity extends Activity {
                 return true;
             }
         });
-        setButtonVisibility(View.VISIBLE);
     }
 }

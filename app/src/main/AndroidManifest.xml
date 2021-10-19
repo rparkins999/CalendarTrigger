@@ -64,8 +64,13 @@
 
         <activity android:name=".activites.EditActivity" />
         <activity android:name=".activites.DefineClassActivity" />
+        <activity android:name=".activites.DefineStartActivity" />
+        <activity android:name=".activites.DefineStopActivity" />
+        <activity android:name=".activites.ActionStartActivity" />
+        <activity android:name=".activites.ActionStopActivity" />
         <activity android:name=".activites.SettingsActivity" />
         <activity android:name=".activites.FakeContact" />
+        <activity android:name=".activites.FileBrowserActivity" />
     </application>
 
 </manifest>

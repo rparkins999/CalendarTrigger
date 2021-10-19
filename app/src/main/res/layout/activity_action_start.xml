@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright (c) 2021. Richard P. Parkins, M. A.
+   Released under GPL V3 or later
+  -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.ActionStartActivity"
+	tools:ignore="MergeRootFrame" >
+
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="10dp"
+		android:orientation="vertical"
+		android:id="@+id/actionstartlayout"/>
+
+</ScrollView>

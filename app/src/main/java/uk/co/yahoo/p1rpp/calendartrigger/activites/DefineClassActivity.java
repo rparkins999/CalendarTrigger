@@ -110,10 +110,11 @@ public class DefineClassActivity extends Activity
     protected void onResume() {
         super.onResume();
         final DefineClassActivity ac = this;
-        Intent i = getIntent();
-        className = i.getStringExtra("classname");
-        Configuration config = getResources().getConfiguration();
+        Intent it = getIntent();
+        className = it.getStringExtra("classname");
+        int classNum = PrefsManager.getClassNum(this, className);
         final String italicName = "<i>" + htmlEncode(className) + "</i>";
+        Configuration config = getResources().getConfiguration();
         float scale = getResources().getDisplayMetrics().density;
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -140,7 +141,6 @@ public class DefineClassActivity extends Activity
         tv = new TextView(ac);
         tv.setText(fromHtml(getString(R.string.defineclasslist, italicName)));
         ll.addView(tv, ww);
-        int classNum = PrefsManager.getClassNum(this, className);
         ArrayList<Long> checkedCalendarIds
             = PrefsManager.getCalendars(ac, classNum);
         ContentResolver cr = ac.getContentResolver();
