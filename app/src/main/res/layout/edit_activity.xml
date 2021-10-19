@@ -1,88 +1,95 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
    Copyright (c) 2016. Richard P. Parkins, M. A.
    Released under GPL V3 or later
   -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:id="@+id/edit_activity_container"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="uk.co.yahoo.p1rpp.calendartrigger.activites.EditActivity"
-             tools:ignore="MergeRootFrame" >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/edit_activity_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="left|top">
+        android:layout_gravity="left|top"
+        android:orientation="vertical">
 
         <!-- This is an invisible view to request the focus when an EditText gets deleted
              in order to stop Android highlighting something else.
              It would be nicer to go back into touch mode,
              but Android does not provide a way of doing that. -->
         <TextView
+            android:id="@+id/editinvisible"
             android:layout_width="1dp"
             android:layout_height="1dp"
-            android:text=""
             android:alpha="0"
             android:focusable="true"
-            android:id="@+id/editinvisible"/>
+            android:text="" />
 
         <TextView
+            android:id="@+id/backgroundtext"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/backgroundtext"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text=""/>
 
         <Button
+            android:id="@+id/deleteclassbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-			android:text=""
-            android:id="@+id/deleteclassbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/defineclassbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/defineclassbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/definestartbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/definestartbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/actionstartbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/actionstartbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/definestopbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/definestopbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/actionstopbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/actionstopbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
 
         <Button
+            android:id="@+id/eventnowbutton"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-			android:layout_weight="1"
-            android:text=""
-            android:id="@+id/eventnowbutton"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
     </LinearLayout>
+
+</ScrollView>
+
 </FrameLayout>
