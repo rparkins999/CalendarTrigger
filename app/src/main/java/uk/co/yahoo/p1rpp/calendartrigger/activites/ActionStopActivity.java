@@ -138,7 +138,7 @@ public class ActionStopActivity extends ActionActivity {
         ll.addView(lll, ww);
         showNotification = new CheckBox(ac);
         showNotification.setText(R.string.afficher_notification);
-        boolean notif = PrefsManager.getNotifyEnd(ac, classNum);
+        final boolean notif = PrefsManager.getNotifyEnd(ac, classNum);
         showNotification.setChecked(notif);
         showNotification.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -153,52 +153,25 @@ public class ActionStopActivity extends ActionActivity {
                 @Override
                 public void onCheckedChanged(
                     CompoundButton v, boolean isChecked) {
-                    playSound.setEnabled(isChecked);
-                    soundFilename.setEnabled(isChecked);
+                    playSound.enable(isChecked);
+                    soundFilename.enable(isChecked);
                 }
             });
         ll.addView(showNotification, ww);
         lll = new LinearLayout(ac);
         lll.setPadding((int)(scale * 40.0), 0, 0, 0);
-        playSound = new CheckBox(ac);
-        playSound.setEnabled(notif);
+        playSound = new SoundBox(ac);
+        playSound.enable(notif);
         playSound.setText(R.string.playsound);
         playSound.setChecked(PrefsManager.getPlaysoundEnd(ac, classNum));
-        playSound.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.endPlaySoundHelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        playSound.setHelpString(R.string.endPlaySoundHelp);
         lll.addView(playSound, ww);
         ll.addView(lll);
         lll = new LinearLayout(ac);
         lll.setPadding((int)(scale * 55.0), 0, 0, 0);
-        soundFilename = new TextView(ac);
-        soundFilename.setEnabled(notif);
-        setSoundFileName(PrefsManager.getSoundFileEnd(ac, classNum));
-        soundFilename.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                getFile();
-            }
-        });
-        soundFilename.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (hasFileName)
-                {
-                    Toast.makeText(ac, R.string.browsefileHelp,
-                                   Toast.LENGTH_LONG).show();
-                }
-                else {
-                    Toast.makeText(ac, R.string.browsenofileHelp,
-                                   Toast.LENGTH_LONG).show();
-                }
-                return true;
-            }
-        });
+        soundFilename = new SoundFileLabel(ac);
+        soundFilename.enable(notif);
+        soundFilename.setFile(PrefsManager.getSoundFileEnd(ac, classNum));
         lll.addView(soundFilename, ww);
         ll.addView(lll, ww);
     }
@@ -249,12 +222,7 @@ public class ActionStopActivity extends ActionActivity {
         PrefsManager.setNotifyEnd(this, classNum, showNotification.isChecked());
         PrefsManager.setPlaysoundEnd(
             this, classNum, playSound.isChecked());
-        if (hasFileName) {
-            PrefsManager.setSoundFileEnd(
+        PrefsManager.setSoundFileEnd(
                 this, classNum, soundFilename.getText().toString());
-        }
-        else {
-            PrefsManager.setSoundFileEnd( this, classNum, "");
-        }
     }
 }

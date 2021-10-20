@@ -366,6 +366,7 @@
         navigateur de fichiers. Si cette classe assourdit l\'audio, le son ne
         ne sera pas entendu. Il faut utiliser une autre classe pour faire
         jouer le son avant le commencement de l\'évènement. </string>
+    <string name="noPlaySoundHelp">Notification doit être montré pour jouer un son.</string>
     <string name="browsenofile">Navigation de fichiers</string>
     <string name="browsenofileHelp">Choisir un fichier de son</string>
     <string name="browsefileHelp">Choisir un autre fichier de son </string>

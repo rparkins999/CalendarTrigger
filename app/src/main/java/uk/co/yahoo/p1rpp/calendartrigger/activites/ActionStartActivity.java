@@ -107,7 +107,7 @@ public class ActionStartActivity extends ActionActivity {
         NotificationManager nm = (NotificationManager)
             ac.getSystemService(Context.NOTIFICATION_SERVICE);
         boolean havePermission;
-        if (apiVersion >= android.os.Build.VERSION_CODES.M)
+        if((apiVersion >= android.os.Build.VERSION_CODES.M) && (nm != null))
         {
             havePermission = nm.isNotificationPolicyAccessGranted();
         }
@@ -350,7 +350,7 @@ public class ActionStartActivity extends ActionActivity {
         ll.addView(lll, ww);
         showNotification = new CheckBox(ac);
         showNotification.setText(R.string.afficher_notification);
-        boolean notif = PrefsManager.getNotifyStart(ac, classNum);
+        final boolean notif = PrefsManager.getNotifyStart(ac, classNum);
         showNotification.setChecked(notif);
         showNotification.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -365,52 +365,25 @@ public class ActionStartActivity extends ActionActivity {
                 @Override
                 public void onCheckedChanged(
                     CompoundButton v, boolean isChecked) {
-                    playSound.setEnabled(isChecked);
-                    soundFilename.setEnabled(isChecked);
+                    playSound.enable(isChecked);
+                    soundFilename.enable(isChecked);
                 }
             });
         ll.addView(showNotification, ww);
         lll = new LinearLayout(ac);
         lll.setPadding((int)(scale * 40.0), 0, 0, 0);
-        playSound = new CheckBox(ac);
-        playSound.setEnabled(notif);
+        playSound = new SoundBox(ac);
+        playSound.enable(notif);
         playSound.setText(R.string.playsound);
         playSound.setChecked(PrefsManager.getPlaysoundStart(ac, classNum));
-        playSound.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Toast.makeText(ac, R.string.startPlaySoundHelp,
-                               Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
+        playSound.setHelpString(R.string.startPlaySoundHelp);
         lll.addView(playSound, ww);
         ll.addView(lll, ww);
         lll = new LinearLayout(ac);
         lll.setPadding((int)(scale * 55.0), 0, 0, 0);
-        soundFilename = new TextView(ac);
-        soundFilename.setEnabled(notif);
-        setSoundFileName(PrefsManager.getSoundFileStart(ac, classNum));
-        soundFilename.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                getFile();
-            }
-        });
-        soundFilename.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (hasFileName)
-                {
-                    Toast.makeText(ac, R.string.browsefileHelp,
-                                   Toast.LENGTH_LONG).show();
-                }
-                else {
-                    Toast.makeText(ac, R.string.browsenofileHelp,
-                                   Toast.LENGTH_LONG).show();
-                }
-                return true;
-            }
-        });
+        soundFilename = new SoundFileLabel(ac);
+        soundFilename.enable(notif);
+        soundFilename.setFile(PrefsManager.getSoundFileStart(ac, classNum));
         lll.addView(soundFilename, ww);
         ll.addView(lll, ww);
     }
@@ -462,12 +435,7 @@ public class ActionStartActivity extends ActionActivity {
         PrefsManager.setNotifyStart(this, classNum, showNotification.isChecked());
         PrefsManager.setPlaysoundStart(
             this, classNum, playSound.isChecked());
-        if (hasFileName) {
-            PrefsManager.setSoundFileStart(
+        PrefsManager.setSoundFileStart(
                 this, classNum, soundFilename.getText().toString());
-        }
-        else {
-            PrefsManager.setSoundFileStart( this, classNum, "");
-        }
     }
 }

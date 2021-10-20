@@ -8,6 +8,7 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -15,6 +16,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.PermissionChecker;
 import android.text.InputFilter;
+import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -109,6 +112,7 @@ public class DefineStopActivity extends Activity {
         int classNum = PrefsManager.getClassNum(this, className);
         final String italicName = "<i>" + htmlEncode(className) + "</i>";
         float scale = getResources().getDisplayMetrics().density;
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
         ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
@@ -173,7 +177,7 @@ public class DefineStopActivity extends Activity {
             currentApiVersion >= android.os.Build.VERSION_CODES.KITKAT
             && packageManager.hasSystemFeature(
                    PackageManager.FEATURE_SENSOR_STEP_COUNTER);
-        int colour =  haveStepCounter ? 0xFF000000 : 0x80000000;
+        int colour = haveStepCounter ? 0xFF000000 : 0x80000000;
         lll = new LinearLayout(this);
         lll.setOrientation(LinearLayout.HORIZONTAL);
         lll.setPadding((int)(scale * 25.0), 0, 0, 0);
@@ -188,21 +192,38 @@ public class DefineStopActivity extends Activity {
                 return true;
             }
         });
-        TextView firstStepsLabel = new TextView(this);
-        firstStepsLabel.setText(R.string.firststepslabel);
-        firstStepsLabel.setTextColor(colour);
+        LayoutInflater inflater =
+            (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        // getSystemService can theoretically return null, but that can't actually happen
+        if (inflater != null) {
+            View v = inflater.inflate(R.layout.breaking_text, lll);
+            TextView firstStepsLabel = (TextView) v.findViewById(R.id.firststepstext);
+            firstStepsLabel.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Toast.makeText(ac,
+                        haveStepCounter ?
+                            getString(R.string.stepcounteryes) :
+                            getString(R.string.stepcounterno),
+                        Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+            firstStepsLabel.setMaxWidth(metrics.widthPixels * 2 / 3);
+            firstStepsLabel.setText(R.string.firststepslabel);
+            firstStepsLabel.setTextColor(colour);
+        }
         stepCountEditor = new EditText(this);
         stepCountEditor.setInputType(
             android.text.InputType.TYPE_CLASS_NUMBER);
         stepCountEditor.setFilters(lf);
         i = haveStepCounter ? PrefsManager.getAfterSteps(this, classNum) : 0;
         stepCountEditor.setText(String.valueOf(i), TextView.BufferType.EDITABLE);
-        stepCountEditor.setEnabled(true);
+        stepCountEditor.setEnabled(haveStepCounter);
         stepCountEditor.setTextColor(colour);
         TextView lastStepsLabel = new TextView(this);
         lastStepsLabel.setText(R.string.laststepslabel);
         lastStepsLabel.setTextColor(colour);
-        lll.addView(firstStepsLabel, ww);
         lll.addView(stepCountEditor, ww);
         lll.addView(lastStepsLabel, ww);
         ll.addView(lll, ww);

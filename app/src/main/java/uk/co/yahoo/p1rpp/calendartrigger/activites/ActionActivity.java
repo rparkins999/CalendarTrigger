@@ -15,40 +15,17 @@ package uk.co.yahoo.p1rpp.calendartrigger.activites;
 import android.app.Activity;
 import android.content.Intent;
 import android.widget.CheckBox;
-import android.widget.TextView;
-
-import uk.co.yahoo.p1rpp.calendartrigger.R;
-
-import static android.text.Html.fromHtml;
-import static android.text.TextUtils.htmlEncode;
 
 public class ActionActivity extends Activity {
     protected CheckBox showNotification;
-    protected CheckBox playSound;
-    protected TextView soundFilename;
-    protected Boolean hasFileName;
+    protected SoundBox playSound;
+    protected SoundFileLabel soundFilename;
     protected Boolean gettingFile;
 
     public void getFile() {
         gettingFile = true;
         Intent it = new Intent(this, FileBrowserActivity.class);
         startActivityForResult(it, 0, null);
-    }
-
-    protected void setSoundFileName(String fileName) {
-        if (fileName.isEmpty())
-        {
-            hasFileName = false;
-            String browse = "<i>" +
-                htmlEncode(getString(R.string.browsenofile)) +
-                "</i>";
-            soundFilename.setText(fromHtml(browse));
-        }
-            else
-        {
-            hasFileName = true;
-            soundFilename.setText(fileName);
-        }
     }
 
     protected void openThis(String fileName) {}
@@ -87,6 +64,6 @@ public class ActionActivity extends Activity {
             fileName = "";
         }
         openThis(fileName);
-        setSoundFileName(fileName);
+        soundFilename.setFile(fileName);
     }
 }

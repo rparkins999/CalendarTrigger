@@ -4,6 +4,7 @@
 
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.RadioButton;
@@ -40,6 +41,7 @@ public class DisabledRadioButton extends RadioButton {
         setAlpha(0.4F);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean performClick() {
         // override the click to do nothing

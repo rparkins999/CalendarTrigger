@@ -371,6 +371,7 @@
         play a sound at the end of the event. The sound can be selected
         using a file browser.
     </string>
+    <string name="noPlaySoundHelp">Notification must be shown to play a sound.</string>
     <string name="browsenofile">Browse for a sound file</string>
     <string name="browsenofileHelp">Click here to browse for a sound file
     </string>
