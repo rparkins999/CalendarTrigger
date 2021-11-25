@@ -496,7 +496,7 @@
     <string name="rafraichir_calendriers">Rafraîchir les calendriers</string>
     <string name="rafraichir_calendriers_short">Rafraîchir calendriers</string>
     <string name="afficher_notification">Afficher une notification</string>
-	<string name="mode_sonnerie_change">Mode d\'audio changé à\ </string>
+	<string name="mode_sonnerie_change">"Mode d\'audio changé à "</string>
     <string name="name">nom</string>
     <string name="settingTo">Mode de sonnerie</string>
     <string name="ringerModeNone">non changée</string>
