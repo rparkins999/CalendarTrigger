@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Richard P. Parkins, M. A.
+ * Copyright © 2022, Richard P. Parkins, M. A.
  * Released under GPL V3 or later
  */
 
@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.drawable.Icon;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -226,6 +227,8 @@ public class MuteService extends IntentService
 		Notification.Builder NBuilder
 			= new Notification.Builder(this)
 			.setSmallIcon(R.drawable.notif_icon)
+			.setLargeIcon(Icon.createWithResource(this, R.drawable.launcher_icon))
+			.setCategory(Notification.CATEGORY_EVENT)
 			.setContentTitle(getString(R.string.mode_sonnerie_change))
 			.setContent(layout);
 		if (!path.isEmpty())

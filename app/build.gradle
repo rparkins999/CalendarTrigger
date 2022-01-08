@@ -28,10 +28,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-rules.pro'
             signingConfig signingConfigs.config
+            delete("build/intermediates/incremental/mergeReleaseResources/merger.xml")
             resValue("string", 'build_time', "${(new Date()).toString()}")
         }
         debug {
             signingConfig signingConfigs.config
+            delete("build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml")
             resValue("string", 'build_time', "${(new Date()).toString()}")
         }
     }
