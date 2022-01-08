@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -227,6 +228,8 @@ public class MuteService extends IntentService
 		Notification.Builder NBuilder
 			= new Notification.Builder(this)
 			.setSmallIcon(R.drawable.notif_icon)
+			.setLargeIcon(Icon.createWithResource(this, R.drawable.launcher_icon))
+			.setCategory(Notification.CATEGORY_EVENT)
 			.setContentTitle(smallText)
 			.setContent(layout);
 		if ((path != null) && !path.isEmpty())

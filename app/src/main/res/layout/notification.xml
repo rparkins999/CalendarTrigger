@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding= "5dp"
-        android:tint="#FF000000"
+        android:tint="#FFFFFFFF"
         android:layout_gravity="center_vertical"
         android:src="@drawable/notif_icon"/>
 
@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="left"
                 android:text="@string/mode_sonnerie_change"
-                android:textColor="#FF000000"/>
+                android:textColor="#FFFFFFFF"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -39,7 +39,7 @@
                 android:layout_weight="10"
                 android:layout_gravity="right"
                 android:text=""
-                android:textColor="#FF000000"
+                android:textColor="#FFFFFFFF"
                 android:id="@+id/notificationtime"/>
 
         </LinearLayout>
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="10"
             android:text=""
-            android:textColor="#A0000000"
+            android:textColor="#FFFFFFFF"
             android:id="@+id/notificationtext"/>
 
     </LinearLayout>
