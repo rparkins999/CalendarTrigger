@@ -196,6 +196,8 @@ public class SettingsActivity extends Activity {
         catch (PackageManager.NameNotFoundException e)
         {
         }
+        tv = (TextView)findViewById(R.id.gitdata);
+        tv.setText(R.string.build_git);
         tv = (TextView)findViewById(R.id.lastcalltext);
         DateFormat df = DateFormat.getDateTimeInstance();
         long t = PrefsManager.getLastInvocationTime(this);

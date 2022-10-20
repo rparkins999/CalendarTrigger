@@ -4,6 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CalendarTrigger.iml" filepath="$PROJECT_DIR$/CalendarTrigger.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CalendarTrigger.app.unitTest.iml" />
     </modules>
   </component>
 </project>
