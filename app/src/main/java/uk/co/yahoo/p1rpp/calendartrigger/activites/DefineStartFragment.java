@@ -310,7 +310,6 @@ public class DefineStartFragment extends Fragment {
         String s = minutesEditor.getText().toString();
         int i = s.isEmpty() ? 0 : Integer.parseInt(s);
         if (s.isEmpty()) { s = "0"; }
-        PrefsManager.setAfterMinutes(ac, classNum, i);
         if (beforeAfter.getSelectedItemPosition() != 0) { i = -i; }
         PrefsManager.setBeforeMinutes(ac, classNum, i);
         int orientations = 0;
