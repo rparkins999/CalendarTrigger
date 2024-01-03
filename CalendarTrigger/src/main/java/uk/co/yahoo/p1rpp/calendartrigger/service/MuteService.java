@@ -6,6 +6,7 @@
 package uk.co.yahoo.p1rpp.calendartrigger.service;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -632,16 +633,35 @@ public class MuteService extends IntentService
 		}
 	}
 
+	// Called to advance the GPS state machine for classNum through the sequence
+	// PrefsManager.LATITUDE_IDLE
+	// PrefsManager.LATITUDE_FIRST
+	// waiting to exit geofence
+	// PrefsManager.LATITUDE_IDLE again if we get reset
+	// otherwise checkLocationWait will move this class to
+	//    PrefsManager.LATITUDE_IDLE
+	// This does do the right thing if several classes are active.
+	// If several classes are waiting for a start position, the first
+	// intent with a location update will satisfy all of them.
+	// requestLocationUpdates will be called for each class to change mintime
+	// to 5 minutes, but this does no harm.
+	// If a class starts waiting for a start position while another class
+	// is waiting for geofence exit, mintime will be set to zero and then
+	// reset to 5 minutes when a location update arrives.
 	public void LocationUpdates(int classNum, double which) {
 		LocationManager lm =
 			(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+		if (lm == null) { return; }
 		String s = "CalendarTrigger.Location";
+		@SuppressLint("UnspecifiedImmutableFlag")
 		PendingIntent pi = PendingIntent.getBroadcast(
 			this, 0 /*requestCode*/,
-			new Intent(s, Uri.EMPTY, this, StartServiceReceiver.class),
+			new Intent(s, Uri.EMPTY, this,
+				StartServiceReceiver.class),
 			PendingIntent.FLAG_UPDATE_CURRENT);
 		if (which == PrefsManager.LATITUDE_IDLE)
 		{
+			// No classes need location any more or we've been reset
 			lm.removeUpdates(pi);
 			PrefsManager.setLocationState(this, false);
 			new MyLog(this, "Removing location updates");
@@ -649,69 +669,68 @@ public class MuteService extends IntentService
 		else
 		{
 			List<String> ls = lm.getProviders(true);
-			if (which == PrefsManager.LATITUDE_FIRST)
+			// We want the start position as soon as possible,
+			// so we set the minimum time to zero.
+			// The first update may take a long time if we are inside a
+			// building, but this is OK because we won't want to restore
+			// the state until we've left the building.
+			// Once we've seen a start position, we increase the minimum time
+			// and check every 5 minutes to see if we've exited the geofence.
+			long minTime;
+			if (which == PrefsManager.LATITUDE_FIRST) {
+				minTime = 0;
+				PrefsManager.setLatitude(this, classNum, which);
+			} else {
+				minTime = 5 * 60 * 1000;
+			}
+			if (ls.contains("gps"))
 			{
-				if (ls.contains("gps"))
-				{
-					// The first update may take a long time if we are inside a
-					// building, but this is OK because we won't want to restore
-					// the state until we've left the building. If we don't
-					// force the use of GPS here, we may get a cellular network
-					// fix which can be some distance from our real position and
-					// if we then get a GPS fix while we are still in the
-					// building we can think that we have moved when in fact we
-					// haven't.
-					lm.requestSingleUpdate("gps", pi);
-					new MyLog(this,
-							  "Requesting first gps location for class "
-							  .concat(PrefsManager.getClassName(
-								  this, classNum)));
-				}
-				else
-				{
-					// If we don't have GPS, we use whatever the device can give
-					// us.
-					Criteria cr = new Criteria();
-					cr.setAccuracy(Criteria.ACCURACY_FINE);
-					lm.requestSingleUpdate(cr, pi);
-					new MyLog(this,
-							  "Requesting first fine location for class "
-							  .concat(PrefsManager.getClassName(
-								  this, classNum)));
-				}
-				PrefsManager.setLocationState(this, true);
-				PrefsManager.setLatitude(
-					this, classNum, PrefsManager.LATITUDE_FIRST);
+				// We force the use of GPS if it's available,
+				// otherwise we may get a cellular network fix
+				// which can be some distance from our real position and
+				// if we then get a GPS fix while we are still in the
+				// building we can think that we have moved when in fact
+				// we haven't.
+				lm.requestLocationUpdates(
+					"gps", minTime, 0, pi);
+				new MyLog(this,
+						  "Requesting gps location for class "
+						  .concat(PrefsManager.getClassName(
+							  this, classNum)));
 			}
 			else
 			{
-				float meters =
-					(float)PrefsManager.getAfterMetres(this, classNum);
-				if (ls.contains("gps"))
-				{
-					lm.requestLocationUpdates("gps", 5 * 60 * 1000, meters, pi);
-				}
-				else
-				{
-					Criteria cr = new Criteria();
-					cr.setAccuracy(Criteria.ACCURACY_FINE);
-					lm.requestLocationUpdates(5 * 60 * 1000, meters, cr, pi);
-				}
+				// If we don't have GPS,
+				// we use whatever the device can give us.
+				Criteria cr = new Criteria();
+				cr.setAccuracy(Criteria.ACCURACY_FINE);
+				lm.requestLocationUpdates(minTime, 0, cr, pi);
+				new MyLog(this,
+						  "Requesting fine location for class "
+						  .concat(PrefsManager.getClassName(
+							  this, classNum)));
 			}
+			PrefsManager.setLocationState(this, true);
 		}
 	}
 
+	// Start location wait if necessary
 	private void startLocationWait(int classNum, Intent intent) {
 		Location here =
 			intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
 		if (!PrefsManager.getLocationState(this))
 		{
+			// GPS isn't running, start it up
 			LocationUpdates(classNum, PrefsManager.LATITUDE_FIRST);
 		}
 		else if (here != null)
 		{
-			PrefsManager.setLatitude(this, classNum, here.getLatitude());
-			PrefsManager.setLongitude(this, classNum, here.getLongitude());
+			// we got a start position for classNum
+			LocationUpdates(classNum, 0.0);
+			PrefsManager.setLatitude(
+				this, classNum, here.getLatitude());
+			PrefsManager.setLongitude(
+				this, classNum, here.getLongitude());
 			new MyLog(this,
 					  "Set up geofence for class "
 						  .concat(PrefsManager.getClassName(this, classNum))
@@ -719,15 +738,21 @@ public class MuteService extends IntentService
 						  .concat(((Double)here.getLatitude()).toString())
 						  .concat(", ")
 						  .concat(((Double)here.getLongitude()).toString()));
+			// Reduce the GPS poll frequency
 		}
-		else
+		else if (PrefsManager.getLatitude(this, classNum).equals(
+					PrefsManager.LATITUDE_IDLE))
 		{
+			// GPS is running, wait for start position for this class
 			PrefsManager.setLatitude(
 				this, classNum, PrefsManager.LATITUDE_FIRST);
 		}
+		// Otherwise we're already waiting for a start position
+		// but didn't get one, so we do nothing and keep waiting.
 	}
 
-	// return true if not left geofence yet
+	// Called when classNum is waiting for device to exit geofence
+	// returns true if still inside geofence
 	private boolean checkLocationWait(
 		int classNum, double latitude, Intent intent) {
 		if (!PrefsManager.getLocationState(this))
@@ -743,7 +768,7 @@ public class MuteService extends IntentService
 		{
 			if (latitude == PrefsManager.LATITUDE_FIRST)
 			{
-				// waiting for current location, and got it
+				// waiting for start location, and got it
 				LocationUpdates(classNum, 0.0);
 				PrefsManager.setLatitude(this, classNum, here.getLatitude());
 				PrefsManager.setLongitude(this, classNum, here.getLongitude());
@@ -1135,7 +1160,7 @@ public class MuteService extends IntentService
 				if (triggered)
 				{
 					long after = PrefsManager.getAfterMinutes(this, classNum)
-								 * 60000;
+								 * 60000L;
 					if (after > 0)
 					{
 						long triggerEnd = currentTime + after;
@@ -1393,7 +1418,7 @@ public class MuteService extends IntentService
 						}
 						double latitude
 							= PrefsManager.getLatitude(this, classNum);
-						if (   (latitude != 360.0)
+						if (   (latitude != PrefsManager.LATITUDE_IDLE)
 							&& checkLocationWait(classNum, latitude, intent))
 						{
 							anyLocationActive = true;
