@@ -31,7 +31,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:id="@+id/gitdata"/>
+            android:id="@+id/gitdata1"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/gitdata2"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/gitdata3"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/compileSdk"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/minSdk"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/targetSdk"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

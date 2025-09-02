@@ -955,17 +955,8 @@ public class MuteService extends IntentService
 
 	@TargetApi(android.os.Build.VERSION_CODES.M)
 	// Set the ringer mode. Returns true if mode changed.
-	boolean setCurrentRinger(AudioManager audio,
+	void setCurrentRinger(AudioManager audio,
 		int apiVersion, int mode, int current) {
-		if (   (current == mode)
-			|| (   (mode == PrefsManager.RINGER_MODE_NONE)
-			    && (current == PrefsManager.RINGER_MODE_NORMAL))
-			|| (   (mode == PrefsManager.RINGER_MODE_MUTED)
-				   && (current == PrefsManager.getMuteResult(this))))
-		{
-			return false;  // no change
-		}
-		PrefsManager.setLastRinger(this, mode);
 		if (apiVersion >= android.os.Build.VERSION_CODES.M)
 		{
 			NotificationManager nm = (NotificationManager)
@@ -1029,7 +1020,6 @@ public class MuteService extends IntentService
 					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 					break;
 				default: // unknown
-					return false;
 			}
 		}
 		else
@@ -1046,25 +1036,8 @@ public class MuteService extends IntentService
 					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 					break;
 				default: // unknown
-					return false;
 			}
 		}
-		int gotmode = PrefsManager.getCurrentMode(this);
-		new MyLog(this,
-				  "Tried to set mode "
-				  + PrefsManager.getEnglishStateName(this, mode)
-				  + ", actually got "
-				  + PrefsManager.getEnglishStateName(this, gotmode));
-		// Some versions of Android give us a mode different from the one that
-		// we asked for, and some versions of Android take a while to do it.
-		// We use a Handler to delay getting the mode actually set.
-		mHandler.sendMessageDelayed(
-			mHandler.obtainMessage(what, MODE_WAIT, 0, this), 1000);
-		new MyLog(this,
-				  "mHandler.hasMessages() returns "
-				  + (mHandler.hasMessages(what) ? "true" : "false"));
-		lock();
-		return true;
 	}
 	
 	// Determine which event classes have become active
@@ -1545,8 +1518,44 @@ public class MuteService extends IntentService
 		{
 			wantedMode = PrefsManager.RINGER_MODE_NORMAL;
 		}
- 		boolean changed =
-			setCurrentRinger(audio, currentApiVersion,  wantedMode, current);
+ 		boolean changed = wantedMode != current;
+		boolean setOK = true;
+		if (   (current == wantedMode)
+				|| (   (wantedMode == PrefsManager.RINGER_MODE_NONE)
+				&& (current == PrefsManager.RINGER_MODE_NORMAL))
+				|| (   (wantedMode == PrefsManager.RINGER_MODE_MUTED)
+				&& (current == PrefsManager.getMuteResult(this))))
+		{
+			changed = false;  // no change
+		} else {
+			PrefsManager.setLastRinger(this, wantedMode);
+			setCurrentRinger(
+					audio, currentApiVersion, wantedMode, current);
+			int gotmode = PrefsManager.getCurrentMode(this);
+			new MyLog(this,
+					"Tried to set mode "
+							+ PrefsManager.getEnglishStateName(this, wantedMode)
+							+ ", actually got "
+							+ PrefsManager.getEnglishStateName(this, gotmode));
+			if (gotmode != wantedMode) {
+				setCurrentRinger(
+						audio, currentApiVersion,  wantedMode, current);
+				gotmode = PrefsManager.getCurrentMode(this);
+				new MyLog(this,
+						"Tried again to set mode "
+								+ PrefsManager.getEnglishStateName(this, wantedMode)
+								+ ", actually got "
+								+ PrefsManager.getEnglishStateName(this, gotmode));
+				setOK = gotmode != wantedMode;
+				mHandler.sendMessageDelayed(
+						mHandler.obtainMessage(what, MODE_WAIT, 0, this), 1000);
+				new MyLog(this,
+						"mHandler.hasMessages() returns "
+								+ (mHandler.hasMessages(what) ? "true" : "false"));
+				lock();
+			}
+		}
+
 		if (changed) {
 			shortText = PrefsManager.getRingerStateName(this, wantedMode);
 		}
@@ -1600,7 +1609,8 @@ public class MuteService extends IntentService
 		if (!startEvent.isEmpty())
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
+					(setOK ? "Setting audio mode to "
+						     : "Tried to set audio mode to")
 					  + PrefsManager.getEnglishStateName(this,
 														 wantedMode)
 					  + " for start of event "
@@ -1611,7 +1621,8 @@ public class MuteService extends IntentService
 		else if (!endEvent.isEmpty())
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
+					(setOK ? "Setting audio mode to "
+							 : "Tried to set audio mode to")
 					  + PrefsManager.getEnglishStateName(this,
 														 wantedMode)
 					  + " for end of event "
@@ -1622,7 +1633,8 @@ public class MuteService extends IntentService
 		else if (resetting)
 		{
 			new MyLog(this,
-					  "Setting audio mode to "
+					(setOK ? "Setting audio mode to "
+							 : "Tried to set audio mode to")
 					  + PrefsManager.getEnglishStateName(this,
 														 wantedMode)
 					  + " after reset");

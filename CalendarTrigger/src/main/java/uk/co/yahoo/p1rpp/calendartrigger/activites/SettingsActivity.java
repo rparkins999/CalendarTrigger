@@ -6,9 +6,9 @@
 package uk.co.yahoo.p1rpp.calendartrigger.activites;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.content.PermissionChecker;
@@ -30,8 +30,8 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.text.DateFormat;
 
-import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
+import uk.co.yahoo.p1rpp.calendartrigger.buildType;
 import uk.co.yahoo.p1rpp.calendartrigger.calendar.CalendarDumper;
 import uk.co.yahoo.p1rpp.calendartrigger.service.MuteService;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.DataStore;
@@ -44,7 +44,7 @@ public class SettingsActivity extends Activity {
     private CheckBox nextLocation;
     private CheckBox logCycling;
     public SettingsActivity settingsActivity;
-    private Button fakecontact;
+    private Button fakeContact;
     private ListView log;
 
     @Override
@@ -52,7 +52,7 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
         settingsActivity = this;
-        fakecontact = null;
+        fakeContact = null;
         log = null;
     }
 
@@ -63,25 +63,24 @@ public class SettingsActivity extends Activity {
     }
 
     void doDumpCalendar() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             ArrayAdapter<String> adapter
                     = new ArrayAdapter<>(
                     this, R.layout.activity_text_viewer);
-            CalendarDumper cd = new CalendarDumper(this, adapter);
+            new CalendarDumper(this, adapter);
         }
     }
 
     void doLogCalendar() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
-            CalendarDumper cd =
-                    new CalendarDumper(this, null);
+            new CalendarDumper(this, null);
         }
     }
 
     public void doneCalendar(ArrayAdapter<String> adapter) {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (adapter == null) { return; }
             if (adapter.getCount() == 0)
@@ -143,7 +142,7 @@ public class SettingsActivity extends Activity {
         {
             log = new ListView(this);
             ArrayAdapter<String> adapter
-                = new ArrayAdapter<String> (
+                = new ArrayAdapter<> (
                         this, R.layout.activity_text_viewer);
             try
             {
@@ -175,29 +174,38 @@ public class SettingsActivity extends Activity {
             log.setFastScrollAlwaysVisible(true);
             log.setDivider(null);
             setContentView(log);
-            fakecontact = null;
+            fakeContact = null;
         }
     }
 
+    @SuppressLint("SetTextI18n")
     protected void reResume() {
         final SettingsActivity me = this;
         TextView tv = (TextView)findViewById(R.id.versiontext);
-        PackageManager pm = getPackageManager();
-        try
-        {
-            PackageInfo pi = pm.getPackageInfo(
-                "uk.co.yahoo.p1rpp.calendartrigger", 0);
-            tv.setText("CalendarTrigger "
-                           .concat(pi.versionName)
-                           .concat(" built ")
-                           .concat(getString(R.string.build_time))
-                      );
-        }
-        catch (PackageManager.NameNotFoundException e)
-        {
-        }
-        tv = (TextView)findViewById(R.id.gitdata);
-        tv.setText(R.string.build_git);
+        String builder = buildType.debug
+                ? "Debug build" : "Release build";
+        tv.setText("CalendarTrigger "
+            .concat(getString(R.string.myVersion))
+            .concat(" ")
+            .concat(builder)
+            .concat(" ")
+            .concat(getString(R.string.build_time))
+        );
+        tv = (TextView)findViewById(R.id.gitdata1);
+        tv.setText(R.string.build_git1);
+        tv = (TextView)findViewById(R.id.gitdata2);
+        tv.setText(R.string.build_git2);
+        tv = (TextView)findViewById(R.id.gitdata3);
+        tv.setText(R.string.build_git3);
+        tv = (TextView)findViewById(R.id.compileSdk);
+        tv.setText(" Compile SDK "
+                +getString(R.string.compileVersion));
+        tv = (TextView)findViewById(R.id.minSdk);
+        tv.setText(" Minimum SDK "
+                +getString(R.string.minVersion));
+        tv = (TextView)findViewById(R.id.targetSdk);
+        tv.setText(" Target SDK "
+                +getString(R.string.targetVersion));
         tv = (TextView)findViewById(R.id.lastcalltext);
         DateFormat df = DateFormat.getDateTimeInstance();
         long t = PrefsManager.getLastInvocationTime(this);
@@ -258,7 +266,6 @@ public class SettingsActivity extends Activity {
             }
         });
         tv = (TextView)findViewById(R.id.locationtext);
-        mode = PrefsManager.getCurrentMode(this);
         tv.setText(getString(PrefsManager.getLocationState(this) ?
                              R.string.yeslocation :
                              R.string.nolocation));
@@ -446,7 +453,7 @@ public class SettingsActivity extends Activity {
                 }
                 else {
                     state = false;
-                    cb.setChecked(state);
+                    cb.setChecked(false);
                 }
                 PrefsManager.setLogCycleMode(me, state);
             }
@@ -623,22 +630,22 @@ public class SettingsActivity extends Activity {
         tv = (TextView)findViewById(R.id.savefiletext);
         s = DataStore.SettingsFileName();
         tv.setText(getString(R.string.settingsfile, s));
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             LinearLayout ll =
                     (LinearLayout)findViewById(R.id.edit_activity_container);
-            if (fakecontact == null)
+            if (fakeContact == null)
             {
-                fakecontact = new Button(this);
-                fakecontact.setText("Fake Contact");
-                fakecontact.setOnClickListener(new View.OnClickListener() {
+                fakeContact = new Button(this);
+                fakeContact.setText("Fake Contact");
+                fakeContact.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent it = new Intent(me, FakeContact.class);
                         startActivity(it);
                     }
                 });
-                ll.addView(fakecontact);
+                ll.addView(fakeContact);
             }
             LinearLayout lll = new LinearLayout(this);
             lll.setOrientation(LinearLayout.HORIZONTAL);
@@ -669,7 +676,6 @@ public class SettingsActivity extends Activity {
         super.onResume();
         if (log == null)
         {
-            final SettingsActivity me = this;
             reResume();
         }
     }

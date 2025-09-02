@@ -1,16 +1,45 @@
 apply plugin: 'com.android.application'
 
+// If you've cloned this project and want to build it
+// you need to create a signing key in ../Keys/keystore.properties
+// or change this code to point to a signing key
+// that you already have
 def keystorePropertiesFile = rootProject.file("../Keys/keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-def gitdata = new ByteArrayOutputStream()
+// This bit of fantasy extracts some git information
+// which will get put into resources which are displayed
+// on the debugging page
+def gitdata1 = new ByteArrayOutputStream()
+def gitdata2 = new ByteArrayOutputStream()
+def gitdata3 = new ByteArrayOutputStream()
 // change this line to /* if not using git
 exec {
-    commandLine "git", "--no-pager", "show", "-s", "--format=from commit %H of %as"
-    standardOutput = gitdata;
+    commandLine "git", "--no-pager", "show", "-s",
+            "--format=from commit %H"
+    standardOutput = gitdata1
+}
+exec {
+    commandLine "git", "--no-pager", "show", "-s",
+            "--date=format:%H:%M:%S GMT%z %a %b %d %Y",
+            "--format=of %ad"
+    standardOutput = gitdata2
+}
+exec {
+    commandLine "git", "branch", "--show-current"
+    standardOutput = gitdata3
 }
 //*/
+
+// This bit of fantasy puts the compile, minimum and target
+// version API numbers, and the version name, into resources
+// so that the debugging page can display these too.
+def compileVersion = 23
+def minVersion = 21
+def targetVersion = 22
+def CTversion = "3.4"
+def appID = "uk.co.yahoo.p1rpp.calendartrigger"
 
 android {
     signingConfigs {
@@ -21,14 +50,15 @@ android {
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion 23
-    project.archivesBaseName = "CalendarTrigger";
+    compileSdk compileVersion
+    project.archivesBaseName = "CalendarTrigger"
     defaultConfig {
-        applicationId 'uk.co.yahoo.p1rpp.calendartrigger'
-        minSdkVersion 21
-        targetSdkVersion 22
-        versionCode 8
-        versionName "3.3"
+        applicationId appID
+        //noinspection ExpiredTargetSdkVersion
+        minSdk minVersion
+        targetSdk targetVersion
+        versionCode 9
+        versionName CTversion
     }
     buildTypes {
         release {
@@ -38,14 +68,30 @@ android {
                     'proguard-rules.pro'
             signingConfig signingConfigs.config
             delete("build/intermediates/incremental/mergeReleaseResources/merger.xml")
-            resValue("string", 'build_time', "${(new Date()).toString()}")
-            resValue("string", 'build_git', "${gitdata.toString()}")
+            resValue("string", 'build_time',
+                    "${(new Date()).format('HH:mm:ss \'GMT\'Z EEE dd MMM yyyy')}")
+            resValue("string", 'build_git1', "${gitdata1.toString()}")
+            resValue("string", 'build_git2', "${gitdata2.toString()}")
+            resValue("string", 'build_git3',
+                    "${" on branch " + gitdata3.toString()}")
+            resValue("string", 'compileVersion', "${compileVersion.toString()}")
+            resValue("string", 'minVersion', "${minVersion.toString()}")
+            resValue("string", 'targetVersion', "${targetVersion.toString()}")
+            resValue("string", 'myVersion', "${CTversion.toString()}")
         }
         debug {
             signingConfig signingConfigs.config
             delete("build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml")
-            resValue("string", 'build_time', "${(new Date()).toString()}")
-            resValue("string", 'build_git', "${gitdata.toString()}")
+            resValue("string", 'build_time',
+                    "${(new Date()).format('HH:mm:ss \'GMT\'Z EEE dd MMM yyyy')}")
+            resValue("string", 'build_git1', "${gitdata1.toString()}")
+            resValue("string", 'build_git2', "${gitdata2.toString()}")
+            resValue("string", 'build_git3',
+                    "${" on branch " + gitdata3.toString()}")
+            resValue("string", 'compileVersion', "${compileVersion.toString()}")
+            resValue("string", 'minVersion', "${minVersion.toString()}")
+            resValue("string", 'targetVersion', "${targetVersion.toString()}")
+            resValue("string", 'myVersion', "${CTversion.toString()}")
         }
     }
     sourceSets {
@@ -57,6 +103,7 @@ android {
     lintOptions {
         disable("ExpiredTargetSdkVersion")
     }
+    namespace 'uk.co.yahoo.p1rpp.calendartrigger'
 }
 
 
