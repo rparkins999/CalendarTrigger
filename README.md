@@ -1,7 +1,6 @@
 ﻿# CalendarTrigger
 
-There is a bug in the handling of floating time events. If the time zone changes so that the current offset from GMT is zero (e. g. Europe/London during the winter), floating time events are not updated. A patch is available in branch floatingbugfix. The will be permanently fixed in the next release.
-
+If you want to build it yourself, current best version is fix3.3
 Trigger actions on your Android device based on calendar events
 
 This program is a generalisation of RemiNV/CalendarMute.
