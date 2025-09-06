@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
+import uk.co.yahoo.p1rpp.calendartrigger.buildType;
 import uk.co.yahoo.p1rpp.calendartrigger.activites.ArrayAdapter;
 import uk.co.yahoo.p1rpp.calendartrigger.activites.SettingsActivity;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
@@ -41,7 +41,7 @@ public class CalendarDumper implements OnDateSetListener {
     private long endDate;
 
     private void putline(String line) {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (adapter == null)
             {
@@ -102,7 +102,7 @@ public class CalendarDumper implements OnDateSetListener {
 
     private void doOne(Cursor cu)
     {
-        if (BuildConfig.DEBUG) {
+        if (buildType.debug) {
             DateFormat df = DateFormat.getDateInstance();
             DateFormat dtf0 = DateFormat.getDateTimeInstance();
             dtf0.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -172,7 +172,7 @@ public class CalendarDumper implements OnDateSetListener {
     }
 
     private void doAll() {
-        if (BuildConfig.DEBUG) {
+        if (buildType.debug) {
             if (adapter == null) {
                 new MyLog(caller, "Dump of calendar events:");
             }
@@ -196,7 +196,7 @@ public class CalendarDumper implements OnDateSetListener {
 
     public void onDateSet(
             DatePicker view, int year, int month, int day) {
-        if (BuildConfig.DEBUG) {
+        if (buildType.debug) {
             GregorianCalendar dd = new GregorianCalendar();
             dd.setTimeInMillis(0);
             dd.set(YEAR, year);
@@ -218,7 +218,7 @@ public class CalendarDumper implements OnDateSetListener {
     }
     public CalendarDumper(
             SettingsActivity owner, ArrayAdapter<String> theAdapter) {
-        if (BuildConfig.DEBUG) {
+        if (buildType.debug) {
             caller = owner;
             adapter = theAdapter;
             final Calendar c = Calendar.getInstance();

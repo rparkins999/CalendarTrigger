@@ -21,7 +21,7 @@ import android.provider.ContactsContract.RawContactsEntity;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
+import uk.co.yahoo.p1rpp.calendartrigger.buildType;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 
 public class ContactCreator {
@@ -1297,7 +1297,7 @@ public class ContactCreator {
     }
 
     private void putline(ArrayList<String> strings, String line) {
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			if (strings == null)
 			{
@@ -1311,7 +1311,7 @@ public class ContactCreator {
 
     private void addLine(ArrayList<String> strings,
 		String description, Cursor c, int i) {
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			switch (c.getType(i))
 			{
@@ -1340,7 +1340,7 @@ public class ContactCreator {
     private void dumpSingle(
     	ArrayList<String> strings, Cursor c, Cursor c1)
 	{
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			String mimetype =  c.getString(2);
 			putline(strings,"RawContactsEntity row:");
@@ -1663,7 +1663,7 @@ public class ContactCreator {
 	// only used for debugging
 	public ArrayList<String> dumpOneContact(String first, String last) {
 		ArrayList<String> strings;
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			final String[] CONTACT_PROJECTION =
 				{
@@ -1772,7 +1772,7 @@ public class ContactCreator {
 	// only used for debugging
 	public ArrayList<String> dumpAllContacts() {
 		ArrayList<String> strings;
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			strings = new ArrayList<>();
 			Cursor c;
@@ -1825,7 +1825,7 @@ public class ContactCreator {
 	// dump the entire contacts list to the log
 	// only used for debugging
 	public void logAllContacts() {
-		if (BuildConfig.DEBUG)
+		if (buildType.debug)
 		{
 			new MyLog(me, "Dump of contacts:");
 			Cursor c;

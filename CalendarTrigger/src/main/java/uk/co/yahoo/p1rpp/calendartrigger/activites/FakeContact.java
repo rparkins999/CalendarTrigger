@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import uk.co.yahoo.p1rpp.calendartrigger.BuildConfig;
+import uk.co.yahoo.p1rpp.calendartrigger.buildType;
 import uk.co.yahoo.p1rpp.calendartrigger.R;
 import uk.co.yahoo.p1rpp.calendartrigger.contacts.ContactCreator;
 
@@ -53,7 +53,7 @@ public class FakeContact extends Activity {
     }
 
     void doDumpOne() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (dump == null)
             {
@@ -84,14 +84,14 @@ public class FakeContact extends Activity {
     }
 
     void doLogAll() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             new ContactCreator(this).logAllContacts();
         }
     }
 
     void doDumpAll() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (dump == null)
             {
@@ -120,7 +120,7 @@ public class FakeContact extends Activity {
     }
 
     void reResume() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             ViewGroup.LayoutParams ww = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -307,7 +307,7 @@ public class FakeContact extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (dump == null)
             {
@@ -322,7 +322,7 @@ public class FakeContact extends Activity {
     }
     @Override
     public void onBackPressed() {
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if (dump != null)
             {
@@ -338,7 +338,7 @@ public class FakeContact extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (BuildConfig.DEBUG)
+        if (buildType.debug)
         {
             if ((dump == null) && !cancelled)
             {

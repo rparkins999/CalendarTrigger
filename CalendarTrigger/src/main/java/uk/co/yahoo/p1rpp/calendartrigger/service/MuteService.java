@@ -64,8 +64,6 @@ import uk.co.yahoo.p1rpp.calendartrigger.utilities.DataStore;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.MyLog;
 import uk.co.yahoo.p1rpp.calendartrigger.utilities.PrefsManager;
 
-import static java.net.Proxy.Type.HTTP;
-
 public class MuteService extends IntentService
 	implements SensorEventListener {
 
@@ -85,6 +83,7 @@ public class MuteService extends IntentService
 	public MuteService() {
 		super("CalendarTriggerService");
 		mHandler = new Handler() {
+			@SuppressLint("HandlerLeak")
 			@Override
 			public void handleMessage(Message inputMessage) {
                 Context owner = (Context)inputMessage.obj;
@@ -100,6 +99,32 @@ public class MuteService extends IntentService
 							  "Handler got mode "
 							  + PrefsManager.getEnglishStateName(owner, mode));
 					PrefsManager.setLastRinger(owner, mode);
+					if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+						NotificationManager nm = (NotificationManager)
+								getSystemService(Context.NOTIFICATION_SERVICE);
+						switch (nm.getCurrentInterruptionFilter()) {
+							case NotificationManager.INTERRUPTION_FILTER_NONE:
+								new MyLog(owner,
+										"Interruption filter is NONE");
+								break;
+							case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+								new MyLog(owner,
+										"Interruption filter is PRIORITY");
+								break;
+							case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+								new MyLog(owner,
+										"Interruption filter is ALARMS");
+								break;
+							case NotificationManager.INTERRUPTION_FILTER_ALL:
+								new MyLog(owner,
+										"Interruption filter is ALL");
+								break;
+							case NotificationManager.INTERRUPTION_FILTER_UNKNOWN:
+							default:
+								new MyLog(owner,
+										"Interruption filter is UNKNOWN");
+						}
+					}
 				}
 				else if (inputMessage.arg1 == DELAY_WAIT)
 				{
@@ -1003,6 +1028,7 @@ public class MuteService extends IntentService
 					audio.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 					break;
 				case PrefsManager.RINGER_MODE_VIBRATE:
+					audio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
 					if (nm.isNotificationPolicyAccessGranted())
 					{
 						nm.setInterruptionFilter(
@@ -1012,6 +1038,7 @@ public class MuteService extends IntentService
 					break;
                 case PrefsManager.RINGER_MODE_NORMAL:
 				case PrefsManager.RINGER_MODE_NONE:
+					audio.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
 					if (nm.isNotificationPolicyAccessGranted())
 					{
 						nm.setInterruptionFilter(
@@ -1537,6 +1564,32 @@ public class MuteService extends IntentService
 							+ PrefsManager.getEnglishStateName(this, wantedMode)
 							+ ", actually got "
 							+ PrefsManager.getEnglishStateName(this, gotmode));
+			if (currentApiVersion >= android.os.Build.VERSION_CODES.M) {
+				NotificationManager nm = (NotificationManager)
+						getSystemService(Context.NOTIFICATION_SERVICE);
+				switch (nm.getCurrentInterruptionFilter()) {
+					case NotificationManager.INTERRUPTION_FILTER_NONE:
+						new MyLog(this,
+								"Interruption filter is NONE");
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+						new MyLog(this,
+								"Interruption filter is PRIORITY");
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+						new MyLog(this,
+								"Interruption filter is ALARMS");
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_ALL:
+						new MyLog(this,
+								"Interruption filter is ALL");
+						break;
+					case NotificationManager.INTERRUPTION_FILTER_UNKNOWN:
+					default:
+						new MyLog(this,
+								"Interruption filter is UNKNOWN");
+				}
+			}
 			if (gotmode != wantedMode) {
 				setCurrentRinger(
 						audio, currentApiVersion,  wantedMode, current);
@@ -1546,6 +1599,32 @@ public class MuteService extends IntentService
 								+ PrefsManager.getEnglishStateName(this, wantedMode)
 								+ ", actually got "
 								+ PrefsManager.getEnglishStateName(this, gotmode));
+				if (currentApiVersion >= android.os.Build.VERSION_CODES.M) {
+					NotificationManager nm = (NotificationManager)
+							getSystemService(Context.NOTIFICATION_SERVICE);
+					switch (nm.getCurrentInterruptionFilter()) {
+						case NotificationManager.INTERRUPTION_FILTER_NONE:
+							new MyLog(this,
+									"Interruption filter is NONE");
+							break;
+						case NotificationManager.INTERRUPTION_FILTER_PRIORITY:
+							new MyLog(this,
+									"Interruption filter is PRIORITY");
+							break;
+						case NotificationManager.INTERRUPTION_FILTER_ALARMS:
+							new MyLog(this,
+									"Interruption filter is ALARMS");
+							break;
+						case NotificationManager.INTERRUPTION_FILTER_ALL:
+							new MyLog(this,
+									"Interruption filter is ALL");
+							break;
+						case NotificationManager.INTERRUPTION_FILTER_UNKNOWN:
+						default:
+							new MyLog(this,
+									"Interruption filter is UNKNOWN");
+					}
+				}
 				setOK = gotmode != wantedMode;
 				mHandler.sendMessageDelayed(
 						mHandler.obtainMessage(what, MODE_WAIT, 0, this), 1000);
